@@ -49,6 +49,21 @@ try to follow FS' organization in per-subject topic folders
 aparc+aseg is a spatial filter for generated
 BOLD and should be considered essential for that.
 
+## Parallelism
+
+- FS & tractography can run in paraller
+- FS parts 2 & 3 can run in parallel per hemisphere, e.g.
+
+```bash
+recon-all -s foo -autorecon1
+recon-all -s foo -autorecon2
+
+recon-all -s foo -autorecon3 -hemi rh &
+rh_pid=$!
+recon-all -s foo -autorecon3 -hemi lh
+wait $rh_pid
+```
+
 ## parameters
 
 Most steps are parameter free, but a few to keep in mind
