@@ -1,5 +1,9 @@
 # Setup
 
+_Disclaimer_ These instructions are provided on a best-effort basis: you
+may need to be resourceful in case upstream providers have changed their
+software. RTFM!
+
 - setting up a VM with Cent OS 7
 - scripts to handle openmeeg, mrtrix compilation
 - each step with example results & time estimates
