@@ -1,9 +1,22 @@
 
+"""Generate TVB surfaces and region mapping for FreeSurfer subjects.
+
+Usage:
+    fs-subj-to-tvb-surf.py [--subject=<name>]
+    fs-subj-to-tvb-surf.py (-h | --help)
+
+Options:
+    -h --help   Show this documentation
+    -s          Subject name
+
+"""
+
 import os
 import os.path
+import zipfile
+import docopt
 import numpy as np
 import nibabel.freesurfer
-import zipfile
 
 
 try:
@@ -49,6 +62,12 @@ def write_surface_zip(zip_fname, v, f):
 
 
 if __name__ == '__main__':
+    args = docopt.docopt(__doc__)
+
+    # prefer arg'd subject name
+    if args['--subject'] is not None:
+        os.environ['SUBJECT'] = args['--subject']
+
     path = get_default_base_path()
 
     # load left and right pial surfaces
@@ -65,5 +84,6 @@ if __name__ == '__main__':
     rm = np.r_[lrm, rrm + lf.max()]
 
     # write out in TVB format
-    np.savetxt('region_mapping.txt', rm.flat[:], '%i')
-    write_surface_zip('surface.zip', v, f)
+    prefix = os.environ['SUBJECT'] + '_'
+    np.savetxt(prefix + 'roi_map.txt', rm.flat[:], '%i')
+    write_surface_zip(prefix + 'pial_surf.zip', v, f)
