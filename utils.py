@@ -4,13 +4,13 @@ import glob
 import numpy as np
 import nibabel
 import scipy.io
-import warning
+import warnings
 
 
 try:
     import gdist
 except ImportError:
-    warning.warn('Geodesic distance module unavailable; please pip install gdist.')
+    warnings.warn('Geodesic distance module unavailable; please pip install gdist.')
 
 
 SUBJECTS_DIR, SUBJECT = [os.environ[key] for key in 'SUBJECTS_DIR SUBJECT'.split()]
@@ -68,13 +68,14 @@ def annot_to_conn_conf(hemi, annot_name, conn_conf_path):
             fd.write('%d\t%s\n' % (id, name))
 
 
-def compute_gdist_mat():
+def compute_gdist_mat(surf_name='pial', max_distance=40.0):
+    max_distance = float(max_distance) # in case passed from sys.argv
     for h in 'rl':
-      surf_path = '%s/%s/surf/%sh.pial.low' % (SUBJECTS_DIR, SUBJECT, h)
-      v, f = nibabel.freesurfer.read_geometry(surf_path)
-      mat_path = '%s/%s/surf/%sh.pial.low.gdist.mat' % (SUBJECTS_DIR, SUBJECT, h)
-      mat = gdist.local_gdist_matrix(v, f.astype('<i4'), max_distance=40.0)
-      scipy.io.savemat(mat_path, {'gdist': mat})
+        surf_path = '%s/%s/surf/%sh.%s' % (SUBJECTS_DIR, SUBJECT, h, surf_name)
+        v, f = nibabel.freesurfer.read_geometry(surf_path)
+        mat_path = '%s/%s/surf/%sh.%s.gdist.mat' % (SUBJECTS_DIR, SUBJECT, h, surf_name)
+        mat = gdist.local_gdist_matrix(v, f.astype('<i4'), max_distance=40.0)
+        scipy.io.savemat(mat_path, {'gdist': mat})
 
 
 def convert_bem_to_tri():
@@ -122,3 +123,10 @@ Brain       1
 Skull       0.03
 """)
     print ('%s written.' % (hm_cond,))
+
+
+if __name__ == '__main__':
+    cmd = sys.argv[1]
+
+    if cmd == 'gdist':
+        compute_gdist_mat(*sys.argv[2:])

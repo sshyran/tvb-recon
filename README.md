@@ -208,10 +208,13 @@ _This requires the development version of FreeSurfer, pending release of v6._
 
 The geodesic matrices of vertex-vertex distances along the cortical
 surfaces are computed as
+
 ```bash
-python compute_gdist.py
+SUBJECT=tvb python utils.py gdist pial.fsaverage5
 ```
-This requires 150 seconds.
+
+This requires 150 seconds and produces per-hemisphere mat files containing
+the sparse matrices.
 
 ### sEEG sensor identification
 
