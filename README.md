@@ -74,6 +74,29 @@ Most steps are parameter free, but a few to keep in mind
 
 sift always on, topup & act depends on data.
 
+Main difficulty with preprocessing reversed acquisition is formatting
+data because mrconvert asks interactively which series to convert. We
+can do this batch with a Bash function like
+
+```bash
+function mrchoose() {
+    choice=$1
+    shift
+    $@ << EOF
+$choice
+EOF
+}
+```
+
+which can be done in Python in clearer fashion
+
+```python
+def mrconvert_series(idx, src, dst):
+    subprocess.Popen(['mrconvert', src, dst], stdin=subprocess.PIPE)
+        .communicate('%d\n' % (idx, ))
+```
+
+
 ## new parcellations
 
 - new subdivided parcellations can be made on a sphere
