@@ -160,14 +160,14 @@ like
 
 ### Higher resolution parcellations
 
-The default parcellation can be subdivided into regions of roughly 250.0 mm^2
+The default parcellation can be subdivided into regions of roughly 100.0 mm^2
 ```bash
-mris_divide_parcellation ${SUBJECT} lh aparc 250.0 aparc250
-mris_divide_parcellation ${SUBJECT} rh aparc 250.0 aparc250
+SUBJECT=tvb python utils.py lh aparc aparc100 100
+SUBJECT=tvb python utils.py rh aparc aparc100 100
 ```
-This takes about 10 seconds. Check the subdivision visually,
+This takes a few seconds. Check the subdivision visually,
 ```
-freeview -f ${SUBJECTS_DIR}/${SUBJECT}/surf/lh.pial:annot=aparc250 -viewport 3d
+freeview -f ${SUBJECTS_DIR}/${SUBJECT}/surf/lh.pial:annot=aparc100 -viewport 3d
 ```
 ![aparc250](img/aparc250.png)
 
@@ -175,9 +175,9 @@ For each such parcellation, the corresponding volume should be generated
 ```
 mri_aparc2aseg --s ${SUBJECT} --aseg aseg --annot aparc250
 ```
-This takes 130 seconds and generates `mri/aparc250+aseg.mgz`.
+This takes 130 seconds and generates `mri/aparc100+aseg.mgz`.
 ```
-freeview -v ${SUBJECTS_DIR}/${SUBJECT}/mri/aparc250+aseg.mgz -viewport 3d
+freeview -v ${SUBJECTS_DIR}/${SUBJECT}/mri/aparc100+aseg.mgz -viewport 3d
 ```
 ![aseg250](img/aparc250-aseg.png)
 

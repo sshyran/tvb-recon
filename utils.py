@@ -4,7 +4,9 @@ import glob
 import numpy as np
 import nibabel
 import scipy.io
+import scipy.cluster
 import warnings
+import nibabel.freesurfer
 
 
 try:
@@ -44,14 +46,28 @@ def write_brain_visa_surf(fname, v, f):
 
 
 def convert_fs_to_brain_visa(fs_surf):
-    v, f = freesurfer.read_geometry(fs_surf)
+    v, f = nibabel.freesurfer.read_geometry(fs_surf)
     write_brain_visa_surf(fs_surf + '.tri', v, f)
 
 
-def read_annot(hemi, annot_name):
+def annot_path(hemi, annot_name):
     annot_fname = '%s.%s.annot' % (hemi, annot_name)
     annot_path = os.path.join(SUBJECTS_DIR, SUBJECT, 'label', annot_fname)
-    return freesurfer.read_annot(annot_path)
+    return annot_path
+
+
+def read_annot(hemi, annot_name):
+    return nibabel.freesurfer.read_annot(annot_path(hemi, annot_name))
+
+
+def write_annot(hemi, annot_name, labels, ctab, names):
+    return nibabel.freesurfer.write_annot(annot_path(hemi, annot_name), labels, ctab, names)
+
+
+def read_surf(hemi, name):
+    surf_fname = '%s.%s' % (hemi, name)
+    surf_path = os.path.join(SUBJECTS_DIR, SUBJECT, 'surf', surf_fname)
+    return nibabel.freesurfer.read_geometry(surf_path)
 
 
 def annot_to_lut(hemi, annot_name, lut_path):
@@ -125,8 +141,80 @@ Skull       0.03
     print ('%s written.' % (hm_cond,))
 
 
+def make_subparc(v, f, annot, roi_names, trg_area=100.0):
+
+    # build vertex -> face list map
+    vfm = [set([]) for _ in v]
+    for i, face in enumerate(f):
+        for j in face:
+            vfm[j].add(i)
+    vfm = np.array(vfm)
+
+    # make new annotation
+    new_annot = annot.copy()
+    new_names = [] # such that new_names[new_annot[i]] is correct name for i'th vertex
+    next_aval = 1
+    for i in np.unique(annot):
+        name = roi_names[i]
+        mask = annot == i
+
+        # "unknown", just skip
+        if i == -1:
+            new_annot[mask] = 0
+            new_names.append(name)
+            continue
+
+        # indices of faces in ROI
+        rfi = set([])
+        for face_set in vfm[mask]:
+            rfi.update(face_set)
+        rfi = np.array(list(rfi))
+
+        # empty roi
+        if rfi.size == 0:
+            continue
+
+        # compute area of faces in roi
+        tri_xyz = v[f[rfi]]
+        i, j, k = np.transpose(tri_xyz, (1, 0, 2))
+        ij = j - i
+        ik = k - i
+        roi_area = np.sum(np.sqrt(np.sum(np.cross(ij, ik)**2, axis=1)) / 2.0)#}}}
+
+        # choose k for desired roi area
+        k = int(roi_area / trg_area)
+
+        # cluster centered vertices
+        v_roi = v[mask]
+        _, i_lab = scipy.cluster.vq.kmeans2(v_roi - v_roi.mean(axis=0), k)
+
+        # update annot
+        new_annot[mask] = next_aval + i_lab
+        next_aval += k
+        new_names += ['%s-%d' % (name.decode('ascii'), j) for j in range(k)]
+
+    # create random colored ctab
+    new_ctab = np.random.randint(255, size=(len(new_names), 5))
+    r, g, b, _, _ = new_ctab.T
+    new_ctab[:, 3] = 0
+    new_ctab[:, 4] = r + 256 * g + 256 * 256 * b # fs magic values
+
+    return new_annot, new_ctab, new_names
+
+
+def subparc_files(hemi, parc_name, out_parc_name, trg_area):
+    trg_area = float(trg_area)
+    v, f = read_surf(hemi, 'sphere')
+    lab, ctab, names = read_annot(hemi, parc_name)
+    new_lab, new_ctab, new_names = make_subparc(v, f, lab, names)
+    write_annot(hemi, out_parc_name, new_lab, new_ctab, new_names)
+
+
 if __name__ == '__main__':
     cmd = sys.argv[1]
 
     if cmd == 'gdist':
         compute_gdist_mat(*sys.argv[2:])
+    if cmd == 'subparc':
+        subparc_files(*sys.argv[2:])
+
