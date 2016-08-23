@@ -2,30 +2,21 @@
 
 Tools for building full brain network models from standard structural MR scans.
 
+This is a work in progress.
+
 ## Goals
 
 - Scripts to help set up an environment with dependecies
 - Extensive visual diagnostics for intermediate & final results
+- Follow FS' organization in per-subject topic folders (adds dwi & seeg)
 - Functionality for rapidly reparcellating and obtaining new brain model
-- Adapters & datatypes for TVB framework
 
 ## TODO
 
-- all subjects in same space & orientation
-- use a single template electrode setup
-- consider 128 or 256 EEG sensor set
-- MEG should just work once template adjusted
+- friendly cli with docopt / argparse
+- calibrate standard 10-20 layout against aparc for MEG & EEG
 - EEG shoudl move sensors to be a few mm outside the head surface (lh.seghead)
-- use pg tool to adjust template layout against big head
-
-- subparcellations via ?h.sphere (not volumetric)
-- compute richer stats on connectome (tract len dist, FA dist)
-
-FS has many tricks. It is worth tab-completing `mri_` and `mris_` to see what
-stuff is possible.
-
-- `mris_convert --combinesurfs <in1> <in2> <out>` combines surface files
-- `mris_anatomical_stats -a label/lh.aparc.annot -b tvb lh` per label stats
+- break up into separate workflows
 
 ## outline steps
 
@@ -43,11 +34,7 @@ then for every connectivity, generate
 - connectome matrices
 - region mapping
 - reduced lead fields
-
-try to follow FS' organization in per-subject topic folders
-
-aparc+aseg is a spatial filter for generated
-BOLD and should be considered essential for that.
+- ROI vol map for fMRI
 
 ## Parallelism
 
@@ -55,14 +42,21 @@ BOLD and should be considered essential for that.
 - FS parts 2 & 3 can run in parallel per hemisphere, e.g.
 
 ```bash
-recon-all -s foo -autorecon1
-recon-all -s foo -autorecon2
+recon-all -i ../t1.nii.gz -s tvb # 10s
 
-recon-all -s foo -autorecon3 -hemi rh &
-rh_pid=$!
-recon-all -s foo -autorecon3 -hemi lh
-wait $rh_pid
+# this stuff once per brain
+recon-all -s tvb -autorecon1 -autorecon2 -no{tessellate,smooth1,inflate1,qsphere,fix,finalsurfs,smooth2,inflate2}
+
+# this stuff once per hemisphere
+recon-all -s tvb -nofill -autorecon2-wm -autorecon3 -hemi lh &
+recon-all -s tvb -nofill -autorecon2-wm -autorecon3 -hemi rh
 ```
+
+When autorecon1 is done, the dwi workflow can start,
+as well as tractography, until connectome generation step,
+in which we need the parc vols in diffusion space.
+
+Also in parallel most steps of EM fwds can be done.
 
 ## parameters
 
@@ -104,9 +98,6 @@ def mrconvert_series(idx, src, dst):
 - mri_aparc2aseg --s tvb --aseg aseg.presurf.hypos --annot foo
 - results in mri/foo+aseg.mgz
 - usuable for tck2connectome
-
-it seems nibabel is not writing good annotations, we'll need a fix
-or workaround..
 
 
 ## Workflow
@@ -180,6 +171,8 @@ This takes 130 seconds and generates `mri/aparc100+aseg.mgz`.
 freeview -v ${SUBJECTS_DIR}/${SUBJECT}/mri/aparc100+aseg.mgz -viewport 3d
 ```
 ![aseg250](img/aparc250-aseg.png)
+
+_TODO_ Subdivision of the subcortical structures.
 
 ### Lower resolutions surfaces
 
@@ -314,6 +307,8 @@ Modeling volumetrically would mean
 
 ### dMR
 
+_This section requires updating!!_
+
 Preparing a diffusion MR sequence for tractography requires a few preprocessing
 step. We'll use a new subject subfolder, and change into that folder for this
 section of the workflow
@@ -373,6 +368,8 @@ freeview -v t1-in-d.nii.gz lowb.nii.gz:colormap=heat aparc+aseg-in-d.nii.gz:colo
 ![this](img/lowb-t1-aseg.png)
 
 #### Response and fODF estimation
+
+_TODO_ Redo this section, following new syntax for mrtrix3 commands.
 
 - `dwi2response`
 - `dwi2fod`
