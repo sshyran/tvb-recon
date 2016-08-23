@@ -182,7 +182,7 @@ def make_subparc(v, f, annot, roi_names, trg_area=100.0):
         roi_area = np.sum(np.sqrt(np.sum(np.cross(ij, ik)**2, axis=1)) / 2.0)#}}}
 
         # choose k for desired roi area
-        k = int(roi_area / trg_area)
+        k = int(roi_area / trg_area) + 1
 
         # cluster centered vertices
         v_roi = v[mask]
