@@ -39,20 +39,16 @@ then for every connectivity, generate
 ## Parallelism
 
 - FS & tractography can run in paraller
-- FS parts 2 & 3 can run in parallel per hemisphere, e.g.
+- FS has a new `-parallel` flag which makes things faster
 
 ```bash
-recon-all -i ../t1.nii.gz -s tvb # 10s
 
-# this stuff once per brain
-recon-all -s tvb -autorecon1 -autorecon2 -no{tessellate,smooth1,inflate1,qsphere,fix,finalsurfs,smooth2,inflate2}
+rm -rf $SUBJECTS_DIR/tvb
 
-# this stuff once per hemisphere
-recon-all -s tvb -nofill -autorecon2-wm -autorecon3 -hemi lh &
-recon-all -s tvb -nofill -autorecon2-wm -autorecon3 -hemi rh
+time recon-all -i ../t1_raw.nii.gz -s tvb -all -parallel
 ```
 
-When autorecon1 is done, the dwi workflow can start,
+The dwi workflow can start in parallel,
 as well as tractography, until connectome generation step,
 in which we need the parc vols in diffusion space.
 
@@ -62,7 +58,6 @@ Also in parallel most steps of EM fwds can be done.
 
 Most steps are parameter free, but a few to keep in mind
 
-- csd max harmonic, lmax (can just be left at default, max order possible given data)
 - subparcellation
 - number of tracks (though 10M sifted to 5M seems safe default, 100M->10M is lux)
 
@@ -82,15 +77,6 @@ EOF
 }
 ```
 
-which can be done in Python in clearer fashion
-
-```python
-def mrconvert_series(idx, src, dst):
-    subprocess.Popen(['mrconvert', src, dst], stdin=subprocess.PIPE)
-        .communicate('%d\n' % (idx, ))
-```
-
-
 ## new parcellations
 
 - new subdivided parcellations can be made on a sphere
@@ -98,7 +84,6 @@ def mrconvert_series(idx, src, dst):
 - mri_aparc2aseg --s tvb --aseg aseg.presurf.hypos --annot foo
 - results in mri/foo+aseg.mgz
 - usuable for tck2connectome
-
 
 ## Workflow
 
@@ -139,9 +124,9 @@ export SUBJECT=tvb
 ### FreeSurfer recon-all
 
 ```bash
-recon-all -s ${SUBJECT} -i t1_raw.nii.gz -all
+recon-all -s ${SUBJECT} -i t1_raw.nii.gz -all -parallel
 ```
-This takes takes 11 hours, though the time required can vary
+This takes takes 5+ hours, though the time required can vary
 significantly across datasets.
 
 Loading the T1, aparc+aseg, lh.white surface with lh.aparc.DK annot should look
@@ -211,33 +196,7 @@ the sparse matrices.
 
 ### sEEG sensor identification
 
-Coregister the CT and T1 image
-```bash
-regopt="-dof 12 -searchrx -180 180 -searchry -180 180 -searchrz -180 180 -cost mutualinfo"
-flirt -in ct.nii -ref t1.nii -omat ct2t1.mat -out ct-in-t1.nii.gz $regopt
-```
-This takes about 9 minutes for this dataset.
-Checking the results visually
-```bash
-freeview -v t1.nii.gz ct.nii.gz:colormap=jet
-```
-![t1-ct](img/t1-ct.png)
-
-The electrodes must be manually labeled, so keep Freeview open, open
-whatever implantation reference availabe (x-ray, schema, etc), and
-for each electrode, create a control point set with the name of the electrode
-with two points 1) at the deepest part of the electrode and 2) where the
-electrode intersects the skull. Make sure to save these point sets in the
-`${SUBJECTS_DIR}/${SUBJECT}/sensors/seeg` directory.
-
-Once all electrodes are labeled, generate the list of contacts
-```bash
-python gen_seeg_contacts.py
-```
-If you have the list of x-y-z positions of contacts by some other means,
-then you can skip manual labelling and place this list in the
-`${SUBJECTS_DIR}/${SUBJECT}/sensors/seeg-contacts.txt` file.
-_Format to be defined._
+_WIP_
 
 ### s/M/EEG forward solutions
 
@@ -287,6 +246,8 @@ popd
 This requires about 6 minutes.
 
 #### Gain matrices
+
+_WIP_
 
 - combine lh & rh surfaces
 - for each sensor set
