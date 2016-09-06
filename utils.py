@@ -21,6 +21,49 @@ except ImportError:
 SUBJECTS_DIR, SUBJECT = [os.environ[key] for key in 'SUBJECTS_DIR SUBJECT'.split()]
 
 
+def parse_asa_electrode_file(fname):
+    "Parse an ASA electrode format file."
+    contents = {'positions': [], 'labels': []}
+    with open(fname, 'r') as fd:
+        lines = (l for l in fd.readlines())
+        # parse header
+        for line in lines:
+            if line.startswith('#'):
+                continue
+            parts = line.strip().split()
+            if line.startswith('ReferenceLabel'):
+                contents['reference_label'] = parts[1]
+            elif line.startswith('UnitPosition'):
+                contents['unit_position'] = parts[1]
+            elif line.startswith('NumberPositions'):
+                contents['number_positions'] = int(parts[1])
+            elif line.startswith('Positions'):
+                break
+            else:
+                raise Exception('unknown header line: %r' % (line,))
+        # parse positions
+        for line, _ in zip(lines, range(contents['number_positions'])):
+            contents['positions'].append(
+                    [float(coord) for coord in line.strip().split()])
+        # parse labels
+        #assert next(lines).strip() == 'Labels'
+        [contents['labels'].append(line.strip()) for line in lines]
+    return contents
+
+
+def test_parse_asa_electrode_file():
+    contents = parse_asa_electrode_file('standard_1005.elc')
+    assert contents['reference_label'] == 'avg'
+    assert contents['unit_position'] == 'mm'
+    assert contents['number_positions'] == 346
+    assert len(contents['positions']) == 346
+    assert contents['positions'][0] == [-86.0761, -19.9897, -47.9860]
+    assert contents['positions'][-1] == [85.7939, -25.0093, -68.0310]
+    assert len(contents['labels']) == 346
+    assert contents['labels'][0] == 'LPA'
+    assert contents['labels'][-1] == 'A2'
+
+
 def vertex_normals(v, f):
     vf = v[f]
     fn = np.cross(vf[:,1] - vf[:, 0], vf[:, 2] - vf[:, 0])
