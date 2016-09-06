@@ -200,71 +200,10 @@ _WIP_
 
 ### s/M/EEG forward solutions
 
-#### BEM Surfaces
-
-```
-mne_watershed_bem --subject tvb
-```
-This takes about 12 minutes, and produces four surface files
-`subjects/tvb/bem/watershed/tvb_{brain,inner_skull,outer_skin,outer_skull}_surface`.
-
-Each has 10242 vertices, which is too high for further processing, so we'll
-decimate them:
-
-```bash
-for surf in subjects/tvb/bem/watershed/*_surface
-do
-    time mris_decimate -d 0.1 ${surf} ${surf}-low
-done
-```
-This takes about 10 seconds for the 4 surfaces.
-Inspect the resulting BEM surfaces on the T1:
-```
-freeview -v subjects/tvb/mri/T1.mgz -f subjects/tvb/bem/watershed/*-low -viewport coronal
-```
-![this](img/t1-bem.png)
-
-If for memory reasons you wish to decimate the surfaces further, the `mrsi_decimate_gui`
-command will allow you to interactively decimate and visualize the results.
-
-#### Head model
-
-OpenMEEG doesn't currently read FreeSurfer format surfaces as produced by the
-preview BEM Surfaces step, so we first convert them to BrainVisa format:
-```
-python convert_bem_to_tri.py
-```
-Now we can use the generic head model geometry and conductivity files
-to generate & invert the head model:
-```bash
-python gen_head_model.py
-pushd ${SUBJECTS_DIR}/${SUBJECT}/bem
-om_assemble -HM head_model.geom head_model.cond head.mat # 2m32s
-om_minverser head.mat head-inv.mat # 3m30s
-popd
-```
-This requires about 6 minutes.
-
-#### Gain matrices
+_WIP_ This is moving to a dedicated workflow in `em-forward.sh`.
 
 _WIP_
 
-- combine lh & rh surfaces
-- for each sensor set
-  - compute full surface fwd
-  - for each parc
-    - average or svd the ROI fwds
-
-Subcortical structures however are better modeled as unconstrained
-volumetric source space, though we should assess point spread & cross
-talk to set grid size; so we need some work here, cf.
-
-- http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0059856
-
-Modeling volumetrically would mean
-
-- every grid point has three dipoles, three neural masses
-- they can be coupling by mean field or ?
 
 ### dMR
 
