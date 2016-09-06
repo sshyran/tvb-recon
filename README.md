@@ -196,18 +196,15 @@ the sparse matrices.
 
 ### sEEG sensor identification
 
-_WIP_
+This workflow has moved to `seeg-ct.sh`.
 
 ### s/M/EEG forward solutions
 
-_WIP_ This is moving to a dedicated workflow in `em-forward.sh`.
-
-_WIP_
-
+This is moving to a dedicated workflow in `em-forward.sh`.
 
 ### dMR
 
-_This section requires updating!!_
+_WIP requires update_
 
 Preparing a diffusion MR sequence for tractography requires a few preprocessing
 step. We'll use a new subject subfolder, and change into that folder for this
@@ -279,24 +276,6 @@ dwi2response dwi.mif response.txt -mask mask.mif -sf sf-mask.mif # 36m
 dwi2fod dwi.mif response.txt csd.mif -mask mask.mif #
 ```
 This takes about 40 minutes. _TODO images for verification_
-
-If your data was acquired with multiple shells, the above steps should have
-warned that the outer shell was automatically selected. We can then estimate
-response per shell
-```bash
-for b in $(mrinfo -shells dwi.mif)
-do
-  amp2sh dwi.mif dwiSH-$b.mif -shell $b
-  maskfilter mask.mif erode - -npass 3 | dwi2tensor dwi.mif tensor-$b.mif -mask -
-  tensor2metric tensor-$b.mif -fa - | mrthreshold - sf-$b.mif -abs 0.7
-  tensor2metric tensor-$b.mif -vector dirs-$b.mif
-  sh2response dwiSH-$b.mif sf-$b.mif dirs-$b.mif response-$b.txt
-done
-```
-_to be tested!_
-
-*TODO* Look at [global tractography](https://github.com/MRtrix3/mrtrix3/wiki/Global-Tractography).
-Requires estimating multishell estimations, and use of the `updated_syntax` branch.
 
 #### Anatomical constraints
 
