@@ -21,6 +21,9 @@ pushd $seeg_dir
 # convert source CT to standard format (input could be e.g. DICOM folder)
 mri_convert $SOURCE_CT CT.nii.gz
 
+# TODO rewrite slightly for resized T1 usage
+# TODO set up testing on jenkins
+
 # convert FS images to Nifti for use with FSL
 for image in T1 brain aparc+aseg
 do
@@ -33,16 +36,19 @@ do
     fslreorient2std $image.nii.gz $image-reo.nii.gz
 done
 
+# align to original res first
+# resize and applyxfm to CT into resized image
 # register CT to T1 space
-flirt -in   CT-reo.nii.gz \
-    -ref  T1-reo.nii.gz \
+flirt -in CT-reo.nii.gz \
+    -ref  T1-big.nii.gz \
     -omat CT-to-T1.mat \
     -out  CT-in-T1.nii.gz \
     -dof  12 \
     -searchrx -180 180 \
     -searchry -180 180 \
     -searchrz -180 180 \
-    -cost mutualinfo
+    -cost mutualinfo \
+    -searchcost mutualinfo
 
 # XXX check registration, should fit
 freeview -v T1-reo.nii.gz CT-in-T1.nii.gz:opacity=0.5:colormap=jet \
@@ -70,7 +76,7 @@ freeview -v CT-reo.nii.gz brain-in-CT.nii.gz:opacity=0.5:colormap=jet \
 
 # binarize brain with erosion to avoid false positives
 mri_binarize --erode 8 \
-    --i brain-in-CT.nii.gz \
+    --i brain-big.nii \
     --o brain-mask.nii.gz \
     --min 10
 
@@ -79,7 +85,7 @@ freeview -v CT-reo.nii.gz brain-mask.nii.gz:opacity=0.5:colormap=jet \
     -viewport axial -layout 1 -screenshot ss02-brain-mask.png
 
 # apply mask to ct
-mri_binarize --i CT-reo.nii.gz --o CT-mask.nii.gz \
+mri_binarize --i CT-in-T1.nii.gz --o CT-mask.nii.gz \
     --min $electrode_intensity_threshold \
     --mask brain-mask.nii.gz
 
@@ -100,14 +106,9 @@ freeview -v CT-reo.nii.gz CT-mask.nii.gz:opacity=0.4:colormap=jet \
 
 # label dil mask and apply to mask
 # XXX reported number of electrodes should match implantation schema
-python <<EOF
-import nibabel, scipy.ndimage
-mask = nibabel.load('CT-mask.nii.gz')
-dil_mask = nibabel.load('CT-dil-mask.nii.gz')
-lab, n = scipy.ndimage.label(dil_mask.get_data())
-print('%d electrodes found' % (n, ))
-lab_mask_nii = nibabel.nifti1.Nifti1Image(lab * mask.get_data(), mask.affine)
-nibabel.save(lab_mask_nii, 'CT-lab-mask.nii.gz')
+python<<EOF
+import utils
+utils.label_with_dilation('CT-mask.nii.gz', 'CT-dil-mask.nii.gz', 'CT-lab-mask.nii.gz')
 EOF
 
 # XXX check that labels have different colors, in mrview if possible
@@ -124,29 +125,12 @@ aff = nii.affine
 ulab = np.unique(lab_bin)
 ulab = ulab[ulab > 0]
 ul_to_pos = {}
+
 for ul in ulab[ulab > 0]:
-    # vox coords onto first mode
-    vox_idx = np.argwhere(lab_bin == ul)
-    xyz = aff.dot(np.c_[vox_idx, np.ones(vox_idx.shape[0])].T)[:3].T
-    xyz_mean = xyz.mean(axis=0)
-    xyz -= xyz_mean
-    u, s, vt = np.linalg.svd(xyz, 0)
-    xi = u[:, 0] * s[0]
-    # histogram and ft to find spacing and offset
-    bw = 0.1
-    bn, bxi_ = np.histogram(xi, np.r_[min(xi) - 0.5 : max(xi) + 0.5 : bw])
-    bxi = bxi_[:-1] + bw / 2.0
-    w = np.r_[1.0 : 6.0 : 1000j]
-    f = (1.0 / w)[:, None]
-    Bf = (np.exp(-2 * np.pi * 1j * bxi * f) * bn * bw).sum(axis=-1)
-    i_peak = np.argmax(np.abs(Bf))
-    theta = np.angle(Bf[i_peak])
-    print (ul, 1/f[i_peak][0], theta)
-    xi_o = -theta / (2 * np.pi * f[i_peak])
-    xi_pos = np.r_[xi_o : xi.max() : w[i_peak]]
-    xi_neg = np.r_[-xi_o : -xi.min() : w[i_peak]]
-    xi_pos = np.sort(np.r_[-xi_neg, xi_pos[1:]])
-    xyz_pos = np.c_[xi_pos, np.zeros((len(xi_pos), 2))].dot(vt) + xyz_mean
+    xyz_pos = periodic_xyz_for_object(lab_bin, ul)
+    print(xyz_pos)
+
+    break
     # move to T1 space
     CT_to_T1 = np.loadtxt("CT-to-T1.mat")
     # not correct!? ascii mat is wrong, wtf!
@@ -165,6 +149,8 @@ if False:
     [axvline(xp, color='r') for xp in xi_pos];
     show()
 EOF
+
+
 
 # TODO multispaced electrodes like oblique should have weird spectra
 # TODO rm electrode artifact in acquisition plane by deconv?
