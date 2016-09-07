@@ -86,7 +86,28 @@ done
 # make sensor models
 om_assemble -h2em head_model.{geom,cond} EEG.sensors EEG.h2em
 om_assemble -h2mm head_model.{geom,cond} MEG.sensors MEG.h2mm
-om_assemble -h2
+
+seeg_sensor_file=../seeg/seeg.xyz
+
+om_assemble -h2ipm head_model.{geom,cond} $seeg_sensor_file seeg.h2ipm
+
+for h in lh rh;
+do
+    om_assemble -ds2ipm head_model.{geom,cond} cortical-$h.dip \
+        $seeg_sensor_file seeg-$h.ds2ipm
+    om_gain -InternalPotential head-inv.mat cortical-$h.ssm \
+        seeg.h2ipm seeg-$h.ds2ipm seeg-$h.gain.mat
+done
+
+# plot gain matrix
+python<<EOF
+import h5py, pylab as pl, numpy as np
+linop = h5py.File('seeg.gain.mat')['/linop'][:]
+print(linop.shape)
+pl.hist(np.log(np.abs(linop.ravel())),100)
+pl.show()
+EOF
+
 
 # make gain matrices per source / sensor pair
 for source_model in subcortical.dsm cortical-{lh,rh}.ssm
@@ -99,7 +120,7 @@ do
 done
 
 
-#             ctx-lh   ctx-rh   subcort
+#          ctx-lh   ctx-rh   subcort
 #           
 #  SEEG
 #  EEG
