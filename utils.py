@@ -292,11 +292,12 @@ def gen_dipoles(pos, ori_or_face=None, out_fname=None):
     np.savetxt(out_fname, np.c_[pos, ori], fmt='%f')
 
 
-def periodic_xyz_for_object(lab, val, bw=0.1):
+import pylab as pl, numpy as np
+def periodic_xyz_for_object(lab, val, aff, bw=0.1, doplot=False):
     "Find blob centers for object in lab volume having value val."
     # TODO handle oblique with multiple spacing
     # vox coords onto first mode
-    vox_idx = np.argwhere(lab_bin == ul)
+    vox_idx = np.argwhere(lab == val)
     xyz = aff.dot(np.c_[vox_idx, np.ones(vox_idx.shape[0])].T)[:3].T
     xyz_mean = xyz.mean(axis=0)
     xyz -= xyz_mean
@@ -310,27 +311,26 @@ def periodic_xyz_for_object(lab, val, bw=0.1):
     Bf = (np.exp(-2 * np.pi * 1j * bxi * f) * bn * bw).sum(axis=-1)
     i_peak = np.argmax(np.abs(Bf))
     theta = np.angle(Bf[i_peak])
-    print("[periodic_xyz_for_object]", ul, 1/f[i_peak][0], theta)
+    print("[periodic_xyz_for_object]", val, 1/f[i_peak][0], theta)
     xi_o = -theta / (2 * np.pi * f[i_peak])
     xi_pos = np.r_[xi_o : xi.max() : w[i_peak]]
     xi_neg = np.r_[-xi_o : -xi.min() : w[i_peak]]
     xi_pos = np.sort(np.r_[-xi_neg, xi_pos[1:]])
     xyz_pos = np.c_[xi_pos, np.zeros((len(xi_pos), 2))].dot(vt) + xyz_mean
+    if doplot:
+        pl.figure()
+        pl.subplot(2, 1, 1)
+        pl.plot(bxi, bn)
+        pl.subplot(2, 1, 2)
+        pl.plot(w, np.abs(Bf))
+        pl.subplot(2, 1, 1)
+        cos_arg = 2*np.pi*f[i_peak]*bxi + theta
+        pl.plot(bxi, np.cos(cos_arg)*bn.std()+bn.mean(), 'k--', alpha=0.5)
+        [pl.axvline(xp, color='r') for xp in xi_pos];
+        pl.show()
     return xyz_pos
 
 
-def periodic_xyz_for_object_plot():
-    "Visual diagnostic for periodic_xyz_for_object, but requires rewrite."
-    clf()
-    subplot(2, 1, 1)
-    plot(bxi, bn)
-    subplot(2, 1, 2)
-    plot(w, np.abs(Bf))
-    subplot(2, 1, 1)
-    cos_arg = 2*pi*f[i_peak]*bxi + theta
-    plot(bxi, np.cos(cos_arg)*bn.std()+bn.mean(), 'k--', alpha=0.5)
-    [axvline(xp, color='r') for xp in xi_pos];
-    show()
 
 
 def label_vol_from_tdi(tdi_nii_fname, out_fname, lo=1):

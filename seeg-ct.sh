@@ -36,6 +36,9 @@ do
     fslreorient2std $image.nii.gz $image-reo.nii.gz
 done
 
+# upsampling T1
+mrresize T1-reo.nii.gz T1-big.nii.gz -scale 2
+
 # align to original res first
 # resize and applyxfm to CT into resized image
 # register CT to T1 space
@@ -50,8 +53,10 @@ flirt -in CT-reo.nii.gz \
     -cost mutualinfo \
     -searchcost mutualinfo
 
+mrview T1-big.nii.gz
+
 # XXX check registration, should fit
-freeview -v T1-reo.nii.gz CT-in-T1.nii.gz:opacity=0.5:colormap=jet \
+freeview -v T1-big.nii.gz CT-in-T1.nii.gz:opacity=0.5:colormap=jet \
     -viewport sagittal -layout 1 -screenshot ss00-CT-in-T1.png
 
 # invert CT to T1 transform
@@ -118,16 +123,19 @@ freeview -v CT-reo.nii.gz CT-lab-mask.nii.gz:opacity=0.5:colormap=jet \
 
 # find contact positions
 python<<EOF
-import nibabel, numpy as np
+import nibabel, numpy as np, utils
 nii = nibabel.load('CT-lab-mask.nii.gz')
 lab_bin = nii.get_data()
 aff = nii.affine
 ulab = np.unique(lab_bin)
 ulab = ulab[ulab > 0]
 ul_to_pos = {}
+all_pos = []
 for ul in ulab[ulab > 0]:
-    xyz_pos = periodic_xyz_for_object(lab_bin, ul)
-    print(xyz_pos)
+    xyz_pos = utils.periodic_xyz_for_object(lab_bin, ul, aff)
+    all_pos.append(xyz_pos)
+all_pos = np.concatenate(all_pos, axis=0)
+np.savetxt('seeg.xyz', all_pos, fmt='%f')
 EOF
 
 
