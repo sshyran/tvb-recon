@@ -187,6 +187,14 @@ Skull       0.03
     print ('%s written.' % (hm_cond,))
 
 
+def tri_area(tri):
+    i, j, k = np.transpose(tri, (1, 0, 2))
+    ij = j - i
+    ik = k - i
+    return np.sqrt(np.sum(np.cross(ij, ik)**2, axis=1)) / 2.0
+
+
+
 def make_subparc(v, f, annot, roi_names, trg_area=100.0):
     # TODO subcort subparc with geodesic on bounding gmwmi
     # TODO normalize fiber counts by relevant gmwmi area
@@ -223,11 +231,7 @@ def make_subparc(v, f, annot, roi_names, trg_area=100.0):
             continue
 
         # compute area of faces in roi
-        tri_xyz = v[f[rfi]]
-        i, j, k = np.transpose(tri_xyz, (1, 0, 2))
-        ij = j - i
-        ik = k - i
-        roi_area = np.sum(np.sqrt(np.sum(np.cross(ij, ik)**2, axis=1)) / 2.0)#}}}
+        roi_area = np.sum(tri_area(v[f[rfi]]))
 
         # choose k for desired roi area
         k = int(roi_area / trg_area) + 1
@@ -270,6 +274,24 @@ def label_with_dilation(to_label_nii_fname, dilated_nii_fname, out_nii_fname):
     nibabel.save(lab_mask_nii, 'CT-lab-mask.nii.gz')
 
 
+def gen_dipole_triplets(pos):
+    pos3 = np.repeat(pos, 3, axis=0)
+    ori3 = np.tile(np.eye(3), (len(pos), 1))
+    return pos3, ori3
+
+
+def gen_dipoles(pos, ori_or_face=None, out_fname=None):
+    "Generate dipoles (or equiv. file) for OpenMEEG."
+    if ori_or_face is None:
+        pos, ori = gen_dipole_triplets(pos)
+    else:
+        if ori_or_face.dtype in np.floattypes:
+            ori = ori_or_face
+        else:
+            ori = gen_vertex_normals(v=pos, f=ori_or_face)
+    np.savetxt(out_fname, np.c_[pos, ori], fmt='%f')
+
+
 def periodic_xyz_for_object(lab, val, bw=0.1):
     "Find blob centers for object in lab volume having value val."
     # TODO handle oblique with multiple spacing
@@ -295,6 +317,20 @@ def periodic_xyz_for_object(lab, val, bw=0.1):
     xi_pos = np.sort(np.r_[-xi_neg, xi_pos[1:]])
     xyz_pos = np.c_[xi_pos, np.zeros((len(xi_pos), 2))].dot(vt) + xyz_mean
     return xyz_pos
+
+
+def periodic_xyz_for_object_plot():
+    "Visual diagnostic for periodic_xyz_for_object, but requires rewrite."
+    clf()
+    subplot(2, 1, 1)
+    plot(bxi, bn)
+    subplot(2, 1, 2)
+    plot(w, np.abs(Bf))
+    subplot(2, 1, 1)
+    cos_arg = 2*pi*f[i_peak]*bxi + theta
+    plot(bxi, np.cos(cos_arg)*bn.std()+bn.mean(), 'k--', alpha=0.5)
+    [axvline(xp, color='r') for xp in xi_pos];
+    show()
 
 
 def label_vol_from_tdi(tdi_nii_fname, out_fname, lo=1):

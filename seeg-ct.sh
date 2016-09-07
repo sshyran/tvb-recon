@@ -125,29 +125,9 @@ aff = nii.affine
 ulab = np.unique(lab_bin)
 ulab = ulab[ulab > 0]
 ul_to_pos = {}
-
 for ul in ulab[ulab > 0]:
     xyz_pos = periodic_xyz_for_object(lab_bin, ul)
     print(xyz_pos)
-
-    break
-    # move to T1 space
-    CT_to_T1 = np.loadtxt("CT-to-T1.mat")
-    # not correct!? ascii mat is wrong, wtf!
-    xyz_T1 = CT_to_T1.dot(np.c_[xyz_pos, np.ones(len(xyz_pos))].T)[:3].T
-    # TODO sort these median to lateral
-# visual check
-if False:
-    clf()
-    subplot(2, 1, 1)
-    plot(bxi, bn)
-    subplot(2, 1, 2)
-    plot(w, np.abs(Bf))
-    subplot(2, 1, 1)
-    cos_arg = 2*pi*f[i_peak]*bxi + theta
-    plot(bxi, np.cos(cos_arg)*bn.std()+bn.mean(), 'k--', alpha=0.5)
-    [axvline(xp, color='r') for xp in xi_pos];
-    show()
 EOF
 
 
