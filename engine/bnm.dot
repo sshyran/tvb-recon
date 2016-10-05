@@ -1,0 +1,11 @@
+digraph dag {
+    ratio=fill
+    node [style=filled,color="#444444",fillcolor="#ffed6f"]
+    edge [arrowhead=normal,arrowsize=1.0]
+
+    "ID0000001" [shape=ellipse,color="#000000",fillcolor="#1b9e77",label="T1 input pre-processing"]
+    "ID0000002" [shape=ellipse,color="#000000",fillcolor="#d95f02",label="Call 'recon-all'"]
+    "ID0000003" [shape=ellipse,color="#000000",fillcolor="#1b9e77",label="Generate nifti file with good orientation"]
+    "ID0000001" -> "ID0000002" [color="#000000"]
+    "ID0000002" -> "ID0000003" [color="#000000"]
+}

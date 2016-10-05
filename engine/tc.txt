@@ -1,0 +1,36 @@
+tr cp {
+    site condorpool {
+        pfn "/bin/cp"
+        arch "x86_64"
+        os "MACOSX"
+        type "INSTALLED"
+    }
+}
+
+tr mri_convert {
+    site condorpool {
+        pfn "/Applications/freesurfer/bin/mri_convert"
+        arch "x86_64"
+        os "MACOSX"
+        type "INSTALLED"
+    }
+}
+
+tr recon-all {
+    site condorpool {
+        pfn "/Applications/freesurfer/bin/recon-all"
+        arch "x86_64"
+        os "MACOSX"
+        type "INSTALLED"
+    }
+}
+
+tr snapshot {
+    site condorpool {
+        pfn "python bnm.recon.snapshot"
+        arch "x86_64"
+        os "MACOSX"
+        type "INSTALLED"
+    }
+}
+
