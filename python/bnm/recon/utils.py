@@ -52,7 +52,7 @@ def parse_asa_electrode_file(fname):
 
 
 def test_parse_asa_electrode_file():
-    contents = parse_asa_electrode_file('standard_1005.elc')
+    contents = parse_asa_electrode_file(os.path.join('data','standard_1005.elc'))
     assert contents['reference_label'] == 'avg'
     assert contents['unit_position'] == 'mm'
     assert contents['number_positions'] == 346

@@ -1,2 +1,5 @@
 __pycache__
 .svn
+.DS_Store
+*.pyc
+.idea/
