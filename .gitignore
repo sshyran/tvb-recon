@@ -3,3 +3,6 @@ __pycache__
 .DS_Store
 *.pyc
 .idea/
+*.dax
+*.dot
+*.swp

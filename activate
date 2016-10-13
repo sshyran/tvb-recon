@@ -1,0 +1,2 @@
+export PYTHONPATH=$(pwd):$(pegasus-config --python):$PYTHONPATH
+export PATH=$(pwd)/bin:$PATH

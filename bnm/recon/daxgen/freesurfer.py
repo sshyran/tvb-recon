@@ -1,10 +1,11 @@
-#!/usr/bin/env python
 import os
 import time
-
 import sys
+
+# XXX qualified name preferable
 from Pegasus.DAX3 import *
 
+# XXX switch to enum34 class?
 KEY_SUBJECT = "subject"
 KEY_SUBJECT_FOLDER = "subject.folder"
 KEY_THREADS = "open.mp.threads"
@@ -16,7 +17,7 @@ KEY_MRI_FOLDER = "mri.folder"
 
 MRI_APARC_ASEG_FILE_NAME = "aparc+aseg"
 TYPE_DICOM = "dicom"
-CONFIG_FILE = "patient.properties"
+CONFIG_FILE = "config/patient.properties"
 
 
 def read_from_properties_file():
@@ -97,36 +98,39 @@ def step_snapshot():
     return job
 
 
-# The name of the DAX file is the first argument
-if len(sys.argv) != 2:
-    sys.stderr.write("Usage: %s DAXFILE\n" % (sys.argv[0]))
-    sys.exit(1)
-daxfile = sys.argv[1]
+def freesurfer_main():
+    # The name of the DAX file is the first argument
+    if len(sys.argv) != 2:
+        sys.stderr.write("Usage: %s DAXFILE\n" % (sys.argv[0]))
+        sys.exit(1)
+    daxfile = sys.argv[1]
 
-dax = ADAG("BrainNetworkModelReconstructionFlow")
-dax.metadata("created", time.ctime())
-config = read_from_properties_file()
+    dax = ADAG("BrainNetworkModelReconstructionFlow")
 
-path_t1_raw = config[KEY_T1_FOLDER]
-path_t1 = generate_uq_file_name(path_t1_raw, "t1_*.nii.gz")
+    if hasattr(dax, 'metadata'):
+        dax.metadata("created", time.ctime())
+    config = read_from_properties_file()
 
-step1 = step_recon_all_1(path_t1_raw, config[KEY_T1_INPUT_FRMT], path_t1)
-dax.addJob(step1)
+    path_t1_raw = config[KEY_T1_FOLDER]
+    path_t1 = generate_uq_file_name(path_t1_raw, "t1_*.nii.gz")
 
-step2 = step_recon_all_2(path_t1, config[KEY_SUBJECT], config[KEY_THREADS])
-dax.addJob(step2)
+    step1 = step_recon_all_1(path_t1_raw, config[KEY_T1_INPUT_FRMT], path_t1)
+    dax.addJob(step1)
 
-path_mri_folder = config[KEY_MRI_FOLDER]
-path_mri = generate_uq_file_name(path_mri_folder, MRI_APARC_ASEG_FILE_NAME + "_*.nii.gz")
-step3 = step_recon_all_3(path_mri_folder, path_mri)
-dax.addJob(step3)
+    step2 = step_recon_all_2(path_t1, config[KEY_SUBJECT], config[KEY_THREADS])
+    dax.addJob(step2)
 
-# Add control-flow dependencies
-dax.depends(step2, step1)
-dax.depends(step3, step2)
+    path_mri_folder = config[KEY_MRI_FOLDER]
+    path_mri = generate_uq_file_name(path_mri_folder, MRI_APARC_ASEG_FILE_NAME + "_*.nii.gz")
+    step3 = step_recon_all_3(path_mri_folder, path_mri)
+    dax.addJob(step3)
 
-# Write the DAX to stdout
-print "Writing %s" % daxfile
-f = open(daxfile, "w")
-dax.writeXML(f)
-f.close()
+    # Add control-flow dependencies
+    dax.depends(step2, step1)
+    dax.depends(step3, step2)
+
+    # Write the DAX to stdout
+    print "Writing %s" % daxfile
+    f = open(daxfile, "w")
+    dax.writeXML(f)
+    f.close()
