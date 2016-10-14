@@ -1,0 +1,3 @@
+[submodule "extern/pegasus"]
+	path = extern/pegasus
+	url = https://github.com/pegasus-isi/pegasus
