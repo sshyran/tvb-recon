@@ -1,3 +1,12 @@
 [submodule "extern/pegasus"]
 	path = extern/pegasus
 	url = https://github.com/pegasus-isi/pegasus
+[submodule "extern/mrtrix3"]
+	path = extern/mrtrix3
+	url = https://github.com/mrtrix3/mrtrix3
+[submodule "extern/openmeeg"]
+	path = extern/openmeeg
+	url = https://github.com/openmeeg/openmeeg
+[submodule "extern/mne-python"]
+	path = extern/mne-python
+	url = https://github.com/mne-tools/mne-python
