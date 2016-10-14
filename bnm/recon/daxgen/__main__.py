@@ -1,4 +1,4 @@
 
-from . import freesurfer_main
+from .freesurfer import freesurfer_main
 
 freesurfer_main()

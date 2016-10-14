@@ -1,22 +1,39 @@
 import os
 import time
 import sys
+import enum
 
 # XXX qualified name preferable
 from Pegasus.DAX3 import *
 
-# XXX switch to enum34 class?
-KEY_SUBJECT = "subject"
-KEY_SUBJECT_FOLDER = "subject.folder"
-KEY_THREADS = "open.mp.threads"
-KEY_T1_FOLDER = "t1.folder"
-KEY_T1_INPUT_FRMT = "t1.format"
-KEY_T2_FLAG = "t2.flag"
-KEY_T2_FOLDER = "t2.folder"
-KEY_MRI_FOLDER = "mri.folder"
 
-MRI_APARC_ASEG_FILE_NAME = "aparc+aseg"
-TYPE_DICOM = "dicom"
+class PropKeys(enum.Enum):
+    "Enumerates possible keys in a properties file."
+    subject = "subject"
+    subject_folder = "subject.folder"
+    threads = "open.mp.threads"
+    t1_folder = "t1.folder"
+    t1_input_format = "t1.format"
+    t2_flag = "t2.flag"
+    t2_folder = "t2.folder"
+    mri_folder = "mri.folder"
+    flair_flag = "flair.flag"
+    flair_folder = "flair.folder"
+
+
+class FileNames(enum.Enum):
+    "Enumerates special FreeSurfer file names."
+    mri_aparc_aseg = "aparc+aseg"
+
+
+class FileTypes(enum.Enum):
+    "Enumerates file types."
+    dicom = "dicom"
+    mgz = "mgz"
+    nifti = "nifti"
+
+
+# XXX make a cli arg
 CONFIG_FILE = "config/patient.properties"
 
 
@@ -24,10 +41,16 @@ def read_from_properties_file():
     config = dict()
     with open(CONFIG_FILE) as f:
         for line in f:
+            line = line.strip()
             if line.startswith("#") or len(line) < 3 or line.index("=") < 0:
                 continue
-            values = line.split("=")
-            config[values[0]] = values[1].strip()
+            key_str, value = line.split("=")
+            try:
+                key = PropKeys(key_str)
+            except KeyError:
+                raise Exception('Invalid property key %r in file %r.' % (
+                        key_str, CONFIG_FILE))
+            config[key] = value
     print "Read patient configuration", config
     return config
 
@@ -49,7 +72,7 @@ def step_recon_all_1(t1_in_path, t1_format, t1_out_path):
     t1_in = File(t1_in_path)
     t1_out = File(t1_out_path)
     print "Processing for T1 format", t1_format
-    if t1_format == TYPE_DICOM:
+    if t1_format == FileTypes.dicom:
         print " - Dicom identified"
         job = Job(name="mri_convert", node_label="T1 input pre-processing")
         job.addArguments(t1_in, t1_out, "--out_orientation", "RAS", "-rt", "nearest")
@@ -77,7 +100,7 @@ def step_recon_all_3(mri_folder, mri_out_path):
     # # This could be made already here:
     # # Generate nifti file with good orientation
     # mri_convert $MRI/aparc+aseg.mgz $MRI/aparc+aseg.nii.gz --out_orientation RAS -rt nearest
-    mri_in = File(os.path.join(mri_folder, MRI_APARC_ASEG_FILE_NAME + ".mgz"))
+    mri_in = File(os.path.join(mri_folder, FileNames.mri_aparc_aseg.value + ".mgz"))
     mri_out = File(mri_out_path)
     job = Job(name="mri_convert", node_label="Generate nifti file with good orientation")
     job.addArguments(mri_in, mri_out, "--out_orientation", "RAS", "-rt", "nearest")
@@ -111,17 +134,17 @@ def freesurfer_main():
         dax.metadata("created", time.ctime())
     config = read_from_properties_file()
 
-    path_t1_raw = config[KEY_T1_FOLDER]
+    path_t1_raw = config[PropKeys.t1_folder]
     path_t1 = generate_uq_file_name(path_t1_raw, "t1_*.nii.gz")
 
-    step1 = step_recon_all_1(path_t1_raw, config[KEY_T1_INPUT_FRMT], path_t1)
+    step1 = step_recon_all_1(path_t1_raw, config[PropKeys.t1_input_format], path_t1)
     dax.addJob(step1)
 
-    step2 = step_recon_all_2(path_t1, config[KEY_SUBJECT], config[KEY_THREADS])
+    step2 = step_recon_all_2(path_t1, config[PropKeys.subject], config[PropKeys.threads])
     dax.addJob(step2)
 
-    path_mri_folder = config[KEY_MRI_FOLDER]
-    path_mri = generate_uq_file_name(path_mri_folder, MRI_APARC_ASEG_FILE_NAME + "_*.nii.gz")
+    path_mri_folder = config[PropKeys.mri_folder]
+    path_mri = generate_uq_file_name(path_mri_folder, FileNames.mri_aparc_aseg.value + "_*.nii.gz")
     step3 = step_recon_all_3(path_mri_folder, path_mri)
     dax.addJob(step3)
 
