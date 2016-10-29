@@ -308,6 +308,11 @@ _This is one step which is significantly slower in a VM: natively, on a
 Haswell 4 core Xeon, running tckgen with 8 threads, can select ~4.2k
 tracks per second, so 10M takes less than an hour._
 
+The speed at this step is highly dependent on the dataset and tractography
+options. The simplest way to speed this up is to distribute across many
+nodes in a cluster and concatenate into single tractogram with e.g.
+`tckedit parts*.tck all.tck`.
+
 SIFT filters tracks to improve the fit with the diffusion image,
 ```bash
 tcksift brain.tck csd.mif brain-sift.tck -act act.mif -term_number 2000000
