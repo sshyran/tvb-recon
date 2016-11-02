@@ -77,6 +77,7 @@ done
 # make source model for subcortical NOT DONE YET
 python -c "import utils; utils.gen_subcort_sources()"
 om_assemble -DipSourceMat head_model.{geom,cond} $subcortical.{dip,dsm}
+# XXX consider using fiber orientation as proxy for source orientation
 
 # source model for cortical hemispheres
 for h in rh lh; do

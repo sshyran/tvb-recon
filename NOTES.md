@@ -243,7 +243,7 @@ do
   fslreorient2std $parc+aseg.nii.gz $parc+aseg-reo.nii.gz
   mv $parc+aseg-reo.nii.gz $parc+aseg.nii.gz
 done
-regopt="-dof 12 -searchrx -180 180 -searchry -180 180 -searchrz -180 180 -cost mutualinfo"
+regopt="-dof 6 -searchrx -180 180 -searchry -180 180 -searchrz -180 180 -cost mutualinfo"
 flirt -in lowb.nii.gz -ref T1.nii.gz -omat d2t.mat -out lowb-in-t1.nii.gz $regopt
 ```
 This takes about 90 seconds. Next, we apply the inverse transform to the T1 and
