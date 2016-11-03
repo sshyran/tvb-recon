@@ -26,6 +26,6 @@ install:
   - pip install nibabel meshcut pytest-cov coveralls gdist
   - pushd extern/pegasus/lib/pegasus/python && python setup.py install && popd
 script:
-  - SUBJECTS_DIR=`pwd` SUBJECT=`bnm` py.test --ignore=extern
+  - COV=yes bin/run-tests.sh
 after_success:
   - coveralls
