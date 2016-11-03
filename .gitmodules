@@ -10,3 +10,7 @@
 [submodule "extern/mne-python"]
 	path = extern/mne-python
 	url = https://github.com/mne-tools/mne-python
+[submodule "extern/tim-proix-scripts"]
+	path = extern/tim-proix-scripts
+	url = https://github.com/ins-amu/scripts
+	branch = nipype
