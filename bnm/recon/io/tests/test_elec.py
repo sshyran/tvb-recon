@@ -1,3 +1,4 @@
+import os
 from ..elec import parse_asa_electrode_file
 
 def test_parse_asa_electrode_file():

@@ -1,6 +1,5 @@
+import pytest
 import numpy as np
-
-from .algo.geom import roi_area
 
 # TODO tests using hcp 100307 & anon mrs dataset
 
@@ -9,6 +8,7 @@ from .algo.geom import roi_area
 
 # later, we can test setup as well.
 
+@pytest.mark.skip(reason="require testing datasets")
 def test_roi_areas():
     # $ mris_anatomical_stats -a label/lh.aparc.annot -b hcp10037 lh > stats.txt
     stats = np.loadtxt('stats.txt')
