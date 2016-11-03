@@ -8,6 +8,7 @@ While we currently only use FS, this is a starting point for a DAO API which is 
 
 import os
 import glob
+import warnings
 import scipy.io
 import gdist
 import nibabel.freesurfer
@@ -20,8 +21,11 @@ class FreeSurferIO(object):
     "Implements I/O against FreeSurfer databases (i.e. $self.subjects_dir/$self.subject/*)."
 
     def __init__(self, subject, subjects_dir):
-       self.subject = subject
-       self.subjects_dir = subjects_dir
+        self.subject = subject
+        self.subjects_dir = subjects_dir
+        self.path = os.path.join(subjects_dir, subject)
+        if not os.path.exists(self.path):
+            warnings.warn("%r does not exist." % (self.path, ))
 
     @classmethod
     def from_env_vars(cls):
