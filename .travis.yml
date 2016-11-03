@@ -4,6 +4,7 @@ os:
   - linux
 python:
   - "2.7"
+  - "3.5"
 install:
   - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the
