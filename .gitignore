@@ -2,7 +2,11 @@ __pycache__
 .svn
 .DS_Store
 *.pyc
+*.log
 .idea/
+submit/
+bnm.egg-info/
+fig/
 *.dax
 *.dot
 *.swp
