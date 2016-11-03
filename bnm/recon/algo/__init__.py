@@ -18,60 +18,6 @@ except ImportError:
     warnings.warn('Geodesic distance module unavailable; please pip install gdist.')
 
 
-SUBJECTS_DIR, SUBJECT = [os.environ[key] for key in 'SUBJECTS_DIR SUBJECT'.split()]
-
-# XXX much is FS env var dependent, wrap it up in a class
-
-def annot_path(hemi, annot_name):
-    annot_fname = '%s.%s.annot' % (hemi, annot_name)
-    annot_path = os.path.join(SUBJECTS_DIR, SUBJECT, 'label', annot_fname)
-    return annot_path
-
-
-def read_annot(hemi, annot_name):
-    return nibabel.freesurfer.read_annot(annot_path(hemi, annot_name))
-
-
-def write_annot(hemi, annot_name, labels, ctab, names):
-    return nibabel.freesurfer.write_annot(annot_path(hemi, annot_name), labels, ctab, names)
-
-
-def read_surf(hemi, name):
-    surf_fname = '%s.%s' % (hemi, name)
-    surf_path = os.path.join(SUBJECTS_DIR, SUBJECT, 'surf', surf_fname)
-    return nibabel.freesurfer.read_geometry(surf_path)
-
-
-def annot_to_lut(hemi, annot_name, lut_path):
-    _, ctab, names = read_annot(hemi, annot_name)
-    with open(lut_path, 'w') as fd:
-        for name, (r, g, b, a, id) in zip(names, ctab):
-            fd.write('%d\t%s\t%d %d %d %d\n' % (id, name, r, g, b, a))
-
-
-def annot_to_conn_conf(hemi, annot_name, conn_conf_path):
-    _, _, names = read_annot(hemi, annot_name)
-    with open(conn_conf_path, 'w') as fd:
-        for id, name in enumerate(names):
-            fd.write('%d\t%s\n' % (id, name))
-
-
-def compute_gdist_mat(surf_name='pial', max_distance=40.0):
-    max_distance = float(max_distance) # in case passed from sys.argv
-    for h in 'rl':
-        surf_path = '%s/%s/surf/%sh.%s' % (SUBJECTS_DIR, SUBJECT, h, surf_name)
-        v, f = nibabel.freesurfer.read_geometry(surf_path)
-        mat_path = '%s/%s/surf/%sh.%s.gdist.mat' % (SUBJECTS_DIR, SUBJECT, h, surf_name)
-        mat = gdist.local_gdist_matrix(v, f.astype('<i4'), max_distance=40.0)
-        scipy.io.savemat(mat_path, {'gdist': mat})
-
-
-def convert_bem_to_tri():
-    surfs_glob = '%s/%s/bem/watershed/*_surface-low' % (SUBJECTS_DIR, SUBJECT)
-    for surf_name in glob.glob(surfs_glob):
-        utils.convert_fs_to_brain_visa(surf_name)
-
-
 # XXX move to Python API for OpenMEEG?
 def gen_head_model():
     surfs_glob = '%s/%s/bem/watershed/*_surface-low.tri' % (SUBJECTS_DIR, SUBJECT)
