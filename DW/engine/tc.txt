@@ -1,0 +1,89 @@
+tr mri_convert {
+    profile env "FREESURFER_HOME" "/Applications/freesurfer_dev"
+
+    site condorpool {
+        pfn "/Applications/freesurfer_dev/bin/mri_convert"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr recon-all {
+    profile env "FREESURFER_HOME" "/Applications/freesurfer_dev"
+
+    site condorpool {
+        pfn "/Applications/freesurfer_dev/bin/recon-all"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr mrchoose {
+    site condorpool {
+        pfn "TODO"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr mrconvert {
+    site condorpool {
+        pfn "/WORK/BNM/software/mrtrix3/release/bin/mrconvert"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr dwipreproc {
+    site condorpool {
+        pfn "/WORK/BNM/software/mrtrix3/scripts/dwipreproc"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr dwi2mask {
+    site condorpool {
+        pfn "/WORK/BNM/software/mrtrix3/release/bin/dwi2mask"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr dwiextract {
+    site condorpool {
+        pfn "/WORK/BNM/software/mrtrix3/release/bin/dwiextract"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr flirt {
+    profile env "FSLDIR" "/WORK/BEM/software/fsl"
+
+    site condorpool {
+        pfn "/WORK/BNM/software/fsl/bin/flirt"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr convert_xfm {
+    profile env "FSLDIR" "/WORK/BEM/software/fsl"
+
+    site condorpool {
+        pfn "/WORK/BNM/software/fsl/bin/convert_xfm"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+

@@ -1,0 +1,39 @@
+act_fod 
+	mrview 5ttvis.mif -mode 2 *interactive
+	mrconvert 5ttvis.mif 5ttvis.nii.gz	
+	bash snapshot.sh vol b0.nii.gz 5tt2vis.nii.gz
+	mrconvert gmwmi.mif gmwmi.nii.gz
+	bash snapshot.sh vol t1-in-d.nii.gz gmwmi.nii.gz
+coregisterT1&DWI
+	bash snapshot.sh vol ../dmr/b0.nii.gz t1-in-d.nii.gz
+reconAll
+	- visual check for brain, pial, white
+	bash snapshot.sh surf $h.inflated aparc
+tractography
+	mrconvert tdi.mif tdi.nii.gz	
+	bash snapshot.sh vol t1-in-d.nii.gz tdi.nii.gz
+conectome_gen
+	bash snapshot.sh vol t1-in-d.nii.gz tdi_ends.nii.gz
+coregisterVOLS$DWI
+	mrview ../dmr/b0.nii.gz -overlay.load $vol-in-d.nii.gz -overlay.opacity 0.3 -mode 2 *interactive
+	bash snapshot.sh vol ../dmr/b0.nii.gz $vol-in-d.nii.gz
+	bash snapshot.sh vols t1-in-d.nii.gz ../dmr/b0.nii.gz $vol-in-d.nii.gz
+subaparc
+	bash snapshot.sh surf $h.inflated aparc.sub$area
+resamp-anat
+	bash snapshot.sh comb T1.mgz surf/{lh,rh}.{white,pial}.$TRGSUBJECT
+	*for each parcel
+	bash snapshot.sh surf $hemi.inflated.$TRGSUBJECT $TRGSUBJECT.$parc
+	bash snapshot.sh surf $hemi.pial.$TRGSUBJECT../label/$HEMI.$parc.annot.$TRGSUBJECT
+head_model
+	bash snapshot.sh comb T1.mgz ../watershed/*_surface-low
+seeg_ct
+	mrview ./T1-big.nii.gz *interactive
+	bash snapshot.sh vol T1-big.nii.gz CT-in-T1.nii.gz
+	bash snapshot.sh vol CT-reo.nii.gz brain-in-ct.nii.gz
+	bash snapshot.sh vol CT-reo.nii.gz brain-mask.nii.gz
+	bash snapshot.sh vol CT-reo.nii.gz CT-mask.nii.gz
+	bash snapshot.sh vols CT-reo.nii.gz CT-mask.nii.gz CT-dil-mask.nii.gz
+	bash snapshot.sh vol CT-reo.nii.gz CT-lab-mask.nii.gz
+subaseg
+	bash snapshot.sh vol aseg.nii.gz gmwmi-in-T1.nii.gz

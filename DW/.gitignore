@@ -1,0 +1,10 @@
+__pycache__
+.svn
+.DS_Store
+*.pyc
+*.log
+.idea/
+submit/
+python/bnm.egg-info/
+python/fig/
+
