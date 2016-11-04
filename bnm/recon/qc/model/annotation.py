@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy
 
 
@@ -13,7 +15,7 @@ class Annotation(object):
 
 
     def face_colors(self, triangles):
-        result_colors = [0 for _ in xrange(len(triangles))]
+        result_colors = [0 for _ in range(len(triangles))]
         for i, tri in enumerate(triangles):
             result_colors[i] = self.color_table[tri[1]]
             vert1_color = numpy.dot(self.color_table[tri[0]], 0.33)

@@ -7,6 +7,7 @@ from bnm.recon.snapshot.image.processor import ImageProcessor
 
 if __name__ == "__main__":
 
+    # TODO convert to docopt
     arg_1vol = "1vol"
     arg_2vols = "2vols"
     arg_3vols = "3vols"

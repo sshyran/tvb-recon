@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import os
 
+import os
 import matplotlib.pyplot as pyplot
 from mpl_toolkits.mplot3d import proj3d
 import numpy

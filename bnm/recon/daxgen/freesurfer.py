@@ -1,8 +1,15 @@
+# -*- encoding: utf-8 -*-
+
+"""
+Generates FreeSurfer commands, against the Pegasus DAX API.
+
+"""
+
+from __future__ import print_function
 import os
 import time
 import sys
 import enum
-
 # XXX qualified name preferable
 from Pegasus.DAX3 import *
 
@@ -51,7 +58,7 @@ def read_from_properties_file():
                 raise Exception('Invalid property key %r in file %r.' % (
                         key_str, CONFIG_FILE))
             config[key] = value
-    print "Read patient configuration", config
+    print("Read patient configuration", config)
     return config
 
 
@@ -71,13 +78,13 @@ def step_recon_all_1(t1_in_path, t1_format, t1_out_path):
 
     t1_in = File(t1_in_path)
     t1_out = File(t1_out_path)
-    print "Processing for T1 format", t1_format
+    print("Processing for T1 format", t1_format)
     if t1_format == FileTypes.dicom:
-        print " - Dicom identified"
+        print(" - Dicom identified")
         job = Job(name="mri_convert", node_label="T1 input pre-processing")
         job.addArguments(t1_in, t1_out, "--out_orientation", "RAS", "-rt", "nearest")
     else:
-        print " - Keep the original"
+        print(" - Keep the original")
         job = Job(name="cp", node_label="Copy t1_in_path into t1_out_path")
         job.addArguments(t1_in, t1_out)
 
@@ -153,7 +160,6 @@ def freesurfer_main():
     dax.depends(step3, step2)
 
     # Write the DAX to stdout
-    print "Writing %s" % daxfile
-    f = open(daxfile, "w")
-    dax.writeXML(f)
-    f.close()
+    print("Writing %s" % daxfile)
+    with open(daxfile, "w") as f:
+        dax.writeXML(f)

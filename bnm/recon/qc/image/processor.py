@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
+from __future__ import print_function
 import os
-
-from bnm.recon.snapshot.image.writer import ImageWriter
-from bnm.recon.snapshot.parser.annotation import AnnotationParser
-from bnm.recon.snapshot.parser.generic import GenericParser
-from bnm.recon.snapshot.parser.surface import SurfaceParser
-from bnm.recon.snapshot.parser.volume import VolumeParser
-from bnm.recon.snapshot.model.constants import projections
+from .writer import ImageWriter
+from ..parser import annotation, generic, surface, volume
+from ..model.constants import projections
 
 
 class ImageProcessor(object):
@@ -15,10 +12,10 @@ class ImageProcessor(object):
     snapshot_extension = ".png"
 
     def __init__(self):
-        self.parser_volume = VolumeParser()
-        self.parser_surface = SurfaceParser()
-        self.generic_parser = GenericParser()
-        self.annotation_parser = AnnotationParser()
+        self.parser_volume = volume.VolumeParser()
+        self.parser_surface = surface.SurfaceParser()
+        self.generic_parser = generic.GenericParser()
+        self.annotation_parser = annotation.AnnotationParser()
         self.writer = ImageWriter()
 
         try:
@@ -118,7 +115,7 @@ class ImageProcessor(object):
             resampled_name = '.' + resampled_name
         volume = self.parser_volume.parse(volume_background)
         ras = [0.68, -53.32, -19.71] #self.generic_parser.get_ras_coordinates()
-        print ras
+        print(ras)
         for i in projections:
             clear_flag = True
             background_matrix = volume.align(i, ras)

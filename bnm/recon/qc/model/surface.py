@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+
 import numpy
 import trimesh
 from trimesh import intersections
-
-from bnm.recon.snapshot.model.constants import sagittal, coronal, axial
+from .constants import sagittal, coronal, axial
 
 
 class Surface(object):
@@ -35,7 +35,7 @@ class Surface(object):
     fs_transform_matrix_key_words = ['xras', 'yras', 'zras', 'cras']
 
     def read_matrix_from_metadata(self, is_gifti):
-        matrix_from_metadata = [[0 for _ in xrange(4)] for _ in xrange(4)]
+        matrix_from_metadata = [[0 for _ in range(4)] for _ in range(4)]
 
         if is_gifti:
             for i in range(3):
@@ -71,9 +71,9 @@ class Surface(object):
     # Rotates surface contour and it is displayed similar to freeview.
     def apply_rotation_matrix(self, contour):
         rotation_matrix = self.read_matrix_from_metadata()
-        new_verts = [[0 for _ in xrange(3)] for _ in xrange(len(contour))]
+        new_verts = [[0 for _ in range(3)] for _ in range(len(contour))]
 
-        for i in xrange(0, len(contour)):
+        for i in range(0, len(contour)):
             new_verts[i] = rotation_matrix.dot(contour[i])
 
         return numpy.array(new_verts)
@@ -97,10 +97,10 @@ class Surface(object):
     def get_x_y_array(self, projection, ras):
         mesh = trimesh.Trimesh(self.vertices, self.triangles)
         contours = intersections.mesh_plane(mesh, self.plane_normals[projection], self.get_plane_origin(ras))
-        x_array = [0 for _ in xrange(len(contours))]
-        y_array = [0 for _ in xrange(len(contours))]
+        x_array = [0 for _ in range(len(contours))]
+        y_array = [0 for _ in range(len(contours))]
 
-        for s in xrange(0, len(contours)):
+        for s in range(0, len(contours)):
             x_array[s] = contours[s][:, self.x_y_index[projection][0]]
             y_array[s] = contours[s][:, self.x_y_index[projection][1]]
 
@@ -108,7 +108,7 @@ class Surface(object):
 
 
     def compute_normals(self):
-        normals = [[0 for _ in xrange(0, 3)] for _ in xrange(0, len(self.triangles))]
+        normals = [[0 for _ in range(0, 3)] for _ in range(0, len(self.triangles))]
 
         for i, tri in enumerate(self.triangles):
             u = self.vertices[tri[1]] - self.vertices[tri[0]]

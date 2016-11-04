@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
+
 import nibabel
-from nibabel.gifti import GiftiDataArray
-from nibabel.gifti import GiftiImage
-from nibabel.gifti import GiftiMetaData
-from nibabel.gifti import giftiio
-from nibabel.freesurfer.io import read_geometry
-from nibabel.freesurfer.io import write_geometry
-from bnm.recon.snapshot.model.surface import Surface
+from nibabel.gifti import GiftiDataArray, GiftiImage, GiftiMetaData, giftiio
+from nibabel.freesurfer.io import read_geometry, write_geometry
+from ..model.surface import Surface
 from bnm.recon.logger import get_logger
 
 
 class SurfaceParser(object):
     """
     This class reads content of a NIFTI file and returns a Volume Object
+
     """
 
     def parse_gifti(self, data_file):

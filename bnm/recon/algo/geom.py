@@ -1,6 +1,7 @@
 import numpy as np
 
 
+# TODO test by generating points on unit sphere: vtx pos should equal normal
 def vertex_normals(v, f):
     vf = v[f]
     fn = np.cross(vf[:,1] - vf[:, 0], vf[:, 2] - vf[:, 0])
