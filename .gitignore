@@ -11,3 +11,5 @@ fig/
 *.dot
 *.swp
 .cache
+.coverage
+coverage.xml
