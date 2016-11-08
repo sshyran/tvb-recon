@@ -5,11 +5,12 @@ import os
 import sys
 import glob
 import numpy as np
-import nibabel
+import nibabel as nbl
 import scipy.io
 import scipy.cluster
 import warnings
-import nibabel.freesurfer
+import nibabel.freesurfer as fs
+import nibabel.freesurfer.io as fsio
 import matplotlib
 matplotlib.use('Qt5Agg')
 import pylab as pl
@@ -81,7 +82,7 @@ def write_brain_visa_surf(fname, v, f):
             fd.write('%d %d %d\n' % (i, j, k))
 
 def convert_fs_to_brain_visa(fs_surf):
-    v, f = nibabel.freesurfer.read_geometry(fs_surf)
+    v, f = fs.read_geometry(fs_surf)
     write_brain_visa_surf(fs_surf + '.tri', v, f)
     
  
@@ -143,15 +144,15 @@ def annot_path(hemi, annot_name):
     return annot_path
 
 def read_annot(hemi, annot_name):
-    return nibabel.freesurfer.read_annot(annot_path(hemi, annot_name))
+    return fs.read_annot(annot_path(hemi, annot_name))
 
 def write_annot(hemi, annot_name, labels, ctab, names):
-    return nibabel.freesurfer.write_annot(annot_path(hemi, annot_name), labels, ctab, names)
+    return fs.write_annot(annot_path(hemi, annot_name), labels, ctab, names)
 
 def read_surf(hemi, name):
     surf_fname = '%s.%s' % (hemi, name)
     surf_path = os.path.join(SUBJECTS_DIR, SUBJECT, 'surf', surf_fname)
-    return nibabel.freesurfer.read_geometry(surf_path)
+    return fs.read_geometry(surf_path)
 
 def read_lut(lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt'),key_mode='label'):
     from collections import OrderedDict
@@ -279,7 +280,7 @@ def compute_gdist_mat(surf_name='pial', max_distance=40.0):
     max_distance = float(max_distance) # in case passed from sys.argv
     for h in 'rl':
         surf_path = '%s/%s/surf/%sh.%s' % (SUBJECTS_DIR, SUBJECT, h, surf_name)
-        v, f = nibabel.freesurfer.read_geometry(surf_path)
+        v, f = fs.read_geometry(surf_path)
         mat_path = '%s/%s/surf/%sh.%s.gdist.mat' % (SUBJECTS_DIR, SUBJECT, h, surf_name)
         mat = gdist.local_gdist_matrix(v, f.astype('<i4'), max_distance=40.0)
         scipy.io.savemat(mat_path, {'gdist': mat})
@@ -299,10 +300,10 @@ def extract_subsurf(verts,faces,verts_mask):
     return (verts_out, faces_out)  
     
 def extract_mri_vol2subsurf(surf_path,annot_path,vol2surf_path,out_surf_path=None,out_annot_path=None,ctx=None,labels=None,lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):
-   (verts, faces,volume_info) = nibabel.freesurfer.io.read_geometry(surf_path,read_metadata=True)
-   vol2surf=nibabel.load(vol2surf_path)
+   (verts, faces,volume_info) = fsio.read_geometry(surf_path,read_metadata=True)
+   vol2surf=nbl.load(vol2surf_path)
    vol2surf=np.round(np.squeeze(vol2surf.get_data())).astype('i')
-   lab, ctab, names = nibabel.freesurfer.read_annot(annot_path)
+   lab, ctab, names = fs.read_annot(annot_path)
    if labels is None:
        labels=np.array(annot_names_to_labels(names,ctx=ctx,lut_path=lut_path))
    else:
@@ -310,10 +311,10 @@ def extract_mri_vol2subsurf(surf_path,annot_path,vol2surf_path,out_surf_path=Non
    verts_mask=(v2s in labels for v2s in vol2surf)    
    (verts_out, faces_out)=extract_subsurf(verts,faces,verts_mask)
    if os.path.exists(str(out_surf_path)):
-       nibabel.freesurfer.io.read_geometry(out_surf_path,verts_out, faces_out,volume_info=volume_info)
+       fsio.read_geometry(out_surf_path,verts_out, faces_out,volume_info=volume_info)
    if os.path.exists(str(out_annot_path)):   
        lab=lab[verts_mask]
-       nibabel.freesurfer.write_annot(out_annot_path,lab, ctab, names)
+       fs.write_annot(out_annot_path,lab, ctab, names)
    return (verts_out, faces_out)     
               
 #Concatenate surfaces of specific labels to create a single annotated surface
@@ -335,7 +336,7 @@ def aseg_surf_conc_annot(surf_path,out_surf_path,annot_path,labels,lut_path=os.p
             names_out.append(names[indL])
             ctab_out.append(ctab[indL,:])
             iL+=1
-            (verts, faces,volume_info) = nibabel.freesurfer.io.read_geometry(this_surf_path,read_metadata=True)
+            (verts, faces,volume_info) = fsio.read_geometry(this_surf_path,read_metadata=True)
             faces=faces+nVerts #Update vertices indexes
             nVerts+=verts.shape[0]
             out_verts.append(verts)
@@ -345,8 +346,8 @@ def aseg_surf_conc_annot(surf_path,out_surf_path,annot_path,labels,lut_path=os.p
     out_verts=np.vstack(out_verts)
     out_faces=np.vstack(out_faces)
     lab=np.hstack(lab)
-    nibabel.freesurfer.io.write_geometry(out_surf_path,out_verts,out_faces,create_stamp=None,volume_info=volume_info)  
-    nibabel.freesurfer.write_annot(annot_path,lab, ctab_out, names_out)    
+    fsio.write_geometry(out_surf_path,out_verts,out_faces,create_stamp=None,volume_info=volume_info)  
+    fs.write_annot(annot_path,lab, ctab_out, names_out)    
 
 
 #It returns a sparse matrix of the connectivity among the vertices of a surface
@@ -405,7 +406,7 @@ def vol_to_ext_surf_vol(in_vol_path, labels=None, hemi=None, out_vol_path=None,l
     else:
         labels_inner=labels_inner.tolist()
     #Read the input volume...
-    volume = nibabel.load(in_vol_path)
+    volume = nbl.load(in_vol_path)
     #...and get its data
     vol = volume.get_data()
     vol_shape=vol.shape
@@ -448,12 +449,12 @@ def vol_to_ext_surf_vol(in_vol_path, labels=None, hemi=None, out_vol_path=None,l
                 print "It appears to have no common-face neighbors inside the image!"
                 return     
     #Create the new volume and save it                                  
-    out_volume=nibabel.Nifti1Image(out_vol,volume.affine,header=volume.header)
+    out_volume=nbl.Nifti1Image(out_vol,volume.affine,header=volume.header)
     if out_vol_path==None:  
         #Overwrite volume
         out_vol_path=in_vol_path  
     #Save a new volume
-    nibabel.save(out_volume,out_vol_path) 
+    nbl.save(out_volume,out_vol_path) 
     #...and the output indexes that survived masking 
     out_ijk=np.vstack(out_ijk)
     filepath=os.path.splitext(out_vol_path)[0]
@@ -492,13 +493,13 @@ def mask_to_vol(in_vol_path,mask_vol_path,out_vol_path=None,labels=None,hemi=Non
     else:
         labels_nomask=labels_nomask.tolist()
     #Read the target volume...
-    volume = nibabel.load(in_vol_path)
+    volume = nbl.load(in_vol_path)
     #...and get its data
     vol = volume.get_data()
      #...and its affine transform
     #ijk2xyz_vol = volume.affine
     #Read the mask volume...
-    mask_vol = nibabel.load(mask_vol_path)
+    mask_vol = nbl.load(mask_vol_path)
     #...and get its data
     mask = mask_vol.get_data()
     mask_shape=mask.shape
@@ -573,11 +574,11 @@ def mask_to_vol(in_vol_path,mask_vol_path,out_vol_path=None,labels=None,hemi=Non
             else:
                 out_vol[i,j,k]=labels_nomask[iL]
     #Create the new volume and save it                                     
-    out_volume=nibabel.Nifti1Image(out_vol,volume.affine,header=volume.header)
+    out_volume=nbl.Nifti1Image(out_vol,volume.affine,header=volume.header)
     if out_vol_path==None:  
         #Overwrite volume
         out_vol_path=in_vol_path  
-    nibabel.save(out_volume,out_vol_path)
+    nbl.save(out_volume,out_vol_path)
     #...and the output indexes that survived masking 
     out_ijk=np.vstack(out_ijk)
     filepath=os.path.splitext(out_vol_path)[0]
@@ -587,19 +588,19 @@ def mask_to_vol(in_vol_path,mask_vol_path,out_vol_path=None,labels=None,hemi=Non
 def label_with_dilation(to_label_nii_fname, dilated_nii_fname, out_nii_fname):
     "Label one nifti with its dilation, cf seeg-ct.sh"
     # TODO could make dilation with ndimage also.
-    import nibabel, scipy.ndimage
-    mask = nibabel.load(to_label_nii_fname)
-    dil_mask = nibabel.load(dilated_nii_fname)
+    import nbl, scipy.ndimage
+    mask = nbl.load(to_label_nii_fname)
+    dil_mask = nbl.load(dilated_nii_fname)
     lab, n = scipy.ndimage.label(dil_mask.get_data())
     print('[label_with_dilation] %d objects found.' % (n, ))
-    lab_mask_nii = nibabel.nifti1.Nifti1Image(lab * mask.get_data(), mask.affine)
-    nibabel.save(lab_mask_nii, out_nii_fname)
+    lab_mask_nii = nbl.nifti1.Nifti1Image(lab * mask.get_data(), mask.affine)
+    nbl.save(lab_mask_nii, out_nii_fname)
 
 
 def label_vol_from_tdi(tdi_nii_fname, out_fname, lo=0.5):
     "Make label volume from tckmap output."
     #Load tdi_ends volume:
-    nii = nibabel.load(tdi_nii_fname)
+    nii = nbl.load(tdi_nii_fname)
     #Copy its data...
     tdi = nii.get_data().copy()
     #and mask them to get the voxels of tract ends
@@ -609,8 +610,8 @@ def label_vol_from_tdi(tdi_nii_fname, out_fname, lo=0.5):
     #Assign them with integer labels starting from 1
     tdi[mask] = np.r_[1:mask.sum()+1]
     #Write tdi_lbl to file
-    out_nii = nibabel.nifti1.Nifti1Image(tdi, nii.affine)
-    nibabel.save(out_nii, out_fname)  
+    out_nii = nbl.nifti1.Nifti1Image(tdi, nii.affine)
+    nbl.save(out_nii, out_fname)  
     
 #It removes network nodes with zero connectivity, and returns a symmetric connectivity matrix
 #Inputs:
@@ -624,7 +625,7 @@ def label_vol_from_tdi(tdi_nii_fname, out_fname, lo=0.5):
 def remove_zero_connectivity_nodes(node_vol_path,con_mat_path,tract_length_path=None):
     #Read input files:
     #Nodes' volume (nii):
-    node_vol=nibabel.load(node_vol_path)
+    node_vol=nbl.load(node_vol_path)
     vol=node_vol.get_data()
     #Connectivity matrix (.csv)
     con=np.array(np.genfromtxt(con_mat_path,dtype='int64'))
@@ -660,15 +661,15 @@ def remove_zero_connectivity_nodes(node_vol_path,con_mat_path,tract_length_path=
     #Update remaining indexes
     vol[vol>0]=np.r_[1:(nKeep+1)]
     #Write the updated volume file:
-    node_vol=nibabel.Nifti1Image(vol,node_vol.affine,header=node_vol.header)
-    nibabel.save(node_vol,node_vol_path)
+    node_vol=nbl.Nifti1Image(vol,node_vol.affine,header=node_vol.header)
+    nbl.save(node_vol,node_vol_path)
     
 #It receives a binary connectivity matrix, and outputs a node connectivity
 #similarity or distance  matrix 
 #con_mat_path: path to connectivity file
 #metric: default "cosine"
 #mode: "sim" or "dist" for similarity or distance output
-def node_connectivity_metric(con_mat_path,metric="cosine", mode='sim'):
+def node_connectivity_metric(con_mat_path,metric="cosine", mode='sim', out_consim_path=None):
     from scipy.spatial.distance import pdist, squareform
     #Read iput file
     con=np.load(con_mat_path)
@@ -678,19 +679,21 @@ def node_connectivity_metric(con_mat_path,metric="cosine", mode='sim'):
     if mode=='sim':
         #...calculate it:
         con=1-con
+    if out_consim_path is not None:
+        np.save(out_consim_path,con)
     return con
 
     
 def simple_label_config(aparc_fname, out_fname):
     "Rewrite label volume to have contiguous values like mrtrix' labelconfig."
-    aparc = nibabel.load(aparc_fname)
+    aparc = nbl.load(aparc_fname)
     vol = aparc.get_data()
     uval = np.unique(vol)
     uval_map = np.r_[:uval.max() + 1]
     uval_map[uval] = np.r_[:uval.size]
     uvol = uval_map[vol]
-    uparc = nibabel.nifti1.Nifti1Image(uvol, aparc.affine)
-    nibabel.save(uparc, out_fname)
+    uparc = nbl.nifti1.Nifti1Image(uvol, aparc.affine)
+    nbl.save(uparc, out_fname)
   
 
  #-------------------------Surfaces from/to volumes----------------------------  
@@ -700,18 +703,18 @@ def simple_label_config(aparc_fname, out_fname):
 #Allow optionally for vertices within a given voxel distance vn from the target voxels
 def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path=None, out_surf_ref_path=None, ctx=None,vn=1,lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):
     #Read the surfaces...
-    (verts, faces,volume_info) = nibabel.freesurfer.io.read_geometry(surf_path,read_metadata=True)
+    (verts, faces,volume_info) = fsio.read_geometry(surf_path,read_metadata=True)
     if surf_ref_path is not None:
-        (verts_ref, faces,volume_info_ref) = nibabel.freesurfer.io.read_geometry(surf_ref_path,read_metadata=True)
+        (verts_ref, faces,volume_info_ref) = fsio.read_geometry(surf_ref_path,read_metadata=True)
     else:
         verts_ref=np.array(verts)
     #...and its annotation:
-    lab, ctab, names = nibabel.freesurfer.read_annot(annot_path)
+    lab, ctab, names = fs.read_annot(annot_path)
     #Get the region names of these labels:
     labels=annot_names_to_labels(names,ctx,lut_path)          
     nLbl=len(labels)           
     #Read the volume...
-    volume = nibabel.load(vol_path)
+    volume = nbl.load(vol_path)
     #...and get its data
     vol = volume.get_data()
     vol_shape=vol.shape  
@@ -777,12 +780,12 @@ def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path
             for iV in range(3):
                 faces_out[iF,iV],= np.where(faces_out[iF,iV]==verts_out_inds)
         #Write the output surfaces to a file
-        nibabel.freesurfer.io.write_geometry(out_surf_path,verts_out,faces_out,create_stamp=None,volume_info=volume_info)
+        fsio.write_geometry(out_surf_path,verts_out,faces_out,create_stamp=None,volume_info=volume_info)
         if out_surf_ref_path is not None:        
-            nibabel.freesurfer.io.write_geometry(out_surf_ref_path,verts_out_ref,faces_out,create_stamp=None,volume_info=volume_info_ref)
+            fsio.write_geometry(out_surf_ref_path,verts_out_ref,faces_out,create_stamp=None,volume_info=volume_info_ref)
         #Create and write output annotations to files
         lab_out=lab[verts_out_inds]
-        nibabel.freesurfer.write_annot(out_surf_path+".annot", lab_out, ctab, names)
+        fs.write_annot(out_surf_path+".annot", lab_out, ctab, names)
         #Write files with the indexes of vertices to keep
         np.save(out_surf_path+"-idx.npy",verts_out_inds)
         np.savetxt(out_surf_path+"-idx.txt",verts_out_inds,fmt='%d')    
@@ -860,13 +863,16 @@ def subparc_files(hemi, parc_name, out_parc_name, trg_area):
             
             
 def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=None,
-                                  ref_vol_path=None,con_mat_path=None,parc_area=100,
-                                  labels=None,hemi=None, mode="con+geod+adj", t2d=None, 
+                                  ref_vol_path=None,consim_path=None,parc_area=100,
+                                  labels=None,hemi=None, mode="con+geod+adj", d2t=None, 
                                   lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):                                      
+    from sklearn.cluster import AgglomerativeClustering   
+    if "geod" in mode:
+        from scipy.sparse.csgraph import shortest_path
     #Read the surface...
-    (verts, faces,volume_info) = nibabel.freesurfer.io.read_geometry(surf_path,read_metadata=True)
+    (verts, faces,volume_info) = fsio.read_geometry(surf_path,read_metadata=True)
     #...its annotation
-    lab, ctab, names = nibabel.freesurfer.read_annot(annot_path)
+    lab, ctab, names = fs.read_annot(annot_path)
     #...and get the correspoding labels:
     labels_annot=annot_names_to_labels(names,hemi,lut_path=lut_path)
     #Read the indexes of vertices neighboring tract ends voxels:
@@ -874,20 +880,24 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
     #Set the target labels:
     (labels,nLbl)=read_input_labels(labels=labels,hemi=hemi)
     if "con" in mode:  
-        #Compute voxel connectivity similarity matrix:
-        con=node_connectivity_metric(con_mat_path,metric="cosine", mode='sim')
-        #Read the T1 to DTI transform: 
-        t2d=np.loadtxt(t2d)
+        #This module will be used later on
+        from scipy.spatial.distance import cdist
+        #Load voxel connectivity similarity matrix:
+        con=np.load(consim_path)
+        #Read the DTI to T1 transform: 
+        d2t=np.loadtxt(d2t)
         #Read the reference tdi_lbl volume:
-        vollbl=nibabel.load(ref_vol_path)
+        vollbl=nbl.load(ref_vol_path)
         vox=vollbl.get_data()
         voxdim=vox.shape
         #Get only the voxels that correspond to connectome nodes: 
         voxijk,=np.where(vox.flatten()>0)
         voxijk=np.unravel_index(voxijk, voxdim)
         vox=vox[voxijk[0],voxijk[1],voxijk[2]]
-        #...and get their coordinates in xyz space
+        #...and their coordinates in xyz space
         voxxzy=vollbl.affine.dot(np.c_[voxijk[0],voxijk[1],voxijk[2], np.ones(vox.shape[0])].T)[:3].T
+        #...and transform them to the T1 RAS space of the surface:
+        voxxzy=d2t.dot(np.c_[voxxzy[:,0],voxxzy[:,1],voxxzy[:,2], np.ones(voxxzy.shape[0])].T)[:3].T
         del vollbl, voxijk
     #Initialize the output:
     out_names=[]
@@ -896,6 +906,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
     nL=-1
     #For every annotation name:
     for iL in range(len(names)):
+        print str(iL)+". "+names[iL]
         #Get the mask of the respective vertices
         iVmask=lab==iL
         #...and their indexes
@@ -924,8 +935,10 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         (verts_lbl_con,faces_lbl_con)=extract_subsurf(verts_lbl,faces_lbl,iV_con)
         #Calculate total area:
         roi_area=np.sum(tri_area(verts_lbl_con[faces_lbl_con]))
+        print "Total ROI area = "+str(roi_area)+" mm2"
         #Calculate number of parcels:
         nParcs = int(np.round(roi_area/parc_area))
+        print "Number of parcels for clustering: nParcs="+str(nParcs)
         #If no further parcellation is needed
         if nParcs<2:
             #Just add this label to the new annotation as it stands:
@@ -938,6 +951,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         connectivity=None
         geodist=vertex_connectivity(verts_lbl,faces_lbl,mode="sparse",metric='euclidean')
         if "adj" in mode:
+            print "Compute structural connectivity constraint matrix"
             connectivity=geodist[iV_con,:][:,iV_con]
             connectivity.data=np.ones(connectivity.data.shape)
         #Find the closest neighbors of each non-con-vert to a con-vert...
@@ -947,40 +961,39 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         noncon2con=iV[noncon2con]
         affinity=np.zeros((nVcon,nVcon))
         if "geod" in mode:  
-            #Compute geodesic distances
-            #geodist=gdist.local_gdist_matrix(verts_lbl, faces_lbl.astype('<i4'), max_distance=parc_area)
-            #Unpack sparse matrix
-            #geodist=geodist.todense()
-            from scipy.sparse.csgraph import shortest_path
-            #Set 0 values to maximum distance
-            geodist=shortest_path(geodist.todense()[iV_con,:][:,iV_con], method='auto', directed=False, return_predecessors=False, unweighted=False, overwrite=False)
-            max_gdist=np.max(geodist.flatten())
-            geodist[geodist==0]=max_gdist
+            print "Compute geodesic affinity matrix"
+            geodist=shortest_path(geodist.todense()[iV_con,:][:,iV_con], method='auto', directed=False, return_predecessors=False, unweighted=False, overwrite=False)   
+            #Find the maximum non infinte geodesic distance:
+            temp_ind=np.isfinite(geodist)          
+            max_gdist=np.max(geodist[temp_ind],axis=None)
+            #Set 0 and inf values to maximum distance
+            temp_ind = np.logical_or(geodist==0,~temp_ind)
+            geodist[temp_ind]=max_gdist
             #Set diagonal to 0
             geodist=geodist-max_gdist*np.identity(nVcon)
             #Convert them to normalized similarities
             geodist=1-geodist/max_gdist
             #...and add them to the affinity metric
             affinity+=geodist
+            del temp_ind
         del geodist
         if "con" in mode:  
-            #Find the voxels of this label:
-            iVox_lbl,=np.where(vox==lbl)
-            vox_lbl=vox[iVox_lbl]
+            print "Compute connectivity similarity affinity matrix..."
+            #TODO?: to use aparc+aseg to correspond vertices only to voxels of the same label
+            #There would have to be a vertex->voxel of aparc+aseg of the same label -> voxel of tdi_lbl_in_T1 mapping
+            #Maybe redundant  because we might be ending to the same voxel of tdi_lbl anyway...
+            #Something to test/discuss...
             #Find for each vertex the closest voxel node xyz coordinates:
-            vertsINvox=t2d.dot(np.c_[verts_lbl_con, np.ones(nVcon)].T)[:3].T
-            from scipy.spatial.distance import cdist
-            v2n = np.argmin(cdist(vertsINvox, voxxzy[iVox_lbl], 'euclidean'),axis=1)
-            del vertsINvox
-            v2n=vox_lbl[v2n,:]
-            #... assign the respective connectivity similarity
-            con=con[v2n-1,:][:,v2n-1]
-            #...and add them to the affinity metric
-            affinity+=con
-            del v2n, con, iVox_lbl, vox_lbl
-        from sklearn.cluster import AgglomerativeClustering    
+            v2n = np.argmin(cdist(verts_lbl_con, voxxzy, 'euclidean'),axis=1)
+            v2n=vox[v2n]
+            print "...whereby vertices correspond to "+str(np.size(np.unique(v2n)))+" distinct voxel nodes"
+            #... assign the respective connectivity similarity and add them to the affinity metric
+            affinity+=con[v2n-1,:][:,v2n-1]
+            del v2n
+        print "Run clustering"    
         model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed", connectivity=connectivity, linkage='average')
         model.fit(affinity) 
+        print "Generate new annotations"
         #Create the new annotation for these sub-labels:
         resLbl=[names[iL]+"-"+str(item).zfill(2) for item in np.unique(model.labels_) ]  
         #Add the new label names
@@ -1006,13 +1019,15 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         #and of the "non-con" vertices that follow their nearest con neighbor
         out_lab[iV[iV_noncon]]=out_lab[noncon2con]
         nL+=nParcs
+    print "Write output annotation file"
     #Stack everything together
     out_ctab=np.vstack(out_ctab)                        
     out_names=np.hstack(out_names)        
     #...and write the annotation to a file
-    if out_annot_path==None:
+    if out_annot_path is None:
         out_annot_path=os.path.splitext(annot_path)[0]+str(parc_area)+".annot"
-    nibabel.freesurfer.write_annot(out_annot_path,out_lab, out_ctab, out_names)    
+    print out_annot_path
+    fs.write_annot(out_annot_path,out_lab, out_ctab, out_names)    
 
 
         

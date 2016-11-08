@@ -38,8 +38,8 @@ else
     mrconvert ./tdi_ends-v$VOX.mif ./tdi_ends-v$VOX.nii.gz -force
 
     #Visual check (interactive)
-    mrview ./t1-in-d.nii.gz -overlay.load ./tdi_ends-v$VOX.mif
-    source $CODE/snapshot.sh use_freeview 2vols ./t1-in-d.nii.gz ./tdi_ends-v$VOX.nii.gz
+    mrview ./T1-in-d.nii.gz -overlay.load ./tdi_ends-v$VOX.mif
+    source $CODE/snapshot.sh use_freeview 2vols $MRI/T1-in-d.nii.gz ./tdi_ends-v$VOX.nii.gz
 
     #Label:
     python -c "import reconutils; reconutils.label_vol_from_tdi('./tdi_ends-v$VOX.nii.gz','./tdi_lbl-v$VOX.nii.gz')"

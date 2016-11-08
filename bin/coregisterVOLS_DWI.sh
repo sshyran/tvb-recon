@@ -23,8 +23,8 @@ do
     source $CODE/snapshot.sh use_freeview 2vols ./b0.nii.gz ./$vol-in-d.nii.gz
 
     #Visual check (screenshot):
-    #freeview -v ./t1-in-d.nii.gz ./b0.nii.gz:colormap=heat ./$vol-in-d.nii.gz:colormap=jet -ss $FIGS/t1-$vol-in-d-$SUBJECT-$TRGSUBJECT.png
-    source $CODE/snapshot.sh use_freeview 3vols ./t1-in-d.nii.gz ./b0.nii.gz ./$vol-in-d.nii.gz
+    #freeview -v ./T1-in-d.nii.gz ./b0.nii.gz:colormap=heat ./$vol-in-d.nii.gz:colormap=jet -ss $FIGS/t1-$vol-in-d-$SUBJECT-$TRGSUBJECT.png
+    source $CODE/snapshot.sh use_freeview 3vols ./T1-in-d.nii.gz ./b0.nii.gz ./$vol-in-d.nii.gz
 done
 
 popd

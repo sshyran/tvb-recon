@@ -1,4 +1,3 @@
-
 import os
 FREESURFER_HOME, SUBJECTS_DIR, SUBJECT, SUBJ_DIR, DMR, SEGMENT, ASEG_LIST, ASEG_LIST_LH_BS, ASEG_LIST_RH, SURF_VN, VOL_VN, SURF, LABEL, MRI= [os.environ[key] for key in 'FREESURFER_HOME SUBJECTS_DIR SUBJECT SUBJ_DIR DMR SEGMENT ASEG_LIST ASEG_LIST_LH_BS ASEG_LIST_RH SURF_VN VOL_VN SURF LABEL MRI'.split()]
 #ASEG_LIST="8 10 11 12 13 16 17 18 26 47 49 50 51 52 53 54 58"
@@ -239,19 +238,19 @@ import numpy as np
 #
 #aaT12aaD=np.dot(np.linalg.inv(affT1),aaD.affine)
 #aaT12aaD[:3,:][:,:3]=aaT12aaD[:3,:][:,:3]/2.0
-surf_path=SURF+'/lh.white'
-annot_path=LABEL+'/lh.aparc.annot'
-con_verts_idx=SEGMENT+'/lh.white-mask-idx.npy'
+surf_path=SURF+'/rh.white'
+annot_path=LABEL+'/rh.white.annot'
+con_verts_idx=SEGMENT+'/rh.white-mask-idx.npy'
 parc_area=100
-out_annot_path=SEGMENT+'/lh.white'+str(parc_area)+'.annot'
+out_annot_path=SEGMENT+'/rh.white'+str(parc_area)+'.annot'
 ref_vol_path=DMR+'/tdi_lbl-v5.nii.gz'
-con_mat_path=DMR+'/vol-counts5M-v5.npy'
+consim_path=SEGMENT+'/consim-vol-counts5M-v5.npy'
 labels=None
-hemi='lh'
-mode="geod+adj" #con+
-t2d= SEGMENT+'/aparc+aseg-to-tdilbl-v5.mat'
+hemi='rh'
+mode="con+geod+adj" #con+
+d2t= DMR+'/d2t.mat'
 lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')
-reconutils.connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=annot_path,
-                                  ref_vol_path=ref_vol_path,con_mat_path=con_mat_path,parc_area=parc_area,
-                                  labels=labels,hemi=hemi, mode=mode, t2d=t2d, 
+reconutils.connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=out_annot_path,
+                                  ref_vol_path=ref_vol_path,consim_path=consim_path,parc_area=parc_area,
+                                  labels=labels,hemi=hemi, mode=mode, d2t=d2t, 
                                   lut_path=lut_path)

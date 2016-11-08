@@ -19,6 +19,7 @@ if [ $# -gt 0 ]; then
     fi
 
 	matrixFileName="matrix.txt"
+	# TODO matrix should be read from background volume
 	mri_info --vox2ras $SUBJ_DIR/mri/T1.mgz --o $matrixFileName
 
 
