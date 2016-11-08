@@ -91,7 +91,7 @@ if [ $# -gt 0 ]; then
         #   python setup.py develop/install
         source activate bnm-recon
         refreshSnapshotNumber
-        python -m bnm.recon.snapshot "$@"
+        python -m bnm.recon.qc "$@"
 
     fi
 

@@ -4,9 +4,9 @@ import argparse
 import os
 
 import numpy
-from bnm.recon.snapshot.image.processor import ImageProcessor
-from bnm.recon.snapshot.parser.generic import GenericParser
-from bnm.recon.snapshot.image.writer import ImageWriter
+from bnm.recon.qc.image.processor import ImageProcessor
+from bnm.recon.qc.parser.generic import GenericParser
+from bnm.recon.qc.image.writer import ImageWriter
 from bnm.recon.logger import get_logger
 
 if __name__ == "__main__":

@@ -2,8 +2,8 @@
 
 import argparse
 import os
-from bnm.recon.snapshot.image.processor import ImageProcessor
-from bnm.recon.snapshot.image.transformer import ImageTransformer
+from bnm.recon.qc.image.processor import ImageProcessor
+from bnm.recon.qc.image.transformer import ImageTransformer
 
 if __name__ == "__main__":
 

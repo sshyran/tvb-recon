@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import nibabel
-from bnm.recon.snapshot.model.volume import Volume
+from bnm.recon.qc.model.volume import Volume
 
 
 class VolumeParser(object):

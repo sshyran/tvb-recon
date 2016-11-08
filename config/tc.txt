@@ -27,7 +27,7 @@ tr recon-all {
 
 tr snapshot {
     site condorpool {
-        pfn "python bnm.recon.snapshot"
+        pfn "python bnm.recon.qc"
         arch "x86_64"
         os "MACOSX"
         type "INSTALLED"

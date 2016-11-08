@@ -2,12 +2,12 @@
 
 import os
 
-from bnm.recon.snapshot.image.writer import ImageWriter
-from bnm.recon.snapshot.parser.annotation import AnnotationParser
-from bnm.recon.snapshot.parser.generic import GenericParser
-from bnm.recon.snapshot.parser.surface import SurfaceParser
-from bnm.recon.snapshot.parser.volume import VolumeParser
-from bnm.recon.snapshot.model.constants import projections
+from bnm.recon.qc.image.writer import ImageWriter
+from bnm.recon.qc.parser.annotation import AnnotationParser
+from bnm.recon.qc.parser.generic import GenericParser
+from bnm.recon.qc.parser.surface import SurfaceParser
+from bnm.recon.qc.parser.volume import VolumeParser
+from bnm.recon.qc.model.constants import projections
 
 
 class ImageProcessor(object):
@@ -116,7 +116,7 @@ class ImageProcessor(object):
                 for j in ('pial', 'white'):
                     current_surface = self.parser_surface.parse_gifti(
                         surfaces_path + '/' + k + '.' + j + resampled_name + '.gii')
-                    surf_x_array, surf_y_array = current_surface.get_x_y_array(i, ras)
+                    surf_x_array, surf_y_array = current_surface.cut_by_plane(i, ras)
                     self.writer.write_matrix_and_surfaces(x, y, background_matrix, surf_x_array, surf_y_array,
                                                           clear_flag, j)
                     clear_flag = False

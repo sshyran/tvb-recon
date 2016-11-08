@@ -2,7 +2,7 @@
 
 from nibabel.freesurfer.io import read_annot
 
-from bnm.recon.snapshot.model.annotation import Annotation
+from bnm.recon.qc.model.annotation import Annotation
 
 
 class AnnotationParser(object):

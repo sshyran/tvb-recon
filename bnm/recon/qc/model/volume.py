@@ -4,7 +4,7 @@ from nibabel.affines import apply_affine
 import numpy.linalg as nlp
 import numpy
 
-from bnm.recon.snapshot.model.constants import sagittal, coronal, axial
+from bnm.recon.qc.model.constants import sagittal, coronal, axial
 
 
 class Volume(object):
