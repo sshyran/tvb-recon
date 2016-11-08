@@ -1,15 +1,16 @@
+# -*- coding: utf-8 -*-
+
 import argparse
 import os
 
 import numpy
-from .image.processor import ImageProcessor
-from .parser.generic import GenericParser
-from .image.writer import ImageWriter
+from bnm.recon.snapshot.image.processor import ImageProcessor
+from bnm.recon.snapshot.parser.generic import GenericParser
+from bnm.recon.snapshot.image.writer import ImageWriter
 from bnm.recon.logger import get_logger
 
 if __name__ == "__main__":
 
-    # TODO convert to docopt
     parser = argparse.ArgumentParser(description="Transform a surface from its native space to another space")
 
     parser.add_argument("surface_path")
@@ -33,7 +34,7 @@ if __name__ == "__main__":
     is_surface_gifti = image_processor.is_surface_gifti(surface_path)
 
     if len(transform_matrix_paths) is not 0:
-        transformation_matrices = [0 for _ in range(len(transform_matrix_paths))]
+        transformation_matrices = [0 for _ in xrange(len(transform_matrix_paths))]
 
         for i, transform_matrix_path in enumerate(transform_matrix_paths):
             transformation_matrices[i] = numpy.array(generic_parser.read_transformation_matrix(transform_matrix_path))

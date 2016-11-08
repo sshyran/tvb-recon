@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
-
 import nibabel
-from nibabel.gifti import GiftiDataArray, GiftiImage, GiftiMetaData, giftiio
-from nibabel.freesurfer.io import read_geometry, write_geometry
-from ..model.surface import Surface
+from nibabel.gifti import GiftiDataArray
+from nibabel.gifti import GiftiImage
+from nibabel.gifti import GiftiMetaData
+from nibabel.gifti import giftiio
+from nibabel.freesurfer.io import read_geometry
+from nibabel.freesurfer.io import write_geometry
+from bnm.recon.snapshot.model.surface import Surface
 from bnm.recon.logger import get_logger
 
 
 class SurfaceParser(object):
     """
     This class reads content of a NIFTI file and returns a Volume Object
-
     """
 
     def parse_gifti(self, data_file):
@@ -37,18 +39,24 @@ class SurfaceParser(object):
         vol_geom_center_ras[1] = float(data_arrays[0].metadata['VolGeomC_A'])
         vol_geom_center_ras[2] = float(data_arrays[0].metadata['VolGeomC_S'])
 
-        return Surface(vertices, triangles, vol_geom_center_ras, image_metadata, vertices_metadata, vertices_coord_system, triangles_metadata)
-
+        return Surface(vertices, triangles, vol_geom_center_ras, image_metadata, vertices_metadata,
+                       vertices_coord_system, triangles_metadata)
 
     def parse_fs(self, surface_path):
         (vertices, triangles, metadata) = read_geometry(surface_path, read_metadata=True)
-        cras = metadata['cras']
-
         logger = get_logger(__name__)
         logger.info("From the file %s the extracted metadata is %s" % (surface_path, metadata))
 
-        return Surface(vertices, triangles, cras, metadata)
+        #TODO make this better and this is not good if the cras of a centered surface can be read.
+        if 'cras' in metadata:
+            cras = metadata['cras']
+            logger.info("The ras centering point for surface %s is %s", surface_path, cras)
+        else:
+            cras = [0, 0, 0]
+            logger.warning("Could not read the ras centering point from surface %s header. The cras will be %s",
+                           surface_path, cras)
 
+        return Surface(vertices, triangles, cras, metadata)
 
     def write_gifti(self, surface, surface_path):
         gifti_image = GiftiImage()
@@ -76,4 +84,5 @@ class SurfaceParser(object):
         nibabel.save(gifti_image, surface_path)
 
     def write_fs(self, surface, surface_path):
-        write_geometry(filepath=surface_path, coords=surface.vertices, faces=surface.triangles, volume_info=surface.image_metadata)
+        write_geometry(filepath=surface_path, coords=surface.vertices, faces=surface.triangles,
+                       volume_info=surface.image_metadata)

@@ -5,6 +5,7 @@ import matplotlib.pyplot as pyplot
 from mpl_toolkits.mplot3d import proj3d
 import numpy
 
+
 class ImageWriter(object):
     snapshot_extension = ".png"
     snapshots_directory = None
@@ -19,38 +20,36 @@ class ImageWriter(object):
 
             self.snapshots_directory = snapshot_directory
 
-
     def get_path(self, result_name):
         return self.snapshots_directory + '/' + result_name + self.snapshot_extension
 
+    def write_matrix(self, x, y, matrix, result_name):
+        pyplot.pcolormesh(x, y, numpy.array(matrix), cmap="gray")
+        pyplot.axis('off')
+        pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
+        pyplot.clf()
 
-    def write_matrix(self, matrix, result_name):
-        pyplot.imshow(matrix, cmap="gray")
+    def write_2_matrices(self, x, y, matrix_background, x1, y1, matrix_overlap, result_name):
+        pyplot.pcolormesh(x, y, numpy.array(matrix_background), cmap="gray")
+        pyplot.pcolormesh(x1, y1, numpy.array(matrix_overlap), cmap="hot", alpha=0.3)
+        pyplot.axis('off')
+        pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
+        pyplot.clf()
+
+    def write_3_matrices(self, x, y, matrix_background, x1, y1, matrix_overlap_1, x2, y2, matrix_overlap_2,
+                         result_name):
+        pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
+        pyplot.pcolormesh(x1, y1, matrix_overlap_1, cmap="hot", alpha=0.3)
+        pyplot.pcolormesh(x2, y2, matrix_overlap_2, cmap="jet", alpha=0.5)
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
-
-    def write_2_matrices(self, matrix_background, matrix_overlap, result_name):
-        pyplot.imshow(matrix_background, cmap="gray")
-        pyplot.imshow(matrix_overlap, cmap="hot", alpha=0.3)
-        pyplot.axis('off')
-        pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
-
-
-    def write_3_matrices(self, matrix_background, matrix_overlap_1, matrix_overlap_2, result_name):
-        pyplot.imshow(matrix_background, cmap="gray")
-        pyplot.imshow(matrix_overlap_1, cmap="hot", alpha=0.3)
-        pyplot.imshow(matrix_overlap_2, cmap="jet", alpha=0.5)
-        pyplot.axis('off')
-        pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
-
-
-    def write_surface(self, surface, result_name, positions=[(0, 0),(0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
+    def write_surface(self, surface, result_name, positions=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
         x = surface.vertices[:, 0]
         y = surface.vertices[:, 1]
         z = surface.vertices[:, 2]
 
-        fig=pyplot.figure()
+        fig = pyplot.figure()
 
         ax = fig.gca(projection='3d')
         ax.set_xlim3d(-120, 60)
@@ -67,15 +66,15 @@ class ImageWriter(object):
             pyplot.savefig(self.get_path(result_name + str(snapshot_index)))
             snapshot_index = snapshot_index + 1
 
-
-    def write_surface_with_annotation(self, surface, annot, result_name, positions=[(0, 0),(0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
+    def write_surface_with_annotation(self, surface, annot, result_name,
+                                      positions=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
         x = surface.vertices[:, 0]
         y = surface.vertices[:, 1]
         z = surface.vertices[:, 2]
 
-        fig=pyplot.figure()
+        fig = pyplot.figure()
 
-        ax=fig.gca(projection='3d')
+        ax = fig.gca(projection='3d')
         ax.set_xlim3d(-120, 60)
         ax.set_ylim3d(-120, 120)
         ax.set_zlim3d(-60, 120)
@@ -98,33 +97,24 @@ class ImageWriter(object):
             pyplot.savefig(self.get_path(result_name + str(snapshot_index)))
             snapshot_index = snapshot_index + 1
 
-
-    def write_matrix_and_surface(self, X,Y,matrix_background, surface_x_array, surface_y_array, clear_flag): #, result_name):
+    def write_matrix_and_surface(self, x, y, matrix_background, surface_x_array, surface_y_array, clear_flag):
         if clear_flag == True:
             pyplot.clf()
-        #pyplot.imshow(matrix_background, cmap="gray")
-        pyplot.pcolormesh(X, Y, numpy.array(matrix_background),cmap="gray")
-        #ax.set_aspect('equal')
+        pyplot.pcolormesh(x, y, numpy.array(matrix_background), cmap="gray")
         for s in range(0, len(surface_x_array)):
             pyplot.plot(surface_x_array[s][:], surface_y_array[s][:], 'y')
-        # pyplot.axis('off')
-        # pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
-
 
     def save_figure(self, result_name):
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
-
-    def write_matrix_and_surfaces(self, matrix_background, surf1_x_array, surf1_y_array, clear_flag, surf): #, result_name):
+    def write_matrix_and_surfaces(self, x, y, matrix_background, surf1_x_array, surf1_y_array, clear_flag, surf):
         if clear_flag == True:
             pyplot.clf()
         if surf == 'pial':
             contour_color = 'r'
         else:
             contour_color = 'y'
-        pyplot.imshow(matrix_background, cmap="gray")
+        pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
         for s in range(0, len(surf1_x_array)):
             pyplot.plot(surf1_x_array[s][:], surf1_y_array[s][:], contour_color)
-        # pyplot.axis('off')
-        # pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)

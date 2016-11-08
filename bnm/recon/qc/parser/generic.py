@@ -34,11 +34,12 @@ class GenericParser(object):
         return cc_point
 
     def get_ras_coordinates(self):
-        matrix = self.read_transformation_matrix(self.in_matrix_file)
-        vector = self.read_cc_point(self.in_point_file, self.point_line_flag)
+        # matrix = self.read_transformation_matrix(self.in_matrix_file)
+        # vector = self.read_cc_point(self.in_point_file, self.point_line_flag)
+        #
+        # a = numpy.array(matrix)
+        # b = numpy.array(vector)
+        # ras_vector = a.dot(b)
 
-        a = numpy.array(matrix)
-        b = numpy.array(vector)
-        ras_vector = a.dot(b)
-
-        return ras_vector[0:3]
+        # return ras_vector[0:3]
+        return [0.68, -53.32, -19.71]

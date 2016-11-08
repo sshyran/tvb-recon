@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-import trimesh
+from trimesh import Trimesh
 from trimesh import intersections
-from .constants import sagittal, coronal, axial
+
+from bnm.recon.snapshot.model.constants import sagittal, coronal, axial
 
 
 class Surface(object):
@@ -17,15 +18,15 @@ class Surface(object):
     show_all = False
 
     plane_normals = {
-        sagittal : (1,0,0),
-        coronal : (0,1,0),
-        axial : (0,0,1)
+        sagittal: (1, 0, 0),
+        coronal: (0, 1, 0),
+        axial: (0, 0, 1)
     }
 
     x_y_index = {
-        sagittal : [1, 2],
-        coronal : [0, 2],
-        axial : [0, 1]
+        sagittal: [1, 2],
+        coronal: [0, 2],
+        axial: [0, 1]
     }
 
     gifti_transform_matrix_key_words = [['VolGeomX_R', 'VolGeomY_R', 'VolGeomZ_R', 'VolGeomC_R'],
@@ -35,12 +36,13 @@ class Surface(object):
     fs_transform_matrix_key_words = ['xras', 'yras', 'zras', 'cras']
 
     def read_matrix_from_metadata(self, is_gifti):
-        matrix_from_metadata = [[0 for _ in range(4)] for _ in range(4)]
+        matrix_from_metadata = [[0 for _ in xrange(4)] for _ in xrange(4)]
 
         if is_gifti:
             for i in range(3):
                 for j in range(4):
-                    matrix_from_metadata[i][j] = float(self.vertices_metadata[self.gifti_transform_matrix_key_words[i][j]])
+                    matrix_from_metadata[i][j] = float(
+                        self.vertices_metadata[self.gifti_transform_matrix_key_words[i][j]])
             matrix_from_metadata[3] = [0.0, 0.0, 0.0, 1.0]
         else:
             for i in range(len(self.fs_transform_matrix_key_words)):
@@ -50,12 +52,11 @@ class Surface(object):
             matrix_from_metadata = numpy.transpose(matrix_from_metadata)
         return matrix_from_metadata
 
-
     def write_matrix_from_metadata(self, is_gifti):
         # we can temporary write the identity matrix to gifti meta to avoid freeview rotations.
-        identity_matrix = [ [1.0, 0.0, 0.0, 0.0],
-                            [0.0, 1.0, 0.0, 0.0],
-                            [0.0, 0.0, 1.0, 0.0]]
+        identity_matrix = [[1.0, 0.0, 0.0, 0.0],
+                           [0.0, 1.0, 0.0, 0.0],
+                           [0.0, 0.0, 1.0, 0.0]]
 
         if is_gifti:
             for i in range(3):
@@ -71,15 +72,15 @@ class Surface(object):
     # Rotates surface contour and it is displayed similar to freeview.
     def apply_rotation_matrix(self, contour):
         rotation_matrix = self.read_matrix_from_metadata()
-        new_verts = [[0 for _ in range(3)] for _ in range(len(contour))]
+        new_verts = [[0 for _ in xrange(3)] for _ in xrange(len(contour))]
 
-        for i in range(0, len(contour)):
+        for i in xrange(0, len(contour)):
             new_verts[i] = rotation_matrix.dot(contour[i])
 
         return numpy.array(new_verts)
 
-
-    def __init__(self, vertices, triangles, vol_geom_center_ras, image_metadata, vertices_metadata=None, vertices_coord_system=None, triangles_metadata=None):
+    def __init__(self, vertices, triangles, vol_geom_center_ras, image_metadata, vertices_metadata=None,
+                 vertices_coord_system=None, triangles_metadata=None):
         self.vertices = vertices
         self.triangles = triangles
         self.vol_geom_center_ras = vol_geom_center_ras
@@ -88,27 +89,24 @@ class Surface(object):
         self.vertices_coord_system = vertices_coord_system
         self.triangles_metadata = triangles_metadata
 
-
     def get_plane_origin(self, ras):
         plane_origin = numpy.subtract(ras, self.vol_geom_center_ras)
         return list(plane_origin)
 
-
     def get_x_y_array(self, projection, ras):
-        mesh = trimesh.Trimesh(self.vertices, self.triangles)
+        mesh = Trimesh(self.vertices, self.triangles)
         contours = intersections.mesh_plane(mesh, self.plane_normals[projection], self.get_plane_origin(ras))
-        x_array = [0 for _ in range(len(contours))]
-        y_array = [0 for _ in range(len(contours))]
+        x_array = [0 for _ in xrange(len(contours))]
+        y_array = [0 for _ in xrange(len(contours))]
 
-        for s in range(0, len(contours)):
+        for s in xrange(0, len(contours)):
             x_array[s] = contours[s][:, self.x_y_index[projection][0]]
             y_array[s] = contours[s][:, self.x_y_index[projection][1]]
 
         return x_array, y_array
 
-
     def compute_normals(self):
-        normals = [[0 for _ in range(0, 3)] for _ in range(0, len(self.triangles))]
+        normals = [[0 for _ in xrange(0, 3)] for _ in xrange(0, len(self.triangles))]
 
         for i, tri in enumerate(self.triangles):
             u = self.vertices[tri[1]] - self.vertices[tri[0]]
