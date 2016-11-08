@@ -3,7 +3,7 @@
 import os
 from enum import Enum
 from Pegasus.DAX3 import File
-from bnm.recon.pegasus.utils import get_logger, OUTPUT_FOLDER
+from bnm.recon.logger import get_logger, OUTPUT_FOLDER
 
 
 class Env(Enum):
