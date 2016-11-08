@@ -3,11 +3,11 @@
 import time
 import argparse
 from Pegasus.DAX3 import ADAG
-from bnm.recon.pegasus.config import Configuration
-from bnm.recon.pegasus.transform import step_coregister_t1_dwi
-from bnm.recon.pegasus.t1 import steps_recon_all
-from bnm.recon.pegasus.diffusion import steps_dwi_preproc
-from bnm.recon.pegasus.utils import write_dax
+from bnm.recon.dax.config import Configuration
+from bnm.recon.dax.transform import step_coregister_t1_dwi
+from bnm.recon.dax.t1 import steps_recon_all
+from bnm.recon.dax.diffusion import steps_dwi_preproc
+from bnm.recon.dax.utils import write_dax
 
 
 if __name__ == "__main__":

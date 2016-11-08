@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from Pegasus.DAX3 import Job, Link
-from bnm.recon.pegasus.config import SubtypeConfiguration
+from bnm.recon.dax.config import SubtypeConfiguration
 from bnm.recon.logger import get_logger
 
 LOGGER = get_logger(__name__)
