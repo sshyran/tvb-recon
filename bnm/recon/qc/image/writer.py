@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
 
 import os
+import numpy
 import matplotlib.pyplot as pyplot
 from mpl_toolkits.mplot3d import proj3d
-import numpy
+from bnm.recon.logger import get_logger
+
+# TODO is this import really necessary?
 
 
 class ImageWriter(object):
     snapshot_extension = ".png"
     snapshots_directory = None
+    logger = get_logger(__name__)
 
     def __init__(self):
-        snapshot_directory = os.environ['FIGS']
+        self.snapshots_directory = os.environ['FIGS']
 
-        if snapshot_directory is not None:
-
-            if not os.path.exists(snapshot_directory):
-                os.mkdir(snapshot_directory)
-
-            self.snapshots_directory = snapshot_directory
+        if self.snapshots_directory is not None:
+            if not os.path.exists(self.snapshots_directory):
+                os.mkdir(self.snapshots_directory)
 
     def get_path(self, result_name):
         return self.snapshots_directory + '/' + result_name + self.snapshot_extension
@@ -45,6 +46,10 @@ class ImageWriter(object):
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
     def write_surface(self, surface, result_name, positions=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
+
+        figs_folder = os.environ['FIGS']
+        self.logger.info("6 snapshots of the 3D surface will be generated in folder: %s" % figs_folder)
+
         x = surface.vertices[:, 0]
         y = surface.vertices[:, 1]
         z = surface.vertices[:, 2]
@@ -64,7 +69,9 @@ class ImageWriter(object):
         for e, a in positions:
             ax.view_init(elev=e, azim=a)
             pyplot.savefig(self.get_path(result_name + str(snapshot_index)))
-            snapshot_index = snapshot_index + 1
+            snapshot_index += 1
+
+        self.logger.info("The 6 snapshots were generated")
 
     def write_surface_with_annotation(self, surface, annot, result_name,
                                       positions=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
@@ -95,10 +102,10 @@ class ImageWriter(object):
         for e, a in positions:
             ax.view_init(elev=e, azim=a)
             pyplot.savefig(self.get_path(result_name + str(snapshot_index)))
-            snapshot_index = snapshot_index + 1
+            snapshot_index += 1
 
     def write_matrix_and_surface(self, x, y, matrix_background, surface_x_array, surface_y_array, clear_flag):
-        if clear_flag == True:
+        if clear_flag:
             pyplot.clf()
         pyplot.pcolormesh(x, y, numpy.array(matrix_background), cmap="gray")
         for s in range(0, len(surface_x_array)):
@@ -109,7 +116,7 @@ class ImageWriter(object):
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
     def write_matrix_and_surfaces(self, x, y, matrix_background, surf1_x_array, surf1_y_array, clear_flag, surf):
-        if clear_flag == True:
+        if clear_flag:
             pyplot.clf()
         if surf == 'pial':
             contour_color = 'r'

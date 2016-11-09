@@ -5,7 +5,7 @@ import os
 from bnm.recon.qc.image.writer import ImageWriter
 from bnm.recon.qc.parser.annotation import AnnotationParser
 from bnm.recon.qc.parser.generic import GenericParser
-from bnm.recon.qc.parser.surface import SurfaceParser
+from bnm.recon.qc.parser.surface import FreesurferParser, GiftiSurfaceParser
 from bnm.recon.qc.parser.volume import VolumeParser
 from bnm.recon.qc.model.constants import projections
 
@@ -16,7 +16,6 @@ class ImageProcessor(object):
 
     def __init__(self):
         self.parser_volume = VolumeParser()
-        self.parser_surface = SurfaceParser()
         self.generic_parser = GenericParser()
         self.annotation_parser = AnnotationParser()
         self.writer = ImageWriter()
@@ -25,28 +24,26 @@ class ImageProcessor(object):
             snapshot_count = int(os.environ['SNAPSHOT_NUMBER'])
         except ValueError:
             snapshot_count = 0
-
         self.snapshot_count = snapshot_count
 
-    def _new_name(self, current_projection):
+    def generate_file_name(self, current_projection):
         file_name = self.snapshot_name + str(self.snapshot_count) + current_projection
         return file_name
 
-    def is_surface_gifti(self, surface_path):
+    @staticmethod
+    def factory_surface_parser(surface_path):
         gifti_extension = ".gii"
         filename, extension = os.path.splitext(surface_path)
 
-        if (extension == gifti_extension):
-            return True
+        if extension == gifti_extension:
+            return GiftiSurfaceParser()
         else:
-            return False
+            return FreesurferParser()
 
-    def choose_parser_for_surface(self, surface_path):
+    def read_surface(self, surface_path):
 
-        if (self.is_surface_gifti(surface_path)):
-            return self.parser_surface.parse_gifti(surface_path)
-        else:
-            return self.parser_surface.parse_fs(surface_path)
+        parser = self.factory_surface_parser(surface_path)
+        return parser.read(surface_path)
 
     def show_single_volume(self, volume_path):
         volume = self.parser_volume.parse(volume_path)
@@ -54,7 +51,7 @@ class ImageProcessor(object):
 
         for i in projections:
             x, y, volume_matrix = volume.align(i, ras)
-            self.writer.write_matrix(x, y, volume_matrix, self._new_name(i))
+            self.writer.write_matrix(x, y, volume_matrix, self.generate_file_name(i))
 
     def overlap_2_volumes(self, background_path, overlay_path):
 
@@ -65,7 +62,7 @@ class ImageProcessor(object):
         for i in projections:
             x, y, background_matrix = volume_background.align(i, ras)
             x1, y1, overlay_matrix = volume_overlay.align(i, ras)
-            self.writer.write_2_matrices(x, y, background_matrix, x1, y1, overlay_matrix, self._new_name(i))
+            self.writer.write_2_matrices(x, y, background_matrix, x1, y1, overlay_matrix, self.generate_file_name(i))
 
     def overlap_3_volumes(self, background_path, overlay_1_path, overlay_2_path):
 
@@ -80,27 +77,29 @@ class ImageProcessor(object):
             x1, y1, overlay_1_matrix = volume_overlay_1.align(i, ras)
             x2, y2, overlay_2_matrix = volume_overlay_2.align(i, ras)
             self.writer.write_3_matrices(x, y, background_matrix, x1, y1, overlay_1_matrix, x2, y2, overlay_2_matrix,
-                                         self._new_name(i))
+                                         self.generate_file_name(i))
 
     def overlap_surface_annotation(self, surface_path, annotation):
         annot = self.annotation_parser.parse(annotation)
-        surface = self.choose_parser_for_surface(surface_path)
-        self.writer.write_surface_with_annotation(surface, annot, self._new_name('surface_annotation'))
+        surface = self.read_surface(surface_path)
+        self.writer.write_surface_with_annotation(surface, annot, self.generate_file_name('surface_annotation'))
 
     def overlap_volume_surface(self, volume_background, surfaces_path):
         volume = self.parser_volume.parse(volume_background)
+        # TODO review varargs processing
         surfaces = [0 for _ in range(len(surfaces_path))]
         for i, surf in enumerate(surfaces_path):
-            surfaces[i] = self.choose_parser_for_surface(os.path.expandvars(surf))
+            surfaces[i] = self.read_surface(os.path.expandvars(surf))
+
         ras = self.generic_parser.get_ras_coordinates()
         for i in projections:
             x, y, background_matrix = volume.align(i, ras)
             clear_flag = True
             for surface in surfaces:
-                x_array, y_array = surface.get_x_y_array(i, ras)
+                x_array, y_array = surface.cut_by_plane(i, ras)
                 self.writer.write_matrix_and_surface(x, y, background_matrix, x_array, y_array, clear_flag)
                 clear_flag = False
-            self.writer.save_figure(self._new_name(i))
+            self.writer.save_figure(self.generate_file_name(i))
 
     def overlap_volume_surfaces(self, volume_background, resampled_name):
         surfaces_path = os.path.expandvars(os.environ['SURF'])
@@ -114,10 +113,9 @@ class ImageProcessor(object):
             x, y, background_matrix = volume.align(i, ras)
             for k in ('rh', 'lh'):
                 for j in ('pial', 'white'):
-                    current_surface = self.parser_surface.parse_gifti(
-                        surfaces_path + '/' + k + '.' + j + resampled_name + '.gii')
+                    current_surface = self.read_surface(surfaces_path + '/' + k + '.' + j + resampled_name + '.gii')
                     surf_x_array, surf_y_array = current_surface.cut_by_plane(i, ras)
                     self.writer.write_matrix_and_surfaces(x, y, background_matrix, surf_x_array, surf_y_array,
                                                           clear_flag, j)
                     clear_flag = False
-            self.writer.save_figure(self._new_name(i))
+            self.writer.save_figure(self.generate_file_name(i))
