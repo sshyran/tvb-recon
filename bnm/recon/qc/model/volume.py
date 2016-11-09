@@ -1,64 +1,64 @@
 # -*- coding: utf-8 -*-
 
-from nibabel.affines import apply_affine
-import numpy.linalg as nlp
 import numpy
-
-from bnm.recon.qc.model.constants import sagittal, coronal, axial
+import numpy.linalg as nlp
+from nibabel.affines import apply_affine
+from bnm.recon.qc.model.constants import *
 
 
 class Volume(object):
-    data = None  # 3D matrix
-    dims = None
+    """
+    Hold volume data, dimensions and affine matrix.
+
+    Has a method that cuts a slice from the volume.
+    """
+
+    # 3D array
+    data = None
+    # array with the length of each data dimension
+    dimensions = None
+    # matrix containing voxel to ras transformation
     affine_matrix = None
+    # TODO use this
+    # transparency used when displaying a volume slice
     transparency = 1.0
+    # color map used when displaying a volume slice
     color_map = None  # Reference to ColorMap obj, or empty
 
-    def __init__(self, nifti_data, dims, nifti_affine_matrix):
-        self.data = nifti_data
-        self.dims = dims
-        self.affine_matrix = nifti_affine_matrix
+    def __init__(self, data, affine_matrix):
+        self.data = data
+        self.dimensions = data.shape
+        self.affine_matrix = affine_matrix
 
-    def align(self, projection, ras):
+    def slice_volume(self, projection=sagittal, ras=origin):
+        """
+        This determines slice colors and axes coordinates for the slice.
+        :param projection: one of sagittal, axial or coronal
+        :param ras: 3D point where to do the slicing
+        :return: X, Y, 2D data matrix
+        """
 
-        inv = nlp.inv(self.affine_matrix)
-        ijk_ras = numpy.round(apply_affine(inv, ras)).astype('i')
-        ras_current_point = [0 for x in range(3)]
+        affine_inverse = nlp.inv(self.affine_matrix)
+        ijk_ras = numpy.round(apply_affine(affine_inverse, ras)).astype('i')
 
-        if projection == sagittal:
-            ras_current_point[0] = ijk_ras[0]
-            ras_index_1 = 1
-            ras_index_2 = 2
-        elif projection == coronal:
-            ras_current_point[1] = ijk_ras[1]
-            ras_index_1 = 0
-            ras_index_2 = 2
-        elif projection == axial:
-            ras_current_point[2] = ijk_ras[2]
-            ras_index_1 = 0
-            ras_index_2 = 1
+        slice_index_1, slice_index_2 = x_y_index[projection]
 
-        aligned_data = [[0 for _ in xrange(self.dims[ras_index_2])] for _ in xrange(self.dims[ras_index_1])]
-        X = numpy.zeros((self.data.shape[ras_index_1], self.data.shape[ras_index_2]))
-        Y = numpy.zeros((self.data.shape[ras_index_1], self.data.shape[ras_index_2]))
+        slice_data = numpy.zeros((self.dimensions[slice_index_1], self.dimensions[slice_index_2]))
+        x_axis_coords = numpy.zeros((self.dimensions[slice_index_1], self.dimensions[slice_index_2]))
+        y_axis_coords = numpy.zeros((self.dimensions[slice_index_1], self.dimensions[slice_index_2]))
 
-        for i in xrange(0, self.dims[ras_index_1]):
-            for j in xrange(0, self.dims[ras_index_2]):
-                ras_current_point[ras_index_1] = i
-                ras_current_point[ras_index_2] = j
+        for i in xrange(self.dimensions[slice_index_1]):
+            for j in xrange(self.dimensions[slice_index_2]):
+                ijk_ras[slice_index_1] = i
+                ijk_ras[slice_index_2] = j
 
-                v = apply_affine(self.affine_matrix, ras_current_point)
-                X[i, j] = v[ras_index_1]
-                Y[i, j] = v[ras_index_2]
+                ras_coordinates = apply_affine(self.affine_matrix, ijk_ras)
+                x_axis_coords[i, j] = ras_coordinates[slice_index_1]
+                y_axis_coords[i, j] = ras_coordinates[slice_index_2]
 
-                val = self.data[ras_current_point[0], ras_current_point[1], ras_current_point[2]]
-                if isinstance(val, (list, numpy.ndarray)):
-                    val = val[0]
-                aligned_data[i][j] = val
+                color = self.data[ijk_ras[0], ijk_ras[1], ijk_ras[2]]
+                if isinstance(color, (list, numpy.ndarray)):
+                    color = color[0]
+                slice_data[i][j] = color
 
-        return X, Y, numpy.array(aligned_data)
-
-
-class ColorMap(object):
-    # dict(VolumeValue : [r, g, b])
-    colors = dict()
+        return x_axis_coords, y_axis_coords, slice_data

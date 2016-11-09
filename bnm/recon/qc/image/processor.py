@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 
 import os
-
 from bnm.recon.qc.image.writer import ImageWriter
 from bnm.recon.qc.parser.annotation import AnnotationParser
 from bnm.recon.qc.parser.generic import GenericParser
@@ -11,6 +10,7 @@ from bnm.recon.qc.model.constants import projections
 
 
 class ImageProcessor(object):
+    # TODO keep a constant for .png and snapshotname?
     snapshot_name = "snapshot"
     snapshot_extension = ".png"
 
@@ -46,23 +46,26 @@ class ImageProcessor(object):
         return parser.read(surface_path)
 
     def show_single_volume(self, volume_path):
+
         volume = self.parser_volume.parse(volume_path)
         ras = self.generic_parser.get_ras_coordinates()
 
-        for i in projections:
-            x, y, volume_matrix = volume.align(i, ras)
-            self.writer.write_matrix(x, y, volume_matrix, self.generate_file_name(i))
+        for projection in projections:
+            x_axis_coords, y_axis_coords, volume_matrix = volume.slice_volume(projection, ras)
+            self.writer.write_matrix(x_axis_coords, y_axis_coords, volume_matrix, self.generate_file_name(projection))
 
     def overlap_2_volumes(self, background_path, overlay_path):
 
-        volume_background = self.parser_volume.parse(background_path)
-        volume_overlay = self.parser_volume.parse(overlay_path)
+        background_volume = self.parser_volume.parse(background_path)
+        overlay_volume = self.parser_volume.parse(overlay_path)
+
         ras = self.generic_parser.get_ras_coordinates()
 
-        for i in projections:
-            x, y, background_matrix = volume_background.align(i, ras)
-            x1, y1, overlay_matrix = volume_overlay.align(i, ras)
-            self.writer.write_2_matrices(x, y, background_matrix, x1, y1, overlay_matrix, self.generate_file_name(i))
+        for projection in projections:
+            x, y, background_matrix = background_volume.slice_volume(projection, ras)
+            x1, y1, overlay_matrix = overlay_volume.slice_volume(projection, ras)
+            self.writer.write_2_matrices(x, y, background_matrix, x1, y1, overlay_matrix,
+                                         self.generate_file_name(projection))
 
     def overlap_3_volumes(self, background_path, overlay_1_path, overlay_2_path):
 
@@ -72,34 +75,36 @@ class ImageProcessor(object):
 
         ras = self.generic_parser.get_ras_coordinates()
 
-        for i in projections:
-            x, y, background_matrix = volume_background.align(i, ras)
-            x1, y1, overlay_1_matrix = volume_overlay_1.align(i, ras)
-            x2, y2, overlay_2_matrix = volume_overlay_2.align(i, ras)
+        for projection in projections:
+            x, y, background_matrix = volume_background.slice_volume(projection, ras)
+            x1, y1, overlay_1_matrix = volume_overlay_1.slice_volume(projection, ras)
+            x2, y2, overlay_2_matrix = volume_overlay_2.slice_volume(projection, ras)
             self.writer.write_3_matrices(x, y, background_matrix, x1, y1, overlay_1_matrix, x2, y2, overlay_2_matrix,
-                                         self.generate_file_name(i))
+                                         self.generate_file_name(projection))
 
     def overlap_surface_annotation(self, surface_path, annotation):
-        annot = self.annotation_parser.parse(annotation)
+        annotation = self.annotation_parser.parse(annotation)
         surface = self.read_surface(surface_path)
-        self.writer.write_surface_with_annotation(surface, annot, self.generate_file_name('surface_annotation'))
+        self.writer.write_surface_with_annotation(surface, annotation, self.generate_file_name('surface_annotation'))
 
     def overlap_volume_surface(self, volume_background, surfaces_path):
         volume = self.parser_volume.parse(volume_background)
         # TODO review varargs processing
-        surfaces = [0 for _ in range(len(surfaces_path))]
+        surfaces = [0 for _ in xrange(len(surfaces_path))]
+
         for i, surf in enumerate(surfaces_path):
             surfaces[i] = self.read_surface(os.path.expandvars(surf))
 
         ras = self.generic_parser.get_ras_coordinates()
-        for i in projections:
-            x, y, background_matrix = volume.align(i, ras)
+
+        for projection in projections:
+            x, y, background_matrix = volume.slice_volume(projection, ras)
             clear_flag = True
             for surface in surfaces:
-                x_array, y_array = surface.cut_by_plane(i, ras)
+                x_array, y_array = surface.cut_by_plane(projection, ras)
                 self.writer.write_matrix_and_surface(x, y, background_matrix, x_array, y_array, clear_flag)
                 clear_flag = False
-            self.writer.save_figure(self.generate_file_name(i))
+            self.writer.save_figure(self.generate_file_name(projection))
 
     def overlap_volume_surfaces(self, volume_background, resampled_name):
         surfaces_path = os.path.expandvars(os.environ['SURF'])
@@ -110,7 +115,7 @@ class ImageProcessor(object):
         print ras
         for i in projections:
             clear_flag = True
-            x, y, background_matrix = volume.align(i, ras)
+            x, y, background_matrix = volume.slice_volume(i, ras)
             for k in ('rh', 'lh'):
                 for j in ('pial', 'white'):
                     current_surface = self.read_surface(surfaces_path + '/' + k + '.' + j + resampled_name + '.gii')

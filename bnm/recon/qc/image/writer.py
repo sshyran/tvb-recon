@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-import numpy
 import matplotlib.pyplot as pyplot
-from mpl_toolkits.mplot3d import proj3d
+from mpl_toolkits.mplot3d import Axes3D
 from bnm.recon.logger import get_logger
-
-# TODO is this import really necessary?
 
 
 class ImageWriter(object):
@@ -25,14 +22,14 @@ class ImageWriter(object):
         return self.snapshots_directory + '/' + result_name + self.snapshot_extension
 
     def write_matrix(self, x, y, matrix, result_name):
-        pyplot.pcolormesh(x, y, numpy.array(matrix), cmap="gray")
+        pyplot.pcolormesh(x, y, matrix, cmap="gray")
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
         pyplot.clf()
 
     def write_2_matrices(self, x, y, matrix_background, x1, y1, matrix_overlap, result_name):
-        pyplot.pcolormesh(x, y, numpy.array(matrix_background), cmap="gray")
-        pyplot.pcolormesh(x1, y1, numpy.array(matrix_overlap), cmap="hot", alpha=0.3)
+        pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
+        pyplot.pcolormesh(x1, y1, matrix_overlap, cmap="hot", alpha=0.3)
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
         pyplot.clf()
@@ -46,7 +43,7 @@ class ImageWriter(object):
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
     def write_surface(self, surface, result_name, positions=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
-
+        #TODO show bigger surfaces in snapshots
         figs_folder = os.environ['FIGS']
         self.logger.info("6 snapshots of the 3D surface will be generated in folder: %s" % figs_folder)
 
@@ -56,7 +53,7 @@ class ImageWriter(object):
 
         fig = pyplot.figure()
 
-        ax = fig.gca(projection='3d')
+        ax = Axes3D(fig)
         ax.set_xlim3d(-120, 60)
         ax.set_ylim3d(-120, 120)
         ax.set_zlim3d(-60, 120)
@@ -81,13 +78,13 @@ class ImageWriter(object):
 
         fig = pyplot.figure()
 
-        ax = fig.gca(projection='3d')
+        ax = Axes3D(fig)
         ax.set_xlim3d(-120, 60)
         ax.set_ylim3d(-120, 120)
         ax.set_zlim3d(-60, 120)
         ax.dist = 4
 
-        face_colors = annot.face_colors(surface.triangles)
+        face_colors = annot.compute_face_colors(surface.triangles)
 
         normals = surface.compute_normals()
         face_colors = ax._shade_colors(face_colors, normals)
@@ -107,7 +104,7 @@ class ImageWriter(object):
     def write_matrix_and_surface(self, x, y, matrix_background, surface_x_array, surface_y_array, clear_flag):
         if clear_flag:
             pyplot.clf()
-        pyplot.pcolormesh(x, y, numpy.array(matrix_background), cmap="gray")
+        pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
         for s in range(0, len(surface_x_array)):
             pyplot.plot(surface_x_array[s][:], surface_y_array[s][:], 'y')
 
