@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+
 import os
-from ..elec import parse_asa_electrode_file
+from bnm.recon.io.elec import parse_asa_electrode_file
+
 
 def test_parse_asa_electrode_file():
     # XXX will need standard place for test & resource data files
-    contents = parse_asa_electrode_file(os.path.join('data','standard_1005.elc'))
+    contents = parse_asa_electrode_file(os.path.join('data', 'standard_1005.elc'))
     assert contents['reference_label'] == 'avg'
     assert contents['unit_position'] == 'mm'
     assert contents['number_positions'] == 346
