@@ -99,17 +99,17 @@ class Configuration(object):
         LOGGER.info("Parsing patient configuration file %s" % config_file)
         props = self._parse_properties(config_file)
 
-        self.subject_name = Env.SUBJECT
-        self.number_of_threads = Env.THREADS
+        self.subject_name = Env.SUBJECT.value
+        self.number_of_threads = Env.THREADS.value
 
-        self.t1 = SubtypeConfiguration(RC.T1, props[ConfigKey.T1_INPUT_FRMT], prefix=SubtypeConfiguration.T1)
-        self.t2 = SubtypeConfiguration(RC.T2, props[ConfigKey.T2_INPUT_FRMT],
+        self.t1 = SubtypeConfiguration(RC.T1.value, props[ConfigKey.T1_INPUT_FRMT], prefix=SubtypeConfiguration.T1)
+        self.t2 = SubtypeConfiguration(RC.T2.value, props[ConfigKey.T2_INPUT_FRMT],
                                        bool(props[ConfigKey.T2_FLAG]), SubtypeConfiguration.T2)
-        self.flair = SubtypeConfiguration(RC.FLAIR, props[ConfigKey.FLAIR_INPUT_FRMT],
+        self.flair = SubtypeConfiguration(RC.FLAIR.value, props[ConfigKey.FLAIR_INPUT_FRMT],
                                           bool(props[ConfigKey.FLAIR_FLAG]), SubtypeConfiguration.FLAIR)
-        self.diffusion = DiffusionConfiguration(RC.DWI, props[ConfigKey.DWI_INPUT_FRMT],
+        self.diffusion = DiffusionConfiguration(RC.DWI.value, props[ConfigKey.DWI_INPUT_FRMT],
                                                 bool(props[ConfigKey.DWI_IS_REVERSED]),
-                                                props[ConfigKey.DWI_SCAN_DIRECTION], Env.THREADS_MRTRIX)
+                                                props[ConfigKey.DWI_SCAN_DIRECTION], Env.THREADS_MRTRIX.value)
         self.mri = MRIConfiguration()
 
     @staticmethod
@@ -119,7 +119,11 @@ class Configuration(object):
             for line in f:
                 if line.startswith("#") or len(line) < 3 or line.index("=") < 0:
                     continue
-                values = line.split("=")
-                result_dict[values[0]] = values[1].strip()
+                key_str, value = line.split("=")
+                try:
+                    key = ConfigKey(key_str)
+                except KeyError:
+                    raise Exception('Invalid property key %r in file %r.' % (key_str, config_file))
+                result_dict[key] = value.strip()
         LOGGER.debug("Read patient configuration %s" % result_dict)
         return result_dict
