@@ -59,7 +59,7 @@ if __name__ == "__main__":
     imageProcessor = ImageProcessor()
 
     if args.subcommand == arg_1vol:
-        volume_path = imageTransformer.apply_transform(os.path.expandvars(args.volume))
+        volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.volume))
         imageProcessor.show_single_volume(os.path.expandvars(volume_path))
 
     elif args.subcommand == arg_2vols:
@@ -83,7 +83,7 @@ if __name__ == "__main__":
                                               os.path.expandvars(surf))
 
     elif args.subcommand == arg_vol_white_pial:
-        #TODO for transformations, have a separate folder with the white+pial surfaces
+        # TODO for transformations, have a separate folder with the white+pial surfaces
         imageProcessor.overlap_volume_surfaces(os.path.expandvars(args.background),
                                                os.path.expandvars(args.resampled_surface_name))
 
@@ -91,5 +91,5 @@ if __name__ == "__main__":
         for i in imageTransformer.created_files:
             os.remove(i)
         os.rmdir(imageTransformer.converted_files_directory)
-    except:
+    except OSError:
         print "Cannot delete files"
