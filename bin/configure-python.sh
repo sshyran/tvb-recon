@@ -1,4 +1,4 @@
-# This setup should be done only once, before starting to use the bnm.recon.snapshot commands
+# This setup should be done only once, before starting to use the bnm.recon.qc commands
 sudo python setup.py develop
 
 # The minimum environment variables needed for surface transformation
@@ -14,10 +14,10 @@ cd ..
 # Surface transformation command calls
 
 # This applies the transformation matrix from the surface.gii metadata
-# python -m bnm.recon.snapshot.surface_transform surface_path.gii output_surface_path.gii
+# python -m bnm.recon.qc.surface_transform surface_path.gii output_surface_path.gii
 
 # This allows you to give a list of transformation matrices which will be all applied
-# python -m bnm.recon.snapshot.surface_transform surface_path.gii output_surface_path.gii -matrix_paths matrix1.txt matrix2.txt
+# python -m bnm.recon.qc.surface_transform surface_path.gii output_surface_path.gii -matrix_paths matrix1.txt matrix2.txt
 
 # To view the snapshots of a surface with an annotation applied, use this
-# python -m bnm.recon.snapshot surf_annot surface_path.gii annotation_path 
+# python -m bnm.recon.qc surf_annot surface_path.gii annotation_path

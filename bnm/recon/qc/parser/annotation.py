@@ -1,18 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from nibabel.freesurfer.io import read_annot
-
-from ..model.annotation import Annotation
+from bnm.recon.qc.model.annotation import Annotation
 
 
 class AnnotationParser(object):
 
-    def parse(self, annot_path):
-        [region_mapping, color_table, region_names] = read_annot(annot_path)
+    def parse(self, annotation_path):
+        [region_mapping, regions_color_table, region_names] = read_annot(annotation_path)
 
-        color_mapping_list = [[0 for _ in range(4)] for _ in range(len(region_mapping))]
-        for i in range(0, len(region_mapping)):
-            for j in range(0, 4):
-                color_mapping_list[i][j] = round((color_table[region_mapping[i]][j] / 255.0), 2)
-
-        return Annotation(region_mapping, color_mapping_list, region_names)
+        return Annotation(region_mapping, regions_color_table, region_names)

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import logging
 import logging.config
@@ -7,6 +9,11 @@ OUTPUT_FOLDER = "output"
 LOG_FILE = os.path.join(OUTPUT_FOLDER, 'bnm.log')
 
 
+def _ensure_log_folder_exists():
+    if not os.path.exists(OUTPUT_FOLDER):
+        os.mkdir(OUTPUT_FOLDER)
+
+
 def get_logger(parent_module):
     """
     Build a logger instance and return it.
@@ -14,6 +21,7 @@ def get_logger(parent_module):
     in case we need to refactor in the future.
     """
     log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    _ensure_log_folder_exists()
 
     file_handler = logging.FileHandler(LOG_FILE)
     file_handler.setLevel(logging.DEBUG)

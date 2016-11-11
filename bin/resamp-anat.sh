@@ -5,10 +5,11 @@
 # cortical surface.
 
 # Parcellations to resample should be provided as arguments.
-parcs=$*
+parcs=aparc
+parcs="$SUBPARCS $parcs"
 
 # Make sure we process default ones
-for default_parc in aparc aparc.a2009s aparc.DKTatlas40
+for default_parc in aparc.a2009s aparc.DKTatlas
 do
 	if [[ $parcs != *"$default_parc"* ]]
 	then
@@ -39,13 +40,13 @@ else
 fi
 
 # paths to source and target folders
-src=$SUBJECTS_DIR/$SUBJECT
+src=$SUBJ_DIR
 trg=$SUBJECTS_DIR/$SUBJECT-$TRGSUBJECT
 
 # map pial and white surfaces
 for hemi in lh rh
 do
-	for sval in white pial
+	for sval in white pial inflated
 	do
 		# resamp src surf to trg
 		mri_surf2surf \
@@ -63,22 +64,38 @@ do
 done
 
 # check
-freeview -v $src/mri/T1.mgz -f $src/surf/*.$TRGSUBJECT \
-	-viewport coronal -ss resamp-$SUBJECT-$TRGSUBJECT.png
+# Visual check (screenshot)
+#freeview -v $src/mri/T1.mgz -f $src/surf/{lh,rh}.{white,pial}.$TRGSUBJECT \
+#         -viewport coronal -ss $FIGS/resamp-surfs-$SUBJECT-$TRGSUBJECT.png
+source snapshot.sh vol_white_pial $src/mri/T1.nii.gz -resampled_surface_name $TRGSUBJECT
 
 # resamp parcs
 for parc in $parcs
 do
-	for hemi in rh lh
+	for hemi in lh rh
 	do
 		mri_surf2surf \
 			--srcsubject $SUBJECT \
 			--trgsubject $SUBJECT-$TRGSUBJECT \
 			--hemi $hemi \
 			--sval-annot $src/label/$hemi.$parc.annot \
-			--tval $src/label/$hemi.$TRGSUBJECT.$parc
+			--tval $src/label/$hemi.$parc.annot.$TRGSUBJECT
 	done
 done
+
+#Visual check (screenshot)
+# plot resamped parcs
+for parc in $parcs
+do
+    for hemi in lh rh
+    do
+        #freeview -f $src/surf/$hemi.pial.$TRGSUBJECT:annot=$src/label/$hemi.$parc.annot.$TRGSUBJECT \
+        #        -viewport 3D -ss $FIGS/resamp-$hemi-pial-$parc-annot-$SUBJECT-$TRGSUBJECT.png
+        mris_convert $src/surf/$hemi.pial.$TRGSUBJECT $src/surf/$hemi.pial.$TRGSUBJECT.gii
+	    source snapshot.sh surf_annot $src/surf/$hemi.pial.$TRGSUBJECT.gii $src/label/$hemi.$parc.annot.$TRGSUBJECT
+    done
+done
+
 
 # clean up
 rm -r $SUBJECTS_DIR/$SUBJECT-$TRGSUBJECT

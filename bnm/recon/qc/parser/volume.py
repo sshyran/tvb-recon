@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import nibabel
-from ..model.volume import Volume
+from bnm.recon.logger import get_logger
+from bnm.recon.qc.model.volume import Volume
 
 
 class VolumeParser(object):
@@ -9,11 +10,12 @@ class VolumeParser(object):
     This class reads content of a NIFTI file and returns a Volume Object
     """
 
-    def parse(self, data_file):
-        nifti_image = nibabel.load(data_file)
-        nifti_affine_matrix = nifti_image.affine
-        nifti_data = nifti_image.get_data()
-        nifti_header = nifti_image.header
-        nifti_dims = nifti_header.get_data_shape()
+    logger = get_logger(__name__)
 
-        return Volume(nifti_data, nifti_dims, nifti_affine_matrix)
+    def parse(self, data_file):
+        image = nibabel.load(data_file)
+        data = image.get_data()
+        affine_matrix = image.affine
+        self.logger.info("The affine matrix extracted from volume %s is %s" % (data_file, affine_matrix))
+
+        return Volume(data, affine_matrix)

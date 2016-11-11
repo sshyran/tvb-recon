@@ -54,14 +54,13 @@ then
     fi
 
     #Get the transform of tdi_ends in T1 space
+    #QUESTION! Can we afford the loss of accuracy due to volume resampling from diffusion space and resolution to those of T1?
+    #Do we need regopt when we just apply an existing transform?
     regopt="-dof 12 -searchrx -180 180 -searchry -180 180 -searchrz -180 180 -cost mutualinfo -interp nearestneighbour"
-    flirt -in $tdiends -ref $MRI/$vol.nii.gz -omat ./tdi-to-$vol.mat -out ./tdi_ends-in-$vol.nii.gz $regopt
-    #Invert the transform and get aparc+aseg to tdi_ends:
-    convert_xfm -omat ./$vol-to-tdi.mat -inverse ./tdi-to-$vol.mat
-    flirt -applyxfm -in $MRI/$vol.nii.gz -ref $tdiends -init ./$vol-to-tdi.mat -out ./$vol-in-tdi.nii.gz $regopt
+    flirt -applyxfm -in $tdiends -ref $MRI/T1.nii.gz -omat $DMR/t2d.mat -out ./tdi_ends-in-t1.nii.gz $regopt
 
     #...and binarize it to create a tdi mask with a threshold equal to a number of tracks
-    mri_binarize --i ./tdi_ends-in-$vol.nii.gz --min $TDI_THR --o ./tdi_mask.nii.gz
+    mri_binarize --i ./tdi_ends-in-t1.nii.gz --min $TDI_THR --o ./tdi_mask.nii.gz
 
     popd
 fi
@@ -79,7 +78,7 @@ then
 
     #gmwmi:
     #Anatomically constraint spherical deconvolution
-    5ttgen fsl $MRI/T1.nii.gz ./5tt-in-T1.mif -force #if a brain mask is already applied: -premasked
+    #5ttgen fsl $MRI/T1.nii.gz ./5tt-in-T1.mif -force #if a brain mask is already applied: -premasked
     5tt2gmwmi ./5tt-in-T1.mif ./gmwmi-in-T1.mif -nthreads $MRTRIX_THRDS -force
     mrconvert ./gmwmi-in-T1.mif ./gmwmi-in-T1.nii.gz -force
 
@@ -95,32 +94,29 @@ then
     #freeview -v $MRI/T1.nii.gz ../$vol.nii.gz ./gmwmi-in-T1-256.nii.gz:opacity=0.5 -ss $FIGS/gmwmi-in-T1-$vol.png
     #source snapshot.sh 3vols $MRI/T1.nii.gz ../$vol.nii.gz ./gmwmi-in-T1-256.nii.gz
 
-    #Register gmwmi with aparc+aseg
-    regopt="-dof 12 -searchrx -180 180 -searchry -180 180 -searchrz -180 180 -cost mutualinfo -interp nearestneighbour"
-    flirt -in ./gmwmi-in-T1.nii.gz -ref $MRI/$vol.nii.gz -omat ./gwi-to-$vol.mat -out ./gwi-in-$vol.nii.gz $regopt
-    #tkregister2 --mov ./gmwmi-in-T1.nii.gz --targ ../$vol.nii.gz --reg register.dat --noedit --regheader
+    #Resample and register gmwmi with aparc+aseg
+    tkregister2 --mov ./gmwmi-in-T1.nii.gz --targ $MRI/T1.nii.gz --reg ./resamp_gw-in-T1.dat --noedit --regheader
     #Resample gmwmi in aseg space [256 256 256]
-    #mri_vol2vol --mov ./gmwmi-in-T1.nii.gz --targ ../$vol.nii.gz --o ./gmwmi-in-$vol.nii.gz --reg ./register.dat
+    mri_vol2vol --mov ./gmwmi-in-T1.nii.gz --targ $MRI/T1.nii.gz --o ./gmwmi-in-T1-resamp.nii.gz --reg ./resamp_gw-in-T1.dat
     #Renormalize gmwmi in the [0.0, 1.0] interval
-    #mris_calc ./gmwmi-in-$vol-resize.nii norm
-    #mri_convert ./out.mgz ./gmwmi-in-$vol.nii.gz --out_orientation RAS -rt nearest
+    mris_calc ./gmwmi-in-T1-resamp.nii.gz norm
+    mri_convert ./out.mgz ./gmwmi-in-T1-resamp-norm.nii.gz --out_orientation RAS -rt nearest
     #rm ./out.mgz
     #...and binarize it to create a gmwmi mask
-    mri_binarize --i ./gwi-in-$vol.nii.gz --min $GWI_THR --o ./gmwmi-in-$vol-bin.mgz
-    mri_convert ./gmwmi-in-$vol-bin.mgz ./gmwmi-in-$vol-bin.nii.gz --out_orientation RAS -rt nearest
-    fslreorient2std ./gmwmi-in-$vol-bin.nii.gz ./gmwmi-in-$vol-bin-reo.nii.gz
-    mv ./gmwmi-in-$vol-bin-reo.nii.gz ./gmwmi-in-$vol-bin.nii.gz
+    mri_binarize --i ./gmwmi-in-T1-resamp-norm.nii.gz --min $GWI_THR --o ./gmwmi-in-T1-bin.mgz
+    mri_convert ./gmwmi-in-T1-bin.mgz ./gmwmi-in-T1-bin.nii.gz --out_orientation RAS -rt nearest
+    fslreorient2std ./gmwmi-in-T1-bin.nii.gz ./gmwmi-in-T1-bin-reo.nii.gz
+    mv ./gmwmi-in-T1-bin-reo.nii.gz ./gmwmi-in-T1-bin.nii.gz
 
     #Visual checks
     #(interactive):
-    #freeview -v $MRI/T1.nii.gz ../$vol.nii.gz ./gmwmi-in-$vol-bin.nii.gz:opacity=0.5
+    #freeview -v $MRI/T1.nii.gz ../$vol.nii.gz ./gmwmi-in-T1-bin.nii.gz:opacity=0.5
     #(screenshot):
-    #freeview -v $MRI/T1.nii.gz ../$vol.nii.gz ./gmwmi-in-$vol-bin.nii.gz:opacity=0.5 -ss $FIGS/gmwmi-bin-in-$vol.png
-    #source snapshot.sh 3vols $MRI/T1.nii.gz ../$vol.nii.gz ./gmwmi-in-$vol-bin.nii.gz
+    #freeview -v $MRI/T1.nii.gz ../$vol.nii.gz ./gmwmi-in-T1-bin.nii.gz:opacity=0.5 -ss $FIGS/gmwmi-bin-in-$vol.png
+    #source snapshot.sh 3vols $MRI/T1.nii.gz ../$vol.nii.gz ./gmwmi-in-T1-bin.nii.gz
 
     #Create a mask by combining gmwmi-bin and wm masks with logical OR
-    #fslmaths ./gmwmi-in-$vol-bin.nii.gz -max ./wm.nii.gz ./gwi_mask.nii.gz
-    mris_calc ./gmwmi-in-$vol-bin.nii.gz or ./wm.nii.gz
+    mris_calc ./gmwmi-in-T1-bin.nii.gz or ./wm.nii.gz
     mri_convert ./out.mgz ./gwi_mask.nii.gz --out_orientation RAS -rt nearest
     rm ./out.mgz
     fslreorient2std ./gwi_mask.nii.gz ./gwi_mask-reo.nii.gz
@@ -156,30 +152,16 @@ fi
 
 #Using freesurfer:
 mris_calc ./$vol-surf.nii.gz masked ./mask-$SEGMENT_METHOD.nii.gz
-mv ./out.mgz ./$vol-mask.mgz
-mri_convert ./$vol-mask.mgz ./$vol-mask.nii.gz --out_orientation RAS -rt nearest
+mri_convert ./out.mgz ./$vol-mask.nii.gz --out_orientation RAS -rt nearest
+rm ./out.mgz
 fslreorient2std ./$vol-mask.nii.gz ./$vol-mask-reo.nii
 mv ./$vol-mask-reo.nii.gz ./$vol-mask.nii.gz
 
 
 #Get final masked surfaces:
-
-tkregister2 --mov $MRI/T1.nii.gz --targ $MRI/T1.mgz --reg $MRI/ras2tkras.dat --noedit --regheader
-mri_vol2vol --mov ./$vol-mask.nii.gz --targ $MRI/$vol.mgz --o ./$vol-mask.mgz --reg $MRI/ras2tkras.dat
-
-#Sample the subcortical surfaces with the surviving voxels
-tkregister2 --mov $MRI/T1.mgz --targ ./$vol-mask.mgz --reg $MRI/identity.dat --noedit --regheader
-
 for h in lh rh
 do
     python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.aseg','./$vol-mask.nii.gz','$LABEL/$h.aseg.annot','./$h.aseg-mask',surf_ref_path='$SURF/$h.aseg-ras',out_surf_ref_path='./$h.aseg-mask-ras',ctx=None,vn=$SURF_VN)"
-
-    #Sample mask volume on surface to create a surface mask
-#mris_preproc --iv ./$vol-mask.mgz $MRI/identity.dat --out ./$h.aseg-mask.nii --hemi $h --niters 3 --target $SUBJECT --tal-xyz aseg
-
-    #Get the actual surface using the mask:
-#   python -c "import reconutils; reconutils.extract_mri_vol2subsurf('$SURF/$h.aseg','$LABEL/$h.aseg.annot','./$h.aseg-mask.nii',out_surf_path='./$h.aseg-mask2',out_annot_path='./$h.aseg-mask2.annot',ctx=None,labels=None,lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt'))"
-
 done
 
 #Sample the surface with the surviving voxels
@@ -189,30 +171,12 @@ do
 done
 
 
-
-#Get the transform of tdi_lbl of the connectome specific voxel size in aparc+aseg space
-#pushd $DMR
-
+#Take the tdi_lbl to T1 standard space, without upsampling:
 regopt="-dof 12 -searchrx -180 180 -searchry -180 180 -searchrz -180 180 -cost mutualinfo -interp nearestneighbour"
-flirt -in $DMR/tdi_lbl-v$VOX.nii.gz -ref $MRI/$vol.nii.gz -omat ./tdilbl-v$VOX-to-$vol.mat -out ./tdi_lbl-v$VOX-in-$vol.nii.gz $regopt
-#Invert the transform and get aparc+aseg to tdi_ends:
-convert_xfm -omat ./$vol-to-tdilbl-v$VOX.mat -inverse ./tdilbl-v$VOX-to-$vol.mat
-flirt -applyxfm -in $MRI/$vol.nii.gz -ref $DMR/tdi_lbl-v$VOX.nii.gz -init ./$vol-to-tdilbl-v$VOX.mat -out ./$vol-in-tdilbl-v$VOX.nii.gz $regopt
-#tkregister2 --mov $MRI/$vol.nii.gz --targ ./tdi_lbl-v%VOX --reg ./$vol-to-tdilbl-v$VOX.dat --fsl ./$vol-to-tdilbl-v$VOX.mat --noedit
+flirt -applyxfm -in $DMR/tdi_lbl-v$VOX.nii.gz -ref $DMR/tdi_lbl-v$VOX.nii.gz -init $DMR/d2t.mat -out ./tdi_lbl-v$VOX-in-t1.nii.gz $regopt
 
-#tkregister2 --mov $MRI/T1.nii.gz --targ ./b0.nii.gz --reg ./t2d-fsl.dat --fsl ./t2d.mat --noedit
-#tkregister2 --mov $MRI/T1.nii.gz --targ ./b0.nii.gz --reg ./t2d.dat --noedit --regheader
-#mri_surf2surf --reg ./t2d.dat ./t1-in-d.nii.gz --hemi lh --sval-xyz white --tval-xyz ./t1-in-d.nii.gz --tval ./lh.white-dmr --s $SUBJECT
-#mris_convert --to-scanner ./lh.white-dmr ./lh.white-dmr-ras
-#popd
-
-convert_xfm -omat ./t2dmgz.mat -inverse ./t2dmgz.mat
-
-#python -c "import reconutils; reconutils.ijk2ijk_to_xyz2xyz('./tdi_lbl_v$vox.nii.gz','../$vol.nii.gz','./tdi-to-$vol.mat',out_path='./tdi-to-$vol-xyz.mat')"
-
-
-#HOW? Distribute the rest of the vertices of that label to one of the clusters based on connectiviy and geodesic distance
-#HOW? Distribute the voxels of that label to one of the sub-parcels (i.e., segmentation) base on Euclidian distance and potentially some similar connectivity contraint.
+#Compute the voxel connectivity similarity matrix to be used as affinity matrix for clustering:
+python -c "import reconutils; reconutils.node_connectivity_metric('$DMR/vol-counts$STRMLNS_SIFT_NO-v$VOX.npy',metric='cosine', mode='sim',out_consim_path='./consim-vol-counts$STRMLNS_SIFT_NO-v$VOX.npy')"
 
 popd
 
