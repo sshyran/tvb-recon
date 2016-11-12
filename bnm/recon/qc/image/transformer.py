@@ -2,55 +2,51 @@
 
 import os
 import subprocess
-from ntpath import basename
+from os.path import basename
 
 
 class ImageTransformer(object):
     use_ras_transform = False
     use_center_surface = False
     use_cc_point = False
-    converted_files_directory = "/home/pipeline/Downloads/work/git/bnm-recon-tools/python/converted_files/"
+    converted_files_directory = "converted_files"
     created_files = []
 
-    def __init__(self):
-        if not os.path.exists(self.converted_files_directory):
-            os.makedirs(self.converted_files_directory)
+    def __init__(self, path):
+        self.converted_files_directory_path = os.path.join(path, self.converted_files_directory)
+        if not os.path.exists(self.converted_files_directory_path):
+            os.makedirs(self.converted_files_directory_path)
 
     def apply_transform(self, volume_path):
-        if self.use_ras_transform:
-            volume_new_file = open(self.converted_files_directory + 'ras' + basename(volume_path), "w+")
-            volume_new_path = volume_new_file.name
-            volume_new_file.close()
-
-            try:
-                x = subprocess.call(
-                    ['mri_convert', '--out_orientation', 'RAS', '--out_type', 'nii', '--input_volume', volume_path,
-                     '--output_volume', volume_new_path])
-                print x
-                self.created_files.append(volume_new_path)
-                return volume_new_path
-
-            except Exception:
-                print "Error converting volume"
-
-        else:
+        if not self.use_ras_transform:
             return volume_path
+        #TODO Test if file is created by mri_convert on fedora
+        output_volume_path = os.path.join(self.converted_files_directory_path, 'ras' + basename(volume_path))
+
+        try:
+            x = subprocess.call(
+                ['mri_convert', '--out_orientation', 'RAS', '--out_type', 'nii', '--input_volume', volume_path,
+                 '--output_volume', output_volume_path])
+            print x
+            self.created_files.append(output_volume_path)
+            return output_volume_path
+        except Exception:
+            print "Error converting volume"
+
 
     def center_surface(self, surface):
-        if self.use_center_surface:
-            surface_new_path = os.path.join(self.converted_files_directory, 'centered' + basename(surface))
-
-            try:
-                x = subprocess.call(['mris_convert', '--to-scanner', surface, surface_new_path])
-                print x
-                self.created_files.append(surface_new_path)
-                return surface_new_path
-
-            except Exception:
-                print "Error converting surface"
-
-        else:
+        if not self.use_center_surface:
             return surface
+
+        surface_new_path = os.path.join(self.converted_files_directory_path, 'centered' + basename(surface))
+
+        try:
+            x = subprocess.call(['mris_convert', '--to-scanner', surface, surface_new_path])
+            print x
+            self.created_files.append(surface_new_path)
+            return surface_new_path
+        except Exception:
+            print "Error converting surface"
 
     def transform_single_volume(self, volume_path):
         return self.apply_transform(volume_path)
@@ -63,9 +59,5 @@ class ImageTransformer(object):
             overlay_2_path)
 
     def transform_volume_surfaces(self, background_path, surfaces_list):
-        new_surfaces_list = [0 for _ in xrange(len(surfaces_list))]
-
-        for i, surf in enumerate(surfaces_list):
-            new_surfaces_list[i] = self.center_surface(os.path.expandvars(surf))
-
+        new_surfaces_list = [self.center_surface(os.path.expandvars(surf)) for surf in surfaces_list]
         return self.apply_transform(background_path), new_surfaces_list

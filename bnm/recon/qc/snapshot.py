@@ -48,7 +48,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    imageTransformer = ImageTransformer()
+    abs_path = os.path.abspath(os.path.dirname(__file__))
+    imageTransformer = ImageTransformer(abs_path)
 
     if args.ras_transform:
         imageTransformer.use_ras_transform = True
@@ -90,6 +91,6 @@ if __name__ == "__main__":
     try:
         for i in imageTransformer.created_files:
             os.remove(i)
-        os.rmdir(imageTransformer.converted_files_directory)
+        os.rmdir(imageTransformer.converted_files_directory_path)
     except OSError:
         print "Cannot delete files"
