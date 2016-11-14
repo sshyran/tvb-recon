@@ -43,7 +43,7 @@ class GiftiSurfaceParser(ABCSurfaceParser):
     def read(self, data_file):
         gifti_image = giftiio.read(data_file)
         image_metadata = gifti_image.meta.metadata
-        self.logger.info("From the file %s the extracted metadata is %s" % (data_file, image_metadata))
+        self.logger.info("From the file %s the extracted metadata is %s", data_file, image_metadata)
 
         data_arrays = gifti_image.darrays
         vertices = data_arrays[0].data
@@ -51,12 +51,12 @@ class GiftiSurfaceParser(ABCSurfaceParser):
 
         vol_geom_center_ras = [0, 0, 0]
         vertices_metadata = vertices.metadata
-        self.logger.info("The metadata from vertices data array is %s" % vertices_metadata)
+        self.logger.info("The metadata from vertices data array is %s", vertices_metadata)
         vertices_coord_system = vertices.coordsys
         self.logger.info(
-            "The coordinate system transform matrix from vertices data array is %s" % vertices_coord_system)
+            "The coordinate system transform matrix from vertices data array is %s", vertices_coord_system)
         triangles_metadata = triangles.metadata
-        self.logger.info("The metadata from triangles data array is %s" % triangles_metadata)
+        self.logger.info("The metadata from triangles data array is %s", triangles_metadata)
 
         # TODO review how and if we read this point
         vol_geom_center_ras[0] = float(vertices_metadata['VolGeomC_R'])
@@ -67,11 +67,6 @@ class GiftiSurfaceParser(ABCSurfaceParser):
                        vertices_coord_system, triangles_metadata)
 
     def write(self, surface_obj, file_path):
-
-        data_array = [0 for _ in xrange(2)]
-        data_array[0] = surface_obj.vertices
-        data_array[1] = surface_obj.triangles
-
         image_metadata = GiftiMetaData().from_dict(surface_obj.image_metadata)
         vertices_metadata = GiftiMetaData().from_dict(surface_obj.vertices_metadata)
         triangles_metadata = GiftiMetaData().from_dict(surface_obj.triangles_metadata)
@@ -79,12 +74,12 @@ class GiftiSurfaceParser(ABCSurfaceParser):
         gifti_image = GiftiImage()
         gifti_image.set_metadata(image_metadata)
 
-        data = GiftiDataArray(data_array[0], datatype='NIFTI_TYPE_FLOAT32', intent='NIFTI_INTENT_POINTSET')
+        data = GiftiDataArray(surface_obj.vertices, datatype='NIFTI_TYPE_FLOAT32', intent='NIFTI_INTENT_POINTSET')
         data.meta = vertices_metadata
         data.coordsys = surface_obj.vertices_coord_system
         gifti_image.add_gifti_data_array(data)
 
-        data = GiftiDataArray(data_array[1], datatype='NIFTI_TYPE_INT32', intent='NIFTI_INTENT_TRIANGLE')
+        data = GiftiDataArray(surface_obj.triangles, datatype='NIFTI_TYPE_INT32', intent='NIFTI_INTENT_TRIANGLE')
         data.meta = triangles_metadata
         data.coordsys = None
         gifti_image.add_gifti_data_array(data)
@@ -92,7 +87,7 @@ class GiftiSurfaceParser(ABCSurfaceParser):
         nibabel.save(gifti_image, file_path)
 
     def read_transformation_matrix_from_metadata(self, image_metadata):
-        matrix_from_metadata = [[0 for _ in xrange(4)] for _ in xrange(4)]
+        matrix_from_metadata = [[0, 0, 0, 0] for _ in xrange(4)]
 
         for i in xrange(3):
             for j in xrange(4):
@@ -121,8 +116,8 @@ class FreesurferParser(ABCSurfaceParser):
     logger = get_logger(__name__)
 
     def read(self, surface_path):
-        (vertices, triangles, metadata) = read_geometry(surface_path, read_metadata=True)
-        self.logger.info("From the file %s the extracted metadata is %s" % (surface_path, metadata))
+        vertices, triangles, metadata = read_geometry(surface_path, read_metadata=True)
+        self.logger.info("From the file %s the extracted metadata is %s", surface_path, metadata)
 
         # TODO make this better and this is not good if the cras of a centered surface can be read.
         if 'cras' in metadata:
@@ -142,11 +137,11 @@ class FreesurferParser(ABCSurfaceParser):
 
 
     def read_transformation_matrix_from_metadata(self, image_metadata):
-        matrix_from_metadata = [[0 for _ in xrange(4)] for _ in xrange(4)]
+        matrix_from_metadata = [[0, 0, 0, 0] for _ in xrange(4)] #or numpy.zeros((4,4))
 
-        for i in xrange(len(TRANSFORM_MATRIX_FS_KEYS)):
+        for i, fs_key in enumerate(TRANSFORM_MATRIX_FS_KEYS):
             for j in xrange(3):
-                matrix_from_metadata[i][j] = image_metadata[TRANSFORM_MATRIX_FS_KEYS[i]][j]
+                matrix_from_metadata[i][j] = image_metadata[fs_key][j]
         matrix_from_metadata[3][3] = 1
         matrix_from_metadata = numpy.transpose(matrix_from_metadata)
         return matrix_from_metadata
@@ -161,6 +156,5 @@ class FreesurferParser(ABCSurfaceParser):
                            [0.0, 1.0, 0.0],
                            [0.0, 0.0, 1.0],
                            [0.0, 0.0, 0.0]]
-
-        for i in xrange(len(TRANSFORM_MATRIX_FS_KEYS)):
-            image_metadata[TRANSFORM_MATRIX_FS_KEYS[i]] = identity_matrix[i]
+        for i, fs_key in enumerate(TRANSFORM_MATRIX_FS_KEYS):
+            image_metadata[fs_key] = identity_matrix[i]

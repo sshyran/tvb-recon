@@ -90,10 +90,7 @@ class ImageProcessor(object):
     def overlap_volume_surface(self, volume_background, surfaces_path):
         volume = self.parser_volume.parse(volume_background)
         # TODO review varargs processing
-        surfaces = [0 for _ in xrange(len(surfaces_path))]
-
-        for i, surf in enumerate(surfaces_path):
-            surfaces[i] = self.read_surface(os.path.expandvars(surf))
+        surfaces = [self.read_surface(os.path.expandvars(surf)) for surf in surfaces_path]
 
         ras = self.generic_parser.get_ras_coordinates()
 

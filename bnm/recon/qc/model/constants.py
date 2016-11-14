@@ -4,7 +4,7 @@ sagittal = 'sagittal'
 coronal = 'coronal'
 axial = 'axial'
 
-projections = {sagittal, coronal, axial}
+projections = [sagittal, coronal, axial]
 
 plane_normals = {
     sagittal: (1, 0, 0),
