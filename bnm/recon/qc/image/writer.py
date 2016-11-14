@@ -101,24 +101,13 @@ class ImageWriter(object):
             pyplot.savefig(self.get_path(result_name + str(snapshot_index)))
             snapshot_index += 1
 
-    def write_matrix_and_surface(self, x, y, matrix_background, surface_x_array, surface_y_array, clear_flag):
-        if clear_flag:
-            pyplot.clf()
-        pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
-        for s in xrange(len(surface_x_array)):
-            pyplot.plot(surface_x_array[s][:], surface_y_array[s][:], 'y')
-
     def save_figure(self, result_name):
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
-    def write_matrix_and_surfaces(self, x, y, matrix_background, surf1_x_array, surf1_y_array, clear_flag, surf):
+    def write_matrix_and_surfaces(self, x, y, matrix_background, surf1_x_array, surf1_y_array, clear_flag):
         if clear_flag:
             pyplot.clf()
-        if surf == 'pial':
-            contour_color = 'r'
-        else:
-            contour_color = 'y'
         pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
         for s in xrange(len(surf1_x_array)):
-            pyplot.plot(surf1_x_array[s][:], surf1_y_array[s][:], contour_color)
+            pyplot.plot(surf1_x_array[s][:], surf1_y_array[s][:], 'y')

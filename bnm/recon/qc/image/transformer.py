@@ -20,7 +20,7 @@ class ImageTransformer(object):
     def apply_transform(self, volume_path):
         if not self.use_ras_transform:
             return volume_path
-        #TODO Test if file is created by mri_convert on fedora
+        # TODO Test if file is created by mri_convert on fedora
         output_volume_path = os.path.join(self.converted_files_directory_path, 'ras' + basename(volume_path))
 
         try:
@@ -32,7 +32,6 @@ class ImageTransformer(object):
             return output_volume_path
         except Exception:
             print "Error converting volume"
-
 
     def center_surface(self, surface):
         if not self.use_center_surface:
@@ -60,4 +59,12 @@ class ImageTransformer(object):
 
     def transform_volume_surfaces(self, background_path, surfaces_list):
         new_surfaces_list = [self.center_surface(os.path.expandvars(surf)) for surf in surfaces_list]
+        return self.apply_transform(background_path), new_surfaces_list
+
+    def transform_volume_white_pial(self, background_path, resampled_surface, surfaces_path):
+        if resampled_surface is not "":
+            resampled_surface = "." + resampled_surface
+        # TODO should this work for Gifti?
+        white_pial_surfaces_path = [hemi + "." + type + resampled_surface for hemi in "rh", "lh" for type in "pial", "white"]
+        new_surfaces_list = [self.center_surface(os.path.expandvars(os.path.join(surfaces_path, surface))) for surface in white_pial_surfaces_path]
         return self.apply_transform(background_path), new_surfaces_list

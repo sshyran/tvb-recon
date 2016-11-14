@@ -64,33 +64,36 @@ if __name__ == "__main__":
         imageProcessor.show_single_volume(os.path.expandvars(volume_path))
 
     elif args.subcommand == arg_2vols:
-        bkg, ovr = imageTransformer.transform_2_volumes(os.path.expandvars(args.background),
-                                                        os.path.expandvars(args.overlay))
-        imageProcessor.overlap_2_volumes(os.path.expandvars(bkg), os.path.expandvars(ovr))
+        background, overlay = imageTransformer.transform_2_volumes(os.path.expandvars(args.background),
+                                                                   os.path.expandvars(args.overlay))
+        imageProcessor.overlap_2_volumes(os.path.expandvars(background), os.path.expandvars(overlay))
 
     elif args.subcommand == arg_3vols:
-        bkg, ovr1, ovr2 = imageTransformer.transform_3_volumes(os.path.expandvars(args.background),
-                                                               os.path.expandvars(args.overlay1),
-                                                               os.path.expandvars(args.overlay2))
-        imageProcessor.overlap_3_volumes(os.path.expandvars(bkg), os.path.expandvars(ovr1), os.path.expandvars(ovr2))
+        background, overlay1, overlay2 = imageTransformer.transform_3_volumes(os.path.expandvars(args.background),
+                                                                              os.path.expandvars(args.overlay1),
+                                                                              os.path.expandvars(args.overlay2))
+        imageProcessor.overlap_3_volumes(os.path.expandvars(background), os.path.expandvars(overlay1),
+                                         os.path.expandvars(overlay2))
 
     elif args.subcommand == arg_surf_annot:
         imageProcessor.overlap_surface_annotation(os.path.expandvars(args.surface), os.path.expandvars(args.annotation))
 
     elif args.subcommand == arg_vol_surf:
-        bkg, surf = imageTransformer.transform_volume_surfaces(os.path.expandvars(args.background),
-                                                               os.path.expandvars(args.surfaces_list))
-        imageProcessor.overlap_volume_surface(os.path.expandvars(bkg), os.path.expandvars(surf))
+        background, surfaces_paths = imageTransformer.transform_volume_surfaces(os.path.expandvars(args.background),
+                                                                                os.path.expandvars(args.surfaces_list))
+        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths))
 
     elif args.subcommand == arg_vol_white_pial:
-        # TODO for transformations, have a separate folder with the white+pial surfaces
-        imageProcessor.overlap_volume_surfaces(os.path.expandvars(args.background),
-                                               os.path.expandvars(args.resampled_surface_name),
-                                               surfaces_path=os.path.expandvars(os.environ['SURF']))
+        background, surfaces_paths = imageTransformer.transform_volume_white_pial(os.path.expandvars(args.background),
+                                                                                  os.path.expandvars(
+                                                                                      args.resampled_surface_name),
+                                                                                  os.path.expandvars(
+                                                                                      os.environ['SURF']))
+        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths))
 
     try:
-        for i in imageTransformer.created_files:
-            os.remove(i)
+        for file in imageTransformer.created_files:
+            os.remove(file)
         os.rmdir(imageTransformer.converted_files_directory_path)
     except OSError:
         print "Cannot delete files"

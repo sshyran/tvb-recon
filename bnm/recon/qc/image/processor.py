@@ -82,36 +82,16 @@ class ImageProcessor(object):
         surface = self.read_surface(surface_path)
         self.writer.write_surface_with_annotation(surface, annotation, self.generate_file_name('surface_annotation'))
 
-    def overlap_volume_surface(self, volume_background, surfaces_path):
+    def overlap_volume_surfaces(self, volume_background, surfaces_path):
         volume = self.parser_volume.parse(volume_background)
-        # TODO review varargs processing
-        surfaces = [self.read_surface(os.path.expandvars(surf)) for surf in surfaces_path]
-
         ras = self.generic_parser.get_ras_coordinates()
+        surfaces = [self.read_surface(os.path.expandvars(surface)) for surface in surfaces_path]
 
         for projection in projections:
             x, y, background_matrix = volume.slice_volume(projection, ras)
             clear_flag = True
             for surface in surfaces:
-                x_array, y_array = surface.cut_by_plane(projection, ras)
-                self.writer.write_matrix_and_surface(x, y, background_matrix, x_array, y_array, clear_flag)
+                surf_x_array, surf_y_array = surface.cut_by_plane(projection, ras)
+                self.writer.write_matrix_and_surfaces(x, y, background_matrix, surf_x_array, surf_y_array, clear_flag)
                 clear_flag = False
             self.writer.save_figure(self.generate_file_name(projection))
-
-    def overlap_volume_surfaces(self, volume_background, resampled_name, surfaces_path):
-        if resampled_name != '':
-            resampled_name = '.' + resampled_name
-        volume = self.parser_volume.parse(volume_background)
-        ras = self.generic_parser.get_ras_coordinates()
-        print ras
-        for i in projections:
-            clear_flag = True
-            x, y, background_matrix = volume.slice_volume(i, ras)
-            for k in ('rh', 'lh'):
-                for j in ('pial', 'white'):
-                    current_surface = self.read_surface(surfaces_path + '/' + k + '.' + j + resampled_name + '.gii')
-                    surf_x_array, surf_y_array = current_surface.cut_by_plane(i, ras)
-                    self.writer.write_matrix_and_surfaces(x, y, background_matrix, surf_x_array, surf_y_array,
-                                                          clear_flag, j)
-                    clear_flag = False
-            self.writer.save_figure(self.generate_file_name(i))
