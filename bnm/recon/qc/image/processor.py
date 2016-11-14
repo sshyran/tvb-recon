@@ -6,7 +6,7 @@ from bnm.recon.qc.parser.annotation import AnnotationParser
 from bnm.recon.qc.parser.generic import GenericParser
 from bnm.recon.qc.parser.surface import FreesurferParser, GiftiSurfaceParser
 from bnm.recon.qc.parser.volume import VolumeParser
-from bnm.recon.qc.model.constants import projections
+from bnm.recon.qc.model.constants import PROJECTIONS
 
 
 class ImageProcessor(object):
@@ -45,7 +45,7 @@ class ImageProcessor(object):
         volume = self.parser_volume.parse(volume_path)
         ras = self.generic_parser.get_ras_coordinates()
 
-        for projection in projections:
+        for projection in PROJECTIONS:
             x_axis_coords, y_axis_coords, volume_matrix = volume.slice_volume(projection, ras)
             self.writer.write_matrix(x_axis_coords, y_axis_coords, volume_matrix, self.generate_file_name(projection))
 
@@ -56,7 +56,7 @@ class ImageProcessor(object):
 
         ras = self.generic_parser.get_ras_coordinates()
 
-        for projection in projections:
+        for projection in PROJECTIONS:
             x, y, background_matrix = background_volume.slice_volume(projection, ras)
             x1, y1, overlay_matrix = overlay_volume.slice_volume(projection, ras)
             self.writer.write_2_matrices(x, y, background_matrix, x1, y1, overlay_matrix,
@@ -70,7 +70,7 @@ class ImageProcessor(object):
 
         ras = self.generic_parser.get_ras_coordinates()
 
-        for projection in projections:
+        for projection in PROJECTIONS:
             x, y, background_matrix = volume_background.slice_volume(projection, ras)
             x1, y1, overlay_1_matrix = volume_overlay_1.slice_volume(projection, ras)
             x2, y2, overlay_2_matrix = volume_overlay_2.slice_volume(projection, ras)
@@ -87,7 +87,7 @@ class ImageProcessor(object):
         ras = self.generic_parser.get_ras_coordinates()
         surfaces = [self.read_surface(os.path.expandvars(surface)) for surface in surfaces_path]
 
-        for projection in projections:
+        for projection in PROJECTIONS:
             x, y, background_matrix = volume.slice_volume(projection, ras)
             clear_flag = True
             for surface in surfaces:

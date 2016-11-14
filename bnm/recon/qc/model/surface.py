@@ -46,20 +46,20 @@ class Surface(object):
         return list(plane_origin)
 
 
-    def cut_by_plane(self, projection=sagittal, ras=origin):
+    def cut_by_plane(self, projection=SAGITTAL, ras=ORIGIN):
         """
         :param projection:
         :param ras:
         :return: Y_array, X_array
         """
         mesh = Trimesh(self.vertices, self.triangles)
-        contours = intersections.mesh_plane(mesh, plane_normals[projection], self._get_plane_origin(ras))
+        contours = intersections.mesh_plane(mesh, PLANE_NORMALS[projection], self._get_plane_origin(ras))
         x_array = [0] * len(contours)
         y_array = [0] * len(contours)
 
         for s in xrange(len(contours)):
-            x_array[s] = contours[s][:, x_y_index[projection][0]]
-            y_array[s] = contours[s][:, x_y_index[projection][1]]
+            x_array[s] = contours[s][:, X_Y_INDEX[projection][0]]
+            y_array[s] = contours[s][:, X_Y_INDEX[projection][1]]
 
         return x_array, y_array
 
