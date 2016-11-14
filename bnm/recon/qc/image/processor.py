@@ -14,16 +14,11 @@ class ImageProcessor(object):
     snapshot_name = "snapshot"
     snapshot_extension = ".png"
 
-    def __init__(self):
+    def __init__(self, snapshots_directory, snapshot_count=0):
         self.parser_volume = VolumeParser()
         self.generic_parser = GenericParser()
         self.annotation_parser = AnnotationParser()
-        self.writer = ImageWriter()
-
-        try:
-            snapshot_count = int(os.environ['SNAPSHOT_NUMBER'])
-        except ValueError:
-            snapshot_count = 0
+        self.writer = ImageWriter(snapshots_directory)
         self.snapshot_count = snapshot_count
 
     def generate_file_name(self, current_projection):
@@ -103,8 +98,7 @@ class ImageProcessor(object):
                 clear_flag = False
             self.writer.save_figure(self.generate_file_name(projection))
 
-    def overlap_volume_surfaces(self, volume_background, resampled_name):
-        surfaces_path = os.path.expandvars(os.environ['SURF'])
+    def overlap_volume_surfaces(self, volume_background, resampled_name, surfaces_path):
         if resampled_name != '':
             resampled_name = '.' + resampled_name
         volume = self.parser_volume.parse(volume_background)

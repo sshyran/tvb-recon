@@ -77,12 +77,13 @@ class FreeViewController(object):
         self.logger.info("It was written " + file_path)
 
 
-# TODO images are moved if opened with -ras option and maybe they should be re-centered.
-# TODO calls to this file should be reviewed and avoid computing RAS vector every time a call is made.
+if __name__ == '__main__':
+    # TODO images are moved if opened with -ras option and maybe they should be re-centered.
+    # TODO calls to this file should be reviewed and avoid computing RAS vector every time a call is made.
 
-projection = sys.argv[1]
-controller = FreeViewController()
-if projection == 'surface_annotation':
-    controller.write_snapshot_camera_positions(projection)
-else:
-    controller.prepare_screenshot()
+    projection = sys.argv[1]
+    controller = FreeViewController()
+    if projection == 'surface_annotation':
+        controller.write_snapshot_camera_positions(projection)
+    else:
+        controller.prepare_screenshot()

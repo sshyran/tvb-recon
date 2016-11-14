@@ -5,15 +5,15 @@ import os
 from bnm.recon.qc.image.processor import ImageProcessor
 from bnm.recon.qc.image.transformer import ImageTransformer
 
-if __name__ == "__main__":
+arg_1vol = "1vol"
+arg_2vols = "2vols"
+arg_3vols = "3vols"
+arg_surf_annot = "surf_annot"
+arg_vol_surf = "vol_surf"
+arg_vol_white_pial = "vol_white_pial"
 
-    arg_1vol = "1vol"
-    arg_2vols = "2vols"
-    arg_3vols = "3vols"
-    arg_surf_annot = "surf_annot"
-    arg_vol_surf = "vol_surf"
-    arg_vol_white_pial = "vol_white_pial"
 
+def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate a BNM snapshot")
     subparsers = parser.add_subparsers(title='Sub Commands', dest='subcommand')
 
@@ -45,19 +45,19 @@ if __name__ == "__main__":
 
     subcommand_vol_2surf.add_argument("background")
     subcommand_vol_2surf.add_argument("-resampled_surface_name", default='')
+    return parser.parse_args()
 
-    args = parser.parse_args()
 
+if __name__ == "__main__":
+    args = parse_arguments()
     abs_path = os.path.abspath(os.path.dirname(__file__))
     imageTransformer = ImageTransformer(abs_path)
 
-    if args.ras_transform:
-        imageTransformer.use_ras_transform = True
+    imageTransformer.use_ras_transform = args.ras_transform
+    imageTransformer.use_center_surface = args.center_surface
 
-    if args.center_surface:
-        imageTransformer.use_center_surface = True
-
-    imageProcessor = ImageProcessor()
+    imageProcessor = ImageProcessor(snapshots_directory=os.environ['FIGS'],
+                                    snapshot_count=int(os.environ.get('SNAPSHOT_NUMBER', 0)))
 
     if args.subcommand == arg_1vol:
         volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.volume))
@@ -80,13 +80,13 @@ if __name__ == "__main__":
     elif args.subcommand == arg_vol_surf:
         bkg, surf = imageTransformer.transform_volume_surfaces(os.path.expandvars(args.background),
                                                                os.path.expandvars(args.surfaces_list))
-        imageProcessor.overlap_volume_surface(os.path.expandvars(bkg),
-                                              os.path.expandvars(surf))
+        imageProcessor.overlap_volume_surface(os.path.expandvars(bkg), os.path.expandvars(surf))
 
     elif args.subcommand == arg_vol_white_pial:
         # TODO for transformations, have a separate folder with the white+pial surfaces
         imageProcessor.overlap_volume_surfaces(os.path.expandvars(args.background),
-                                               os.path.expandvars(args.resampled_surface_name))
+                                               os.path.expandvars(args.resampled_surface_name),
+                                               surfaces_path=os.path.expandvars(os.environ['SURF']))
 
     try:
         for i in imageTransformer.created_files:

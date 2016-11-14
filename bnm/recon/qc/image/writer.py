@@ -8,13 +8,13 @@ from bnm.recon.logger import get_logger
 
 class ImageWriter(object):
     snapshot_extension = ".png"
-    snapshots_directory = None
+
     logger = get_logger(__name__)
 
-    def __init__(self):
-        self.snapshots_directory = os.environ['FIGS']
+    def __init__(self, snapshots_directory):
+        self.snapshots_directory = snapshots_directory
 
-        if self.snapshots_directory is not None:
+        if self.snapshots_directory is not None: #todo: this is never none as it comes from the os/environ
             if not os.path.exists(self.snapshots_directory):
                 os.mkdir(self.snapshots_directory)
 
@@ -44,7 +44,7 @@ class ImageWriter(object):
 
     def write_surface(self, surface, result_name, positions=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
         #TODO show bigger surfaces in snapshots
-        figs_folder = os.environ['FIGS']
+        figs_folder = self.snapshots_directory
         self.logger.info("6 snapshots of the 3D surface will be generated in folder: %s" % figs_folder)
 
         x = surface.vertices[:, 0]
@@ -105,7 +105,7 @@ class ImageWriter(object):
         if clear_flag:
             pyplot.clf()
         pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
-        for s in range(0, len(surface_x_array)):
+        for s in xrange(len(surface_x_array)):
             pyplot.plot(surface_x_array[s][:], surface_y_array[s][:], 'y')
 
     def save_figure(self, result_name):
@@ -120,5 +120,5 @@ class ImageWriter(object):
         else:
             contour_color = 'y'
         pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
-        for s in range(0, len(surf1_x_array)):
+        for s in xrange(len(surf1_x_array)):
             pyplot.plot(surf1_x_array[s][:], surf1_y_array[s][:], contour_color)
