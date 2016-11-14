@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-import numpy.linalg as nlp
+import numpy.linalg
 from nibabel.affines import apply_affine
 from bnm.recon.qc.model.constants import *
 
@@ -12,13 +12,6 @@ class Volume(object):
 
     Has a method that cuts a slice from the volume.
     """
-
-    # 3D array
-    data = None
-    # array with the length of each data dimension
-    dimensions = None
-    # matrix containing voxel to ras transformation
-    affine_matrix = None
     # TODO use this
     # transparency used when displaying a volume slice
     transparency = 1.0
@@ -26,9 +19,9 @@ class Volume(object):
     color_map = None  # Reference to ColorMap obj, or empty
 
     def __init__(self, data, affine_matrix):
-        self.data = data
-        self.dimensions = data.shape
-        self.affine_matrix = affine_matrix
+        self.data = data # 3D array
+        self.dimensions = data.shape # array with the length of each data dimension
+        self.affine_matrix = affine_matrix # matrix containing voxel to ras transformation
 
     def slice_volume(self, projection=sagittal, ras=origin):
         """
@@ -38,14 +31,14 @@ class Volume(object):
         :return: X, Y, 2D data matrix
         """
 
-        affine_inverse = nlp.inv(self.affine_matrix)
+        affine_inverse = numpy.linalg.inv(self.affine_matrix)
         ijk_ras = numpy.round(apply_affine(affine_inverse, ras)).astype('i')
 
         slice_index_1, slice_index_2 = x_y_index[projection]
 
         slice_data = numpy.zeros((self.dimensions[slice_index_1], self.dimensions[slice_index_2]))
-        x_axis_coords = numpy.zeros((self.dimensions[slice_index_1], self.dimensions[slice_index_2]))
-        y_axis_coords = numpy.zeros((self.dimensions[slice_index_1], self.dimensions[slice_index_2]))
+        x_axis_coords = numpy.zeros_like(slice_data)
+        y_axis_coords = numpy.zeros_like(slice_data)
 
         for i in xrange(self.dimensions[slice_index_1]):
             for j in xrange(self.dimensions[slice_index_2]):
