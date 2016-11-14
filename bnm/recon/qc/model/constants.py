@@ -19,3 +19,6 @@ X_Y_INDEX = {
 }
 
 ORIGIN = [0, 0, 0]
+
+SNAPSHOT_NAME = "snapshot"
+SNAPSHOT_EXTENSION = ".png"

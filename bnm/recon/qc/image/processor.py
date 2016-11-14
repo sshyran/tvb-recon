@@ -6,13 +6,10 @@ from bnm.recon.qc.parser.annotation import AnnotationParser
 from bnm.recon.qc.parser.generic import GenericParser
 from bnm.recon.qc.parser.surface import FreesurferParser, GiftiSurfaceParser
 from bnm.recon.qc.parser.volume import VolumeParser
-from bnm.recon.qc.model.constants import PROJECTIONS
+from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME
 
 
 class ImageProcessor(object):
-    # TODO keep a constant for .png and snapshotname?
-    snapshot_name = "snapshot"
-    snapshot_extension = ".png"
 
     def __init__(self, snapshots_directory, snapshot_count=0):
         self.parser_volume = VolumeParser()
@@ -22,7 +19,7 @@ class ImageProcessor(object):
         self.snapshot_count = snapshot_count
 
     def generate_file_name(self, current_projection):
-        file_name = self.snapshot_name + str(self.snapshot_count) + current_projection
+        file_name = SNAPSHOT_NAME + str(self.snapshot_count) + current_projection
         return file_name
 
     @staticmethod

@@ -4,11 +4,10 @@ import os
 import matplotlib.pyplot as pyplot
 from mpl_toolkits.mplot3d import Axes3D
 from bnm.recon.logger import get_logger
+from bnm.recon.qc.model.constants import SNAPSHOT_EXTENSION
 
 
 class ImageWriter(object):
-    snapshot_extension = ".png"
-
     logger = get_logger(__name__)
 
     def __init__(self, snapshots_directory):
@@ -19,7 +18,7 @@ class ImageWriter(object):
                 os.mkdir(self.snapshots_directory)
 
     def get_path(self, result_name):
-        return self.snapshots_directory + '/' + result_name + self.snapshot_extension
+        return self.snapshots_directory + '/' + result_name + SNAPSHOT_EXTENSION
 
     def write_matrix(self, x, y, matrix, result_name):
         pyplot.pcolormesh(x, y, matrix, cmap="gray")
