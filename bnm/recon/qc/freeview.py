@@ -45,8 +45,8 @@ class FreeViewController(object):
         self.logger.info("It was written  " + self.cameraPositionsFileName)
 
     def _get_image_name(self, count_number, projection, suffix):
-        return self.folder_figures + "/" + self.target_screenshot_name + str(
-            count_number) + projection + suffix + SNAPSHOT_EXTENSION
+        return os.path.join(self.folder_figures, self.target_screenshot_name + str(
+            count_number) + projection + suffix + SNAPSHOT_EXTENSION)
 
     def prepare_screenshot(self):
         matrix = self.parser.read_transformation_matrix(self.in_matrix_file)
@@ -69,7 +69,7 @@ class FreeViewController(object):
         """
         count_number = int(os.environ[SNAPSHOT_NUMBER_ENVIRON_VAR])
         file_ref = open(file_path, 'wb')
-        png_path = self.folder_figures + "/" + shot_name + str(count_number) + projection + SNAPSHOT_EXTENSION
+        png_path = os.path.join(self.folder_figures, shot_name + str(count_number) + projection + SNAPSHOT_EXTENSION)
         file_ref.write("-ras %s -ss %s" % (ras_position, png_path))
         file_ref.write(" -quit")
         file_ref.close()
