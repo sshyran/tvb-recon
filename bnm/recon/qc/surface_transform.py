@@ -23,7 +23,6 @@ if __name__ == "__main__":
 
     surface_path = os.path.expandvars(args.surface_path)
     output_path = os.path.expandvars(args.output_path)
-    transform_matrix_paths = os.path.expandvars(args.matrix_paths) #TODO expandvars does not work with lists
 
     logger = get_logger(__name__)
 
@@ -35,11 +34,11 @@ if __name__ == "__main__":
     surface = image_processor.read_surface(surface_path)
     surface_parser = image_processor.factory_surface_parser(surface_path)
 
-    if len(transform_matrix_paths) is not 0:
+    if len(args.matrix_paths) is not 0:
         transformation_matrices = []
 
-        for transform_matrix_path in transform_matrix_paths:
-            transformation_matrices.append(numpy.array(generic_parser.read_transformation_matrix(transform_matrix_path)))
+        for transform_matrix_path in args.matrix_paths:
+            transformation_matrices.append(numpy.array(generic_parser.read_transformation_matrix(os.path.expandvars(transform_matrix_path))))
 
         for i in xrange(len(surface.vertices)):
             for j in xrange(len(transformation_matrices)):

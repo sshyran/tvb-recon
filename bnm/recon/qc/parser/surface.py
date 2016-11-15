@@ -133,7 +133,7 @@ class FreesurferParser(ABCSurfaceParser):
 
     def write(self, surface, surface_path):
         write_geometry(filepath=surface_path, coords=surface.vertices, faces=surface.triangles,
-                       volume_info=surface.image_metadata)
+                       volume_info=surface.get_main_metadata())
 
 
     def read_transformation_matrix_from_metadata(self, image_metadata):
