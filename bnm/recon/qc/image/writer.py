@@ -13,9 +13,8 @@ class ImageWriter(object):
     def __init__(self, snapshots_directory):
         self.snapshots_directory = snapshots_directory
 
-        if self.snapshots_directory is not None: #todo: this is never none as it comes from the os/environ
-            if not os.path.exists(self.snapshots_directory):
-                os.mkdir(self.snapshots_directory)
+        if not os.path.exists(self.snapshots_directory):
+            os.mkdir(self.snapshots_directory)
 
     def get_path(self, result_name):
         return self.snapshots_directory + '/' + result_name + SNAPSHOT_EXTENSION
@@ -104,9 +103,9 @@ class ImageWriter(object):
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
-    def write_matrix_and_surfaces(self, x, y, matrix_background, surf1_x_array, surf1_y_array, clear_flag):
+    def write_matrix_and_surfaces(self, x_axis_coords, y_axis_coords, matrix_background, surface_x_array, surface_y_array, clear_flag):
         if clear_flag:
             pyplot.clf()
-        pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
-        for s in xrange(len(surf1_x_array)):
-            pyplot.plot(surf1_x_array[s][:], surf1_y_array[s][:], 'y')
+        pyplot.pcolormesh(x_axis_coords, y_axis_coords, matrix_background, cmap="gray")
+        for contour in xrange(len(surface_x_array)):
+            pyplot.plot(surface_x_array[contour][:], surface_y_array[contour][:], 'y')

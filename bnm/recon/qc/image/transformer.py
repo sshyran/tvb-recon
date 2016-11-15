@@ -30,7 +30,7 @@ class ImageTransformer(object):
             print x
             self.created_files.append(output_volume_path)
             return output_volume_path
-        except Exception:
+        except subprocess.CalledProcessError:
             print "Error converting volume"
 
     def center_surface(self, surface):
@@ -44,7 +44,7 @@ class ImageTransformer(object):
             print x
             self.created_files.append(surface_new_path)
             return surface_new_path
-        except Exception:
+        except subprocess.CalledProcessError:
             print "Error converting surface"
 
     def transform_single_volume(self, volume_path):
@@ -65,6 +65,8 @@ class ImageTransformer(object):
         if resampled_surface is not "":
             resampled_surface = "." + resampled_surface
         # TODO should this work for Gifti?
-        white_pial_surfaces_path = [hemi + "." + type + resampled_surface for hemi in "rh", "lh" for type in "pial", "white"]
-        new_surfaces_list = [self.center_surface(os.path.expandvars(os.path.join(surfaces_path, surface))) for surface in white_pial_surfaces_path]
+        white_pial_surfaces_path = [hemi + "." + surface_type + resampled_surface for hemi in "rh", "lh" for
+                                    surface_type in "pial", "white"]
+        new_surfaces_list = [self.center_surface(os.path.expandvars(os.path.join(surfaces_path, surface))) for surface
+                             in white_pial_surfaces_path]
         return self.apply_transform(background_path), new_surfaces_list

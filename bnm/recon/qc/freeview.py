@@ -5,27 +5,28 @@ import numpy
 import sys
 from bnm.recon.logger import get_logger
 from bnm.recon.qc.parser.generic import GenericParser
+from bnm.recon.qc.model.constants import SNAPSHOT_NAME, SNAPSHOT_EXTENSION, SNAPSHOTS_DIRECTORY_ENVIRON_VAR, \
+    SNAPSHOT_NUMBER_ENVIRON_VAR
 
 
 class FreeViewController(object):
     logger = get_logger(__name__)
     parser = GenericParser()
 
-    target_screenshot_name = "snapshot"
+    target_screenshot_name = SNAPSHOT_NAME
     target_file = "slices.txt"
     cameraPositionsFileName = "cameraPositions.txt"
     in_point_file = "$SUBJ_DIR/scripts/ponscc.cut.log"
     point_line_flag = "CC-CRS"
     in_matrix_file = 'matrix.txt'
 
-    folder_figures = os.environ['FIGS']
-
+    folder_figures = os.environ[SNAPSHOTS_DIRECTORY_ENVIRON_VAR]
 
     def write_snapshot_camera_positions(self, projection):
         """
         TODO
         """
-        count_number = int(os.environ['SNAPSHOT_NUMBER'])
+        count_number = int(os.environ[SNAPSHOT_NUMBER_ENVIRON_VAR])
         file_ref = open(self.cameraPositionsFileName, 'wb')
         png_path = self._get_image_name(count_number, projection, "1")
         file_ref.write("-cam Azimuth 0 Elevation 0 -ss %s\n" % png_path)
@@ -45,8 +46,7 @@ class FreeViewController(object):
 
     def _get_image_name(self, count_number, projection, suffix):
         return self.folder_figures + "/" + self.target_screenshot_name + str(
-            count_number) + projection + suffix + ".png"
-
+            count_number) + projection + suffix + SNAPSHOT_EXTENSION
 
     def prepare_screenshot(self):
         matrix = self.parser.read_transformation_matrix(self.in_matrix_file)
@@ -63,14 +63,13 @@ class FreeViewController(object):
         ras_string = ' '.join(map(str, ras_vector[:-1]))
         self._write_screenshot_command(self.target_file, self.target_screenshot_name, projection, ras_string)
 
-
     def _write_screenshot_command(self, file_path, shot_name, projection, ras_position):
         """
         Open slices.txt file and write the current screen-shot instruction: target_file_name and position
         """
-        count_number = int(os.environ['SNAPSHOT_NUMBER'])
+        count_number = int(os.environ[SNAPSHOT_NUMBER_ENVIRON_VAR])
         file_ref = open(file_path, 'wb')
-        png_path = self.folder_figures + "/" + shot_name + str(count_number) + projection + ".png"
+        png_path = self.folder_figures + "/" + shot_name + str(count_number) + projection + SNAPSHOT_EXTENSION
         file_ref.write("-ras %s -ss %s" % (ras_position, png_path))
         file_ref.write(" -quit")
         file_ref.close()
