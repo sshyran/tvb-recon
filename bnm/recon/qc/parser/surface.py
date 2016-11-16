@@ -50,12 +50,12 @@ class GiftiSurfaceParser(ABCSurfaceParser):
         triangles = data_arrays[1].data
 
         vol_geom_center_ras = [0, 0, 0]
-        vertices_metadata = vertices.metadata
+        vertices_metadata = data_arrays[0].metadata
         self.logger.info("The metadata from vertices data array is %s", vertices_metadata)
-        vertices_coord_system = vertices.coordsys
+        vertices_coord_system = data_arrays[0].coordsys
         self.logger.info(
             "The coordinate system transform matrix from vertices data array is %s", vertices_coord_system)
-        triangles_metadata = triangles.metadata
+        triangles_metadata = data_arrays[1].metadata
         self.logger.info("The metadata from triangles data array is %s", triangles_metadata)
 
         # TODO review how and if we read this point
