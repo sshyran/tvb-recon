@@ -67,7 +67,7 @@ class GiftiSurfaceParser(ABCSurfaceParser):
                        vertices_coord_system, triangles_metadata)
 
     def write(self, surface_obj, file_path):
-        image_metadata = GiftiMetaData().from_dict(surface_obj.image_metadata)
+        image_metadata = GiftiMetaData().from_dict(surface_obj.generic_metadata)
         vertices_metadata = GiftiMetaData().from_dict(surface_obj.vertices_metadata)
         triangles_metadata = GiftiMetaData().from_dict(surface_obj.triangles_metadata)
 
