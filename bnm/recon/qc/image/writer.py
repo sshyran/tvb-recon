@@ -21,13 +21,16 @@ class ImageWriter(object):
 
     def write_matrix(self, x, y, matrix, result_name):
         pyplot.pcolormesh(x, y, matrix, cmap="gray")
+        pyplot.axes().set_aspect('equal', 'datalim')
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
         pyplot.clf()
 
     def write_2_matrices(self, x, y, matrix_background, x1, y1, matrix_overlap, result_name):
         pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
+        # masked = numpy.ma.masked_where(matrix_overlap < 0.9, matrix_overlap)
         pyplot.pcolormesh(x1, y1, matrix_overlap, cmap="hot", alpha=0.3)
+        pyplot.axes().set_aspect('equal', 'datalim')
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
         pyplot.clf()
@@ -37,6 +40,7 @@ class ImageWriter(object):
         pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
         pyplot.pcolormesh(x1, y1, matrix_overlap_1, cmap="hot", alpha=0.3)
         pyplot.pcolormesh(x2, y2, matrix_overlap_2, cmap="jet", alpha=0.5)
+        pyplot.axes().set_aspect('equal', 'datalim')
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
@@ -77,9 +81,9 @@ class ImageWriter(object):
         fig = pyplot.figure()
 
         ax = Axes3D(fig)
-        ax.set_xlim3d(-120, 60)
+        ax.set_xlim3d(-90, 90)
         ax.set_ylim3d(-120, 120)
-        ax.set_zlim3d(-60, 120)
+        ax.set_zlim3d(-90, 90)
         ax.dist = 4
 
         face_colors = annot.compute_face_colors(surface.triangles)
@@ -100,6 +104,7 @@ class ImageWriter(object):
             snapshot_index += 1
 
     def save_figure(self, result_name):
+        pyplot.axes().set_aspect('equal', 'datalim')
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
