@@ -866,7 +866,8 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
                                   ref_vol_path=None,consim_path=None,parc_area=100,
                                   labels=None,hemi=None, mode="con+geod+adj", d2t=None, 
                                   lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):                                      
-    from sklearn.cluster import AgglomerativeClustering   
+    from sklearn.cluster import AgglomerativeClustering  
+    from scipy.sparse.csgraph import connected_components
     if "geod" in mode:
         from scipy.sparse.csgraph import shortest_path
     #Read the surface...
@@ -888,7 +889,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         d2t=np.loadtxt(d2t)
         #Read the reference tdi_lbl volume:
         vollbl=nbl.load(ref_vol_path)
-        vox=vollbl.get_data()
+        vox=vollbl.get_data().astype('i')
         voxdim=vox.shape
         #Get only the voxels that correspond to connectome nodes: 
         voxijk,=np.where(vox.flatten()>0)
@@ -928,13 +929,42 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
             continue   
         #Get the vertices and faces of this label:
         (verts_lbl,faces_lbl)=extract_subsurf(verts,faces,iVmask)
-        #Mask of label vertices that are neighbors of tract end voxels ("con"):
-        iV_con=np.in1d(iV,con_verts_idx)
-        nVcon=np.sum(iV_con)
-        #Get the con vertices and faces of this label:
-        (verts_lbl_con,faces_lbl_con)=extract_subsurf(verts_lbl,faces_lbl,iV_con)
+        #Compute distances among directly connected vertices
+        dist=vertex_connectivity(verts_lbl,faces_lbl,mode="sparse",metric='euclidean')
+        print "Compute geodesic distance matrix"
+        geodist=shortest_path(dist.todense(), method='auto', directed=False, return_predecessors=False, unweighted=False, overwrite=False)       
+        if "con" in mode:  
+            #Mask of label vertices that are neighbors of tract end voxels ("con"):
+            iV_con=np.in1d(iV,con_verts_idx)
+            nVcon=np.sum(iV_con)
+            #Get only the connectome neighboring vertices and faces of this label:
+            (verts_lbl,faces_lbl)=extract_subsurf(verts_lbl,faces_lbl,iV_con)
+             #Find the closest neighbors of each non-con-vert to a con-vert...
+            iV_noncon=~iV_con
+            noncon2con=np.argmin(geodist[iV_noncon,:][:,iV_con],axis=1)
+            #...and map them
+            noncon2con=iV[noncon2con]
+            print "Compute connectivity similarity affinity matrix..."
+            #TODO?: to use aparc+aseg to correspond vertices only to voxels of the same label
+            #There would have to be a vertex->voxel of aparc+aseg of the same label -> voxel of tdi_lbl_in_T1 mapping
+            #Maybe redundant  because we might be ending to the same voxel of tdi_lbl anyway...
+            #Something to test/discuss...
+            #Find for each vertex the closest voxel node xyz coordinates:
+            v2n = np.argmin(cdist(verts_lbl, voxxzy, 'euclidean'),axis=1)
+            v2n=vox[v2n]
+            print "...whereby vertices correspond to "+str(np.size(np.unique(v2n)))+" distinct voxel nodes"
+            #... assign the respective connectivity similarity to the affinity metric
+            affinity=con[v2n-1,:][:,v2n-1]
+            del v2n
+        else:
+            #We work with iV_con from now on even if it is identical to iV
+            nVcon=len(iV)
+            iV_con=range(nVcon)
+            noncon2con=[]
+            #Initialize affinity matrix with zeros     
+            affinity=np.zeros((nVcon,nVcon))   
         #Calculate total area:
-        roi_area=np.sum(tri_area(verts_lbl_con[faces_lbl_con]))
+        roi_area=np.sum(tri_area(verts_lbl[faces_lbl]))
         print "Total ROI area = "+str(roi_area)+" mm2"
         #Calculate number of parcels:
         nParcs = int(np.round(roi_area/parc_area))
@@ -948,49 +978,33 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
             out_lab[iV]=nL+1
             nL+=1
             continue
+        #Initialize structural connectivity as None
         connectivity=None
-        geodist=vertex_connectivity(verts_lbl,faces_lbl,mode="sparse",metric='euclidean')
-        if "adj" in mode:
-            print "Compute structural connectivity constraint matrix"
-            connectivity=geodist[iV_con,:][:,iV_con]
-            connectivity.data=np.ones(connectivity.data.shape)
-        #Find the closest neighbors of each non-con-vert to a con-vert...
-        iV_noncon=~iV_con
-        noncon2con=np.argmin(geodist.todense()[iV_noncon,:][:,iV_con],axis=1)
-        #...and map them
-        noncon2con=iV[noncon2con]
-        affinity=np.zeros((nVcon,nVcon))
-        if "geod" in mode:  
-            print "Compute geodesic affinity matrix"
-            geodist=shortest_path(geodist.todense()[iV_con,:][:,iV_con], method='auto', directed=False, return_predecessors=False, unweighted=False, overwrite=False)   
-            #Find the maximum non infinte geodesic distance:
+        print "Compute structural connectivity constraint matrix"
+        connectivity=dist[iV_con,:][:,iV_con]
+        connectivity.data=np.ones(connectivity.data.shape)    
+        #Check how many connected components there are, and remove all of those with less than 1% of the vertices,
+        #by moving them to the noncon group
+        nLim = np.round(nVcon)
+        (n_components,labels)=connected_components(connectivity, directed=False, connection='weak', return_labels=True)
+        
+        del dist
+        if "geod" in mode: 
+            print "Computing geodesic similarity affinity matrix"
+            geodist=geodist[iV_con,:][:,iV_con]
+            #Find the maximum non infite geodesic distance:
             temp_ind=np.isfinite(geodist)          
             max_gdist=np.max(geodist[temp_ind],axis=None)
-            #Set 0 and inf values to maximum distance
-            temp_ind = np.logical_or(geodist==0,~temp_ind)
-            geodist[temp_ind]=max_gdist
-            #Set diagonal to 0
-            geodist=geodist-max_gdist*np.identity(nVcon)
+            #Set inf values to maximum distance
+            geodist[~temp_ind]=max_gdist
             #Convert them to normalized similarities
             geodist=1-geodist/max_gdist
             #...and add them to the affinity metric
             affinity+=geodist
-            del temp_ind
-        del geodist
-        if "con" in mode:  
-            print "Compute connectivity similarity affinity matrix..."
-            #TODO?: to use aparc+aseg to correspond vertices only to voxels of the same label
-            #There would have to be a vertex->voxel of aparc+aseg of the same label -> voxel of tdi_lbl_in_T1 mapping
-            #Maybe redundant  because we might be ending to the same voxel of tdi_lbl anyway...
-            #Something to test/discuss...
-            #Find for each vertex the closest voxel node xyz coordinates:
-            v2n = np.argmin(cdist(verts_lbl_con, voxxzy, 'euclidean'),axis=1)
-            v2n=vox[v2n]
-            print "...whereby vertices correspond to "+str(np.size(np.unique(v2n)))+" distinct voxel nodes"
-            #... assign the respective connectivity similarity and add them to the affinity metric
-            affinity+=con[v2n-1,:][:,v2n-1]
-            del v2n
-        print "Run clustering"    
+        del geodist, temp_ind
+        print "Run clustering" 
+        if "adj" not in mode:
+            connectivity=None
         model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed", connectivity=connectivity, linkage='average')
         model.fit(affinity) 
         print "Generate new annotations"

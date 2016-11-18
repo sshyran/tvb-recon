@@ -11,7 +11,7 @@ mv $MRI/T1-reo.nii.gz $MRI/T1.nii.gz
 
 #Register DWI to T1 and get the relevant transform
 regopt="-dof 12 -searchrx -180 180 -searchry -180 180 -searchrz -180 180 -cost mutualinfo"
-flirt -in ./b0.nii.gz -ref $MRI/T1.nii.gz -omat ./d2t.mat -out ./b0-in-T1.nii.gz $regopt
+flirt -in ./b0.nii.gz -ref $MRI/T1.nii.gz -omat ./d2t.mat -out ./b0-in-t1.nii.gz $regopt
 
 #Generate and apply the inverse transform from T1 to DWI for T1
 convert_xfm -omat ./t2d.mat -inverse ./d2t.mat
