@@ -9,6 +9,7 @@ from nibabel.gifti import giftiio
 from nibabel.freesurfer.io import read_geometry, write_geometry
 from bnm.recon.qc.model.surface import Surface
 from bnm.recon.logger import get_logger
+from bnm.recon.qc.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
 
 
 class ABCSurfaceParser(object):
@@ -29,9 +30,9 @@ class ABCSurfaceParser(object):
         raise NotImplementedError()
 
 
-TRANSFORM_MATRIX_GIFTI_KEYS = [['VolGeomX_R', 'VolGeomY_R', 'VolGeomZ_R', 'VolGeomC_R'],
-                               ['VolGeomX_A', 'VolGeomY_A', 'VolGeomZ_A', 'VolGeomC_A'],
-                               ['VolGeomX_S', 'VolGeomY_S', 'VolGeomZ_S', 'VolGeomC_S']]
+TRANSFORM_MATRIX_GIFTI_KEYS = [['VolGeomX_R', 'VolGeomY_R', 'VolGeomZ_R', CENTER_RAS_GIFTI_SURF[0]],
+                               ['VolGeomX_A', 'VolGeomY_A', 'VolGeomZ_A', CENTER_RAS_GIFTI_SURF[1]],
+                               ['VolGeomX_S', 'VolGeomY_S', 'VolGeomZ_S', CENTER_RAS_GIFTI_SURF[2]]]
 
 
 class GiftiSurfaceParser(ABCSurfaceParser):
@@ -58,12 +59,12 @@ class GiftiSurfaceParser(ABCSurfaceParser):
         triangles_metadata = data_arrays[1].metadata
         self.logger.info("The metadata from triangles data array is %s", triangles_metadata)
 
-        # TODO review how and if we read this point
-        vol_geom_center_ras[0] = float(vertices_metadata['VolGeomC_R'])
-        vol_geom_center_ras[1] = float(vertices_metadata['VolGeomC_A'])
-        vol_geom_center_ras[2] = float(vertices_metadata['VolGeomC_S'])
+        #TODO same as fs read. If we have an already centered surface this is not ok.
+        vol_geom_center_ras[0] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[0]])
+        vol_geom_center_ras[1] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[1]])
+        vol_geom_center_ras[2] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[2]])
 
-        return Surface(vertices, triangles, vol_geom_center_ras, image_metadata, vertices_metadata,
+        return Surface(vertices, triangles, [0,0,0], image_metadata, vertices_metadata,
                        vertices_coord_system, triangles_metadata)
 
     def write(self, surface_obj, file_path):
@@ -109,7 +110,7 @@ class GiftiSurfaceParser(ABCSurfaceParser):
                 image_metadata[TRANSFORM_MATRIX_GIFTI_KEYS[i][j]] = str(identity_matrix[i][j])
 
 
-TRANSFORM_MATRIX_FS_KEYS = ['xras', 'yras', 'zras', 'cras']
+TRANSFORM_MATRIX_FS_KEYS = ['xras', 'yras', 'zras', CENTER_RAS_FS_SURF]
 
 
 class FreesurferParser(ABCSurfaceParser):
@@ -119,9 +120,9 @@ class FreesurferParser(ABCSurfaceParser):
         vertices, triangles, metadata = read_geometry(surface_path, read_metadata=True)
         self.logger.info("From the file %s the extracted metadata is %s", surface_path, metadata)
 
-        # TODO make this better and this is not good if the cras of a centered surface can be read.
-        if 'cras' in metadata:
-            cras = metadata['cras']
+        # TODO this is not good if the cras of a centered surface can be read.
+        if CENTER_RAS_FS_SURF in metadata:
+            cras = metadata[CENTER_RAS_FS_SURF]
             self.logger.info("The ras centering point for surface %s is %s", surface_path, cras)
         else:
             cras = [0, 0, 0]

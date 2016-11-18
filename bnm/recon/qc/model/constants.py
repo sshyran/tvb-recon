@@ -27,3 +27,6 @@ ORIGIN = [0, 0, 0]
 SNAPSHOT_NAME = "snapshot"
 SNAPSHOT_EXTENSION = ".png"
 SNAPSHOTS_DIRECTORY = "snapshots"
+
+CENTER_RAS_FS_SURF = 'cras'
+CENTER_RAS_GIFTI_SURF = ['VolGeomC_R', 'VolGeomC_A', 'VolGeomC_S']
