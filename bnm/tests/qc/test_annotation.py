@@ -32,6 +32,6 @@ def test_parse_not_existent_annotation():
 
 def test_parse_not_annotation():
     parser = AnnotationParser()
-    file_path = get_data_file(TEST_SUBJECT, "mri", "T1.nii.gz")
+    file_path = get_data_file(TEST_SUBJECT, "surf", "lh.pial")
     with pytest.raises(ValueError):
         parser.parse(file_path)

@@ -6,15 +6,18 @@ from bnm.tests.base import get_data_file, get_temporary_files_path, remove_tempo
 from nibabel.filebasedimages import ImageFileError
 from nibabel.py3k import FileNotFoundError
 
-TEST_SUBJECT = "freesurfer_fsaverage"
+TEST_FS_SUBJECT = "freesurfer_fsaverage"
+TEST_MODIF_SUBJECT = "fsaverage_modified"
 TEST_SURFACE_FOLDER = "surf"
+
 
 def teardown_module():
     remove_temporary_test_files()
 
+
 def test_parse_fs_surface():
     parser = FreesurferParser()
-    file_path = get_data_file(TEST_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
+    file_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
     surf = parser.read(file_path)
     assert len(surf.triangles) == 327680
 
@@ -28,14 +31,14 @@ def test_parse_not_existing_fs_suraface():
 
 def test_parse_not_fs_surface():
     parser = FreesurferParser()
-    file_path = get_data_file(TEST_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
+    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
     with pytest.raises(ValueError):
         parser.read(file_path)
 
 
 def test_parse_gifti_surface():
     parser = GiftiSurfaceParser()
-    file_path = get_data_file(TEST_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
+    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
     surf = parser.read(file_path)
     assert len(surf.triangles) == 327680
 
@@ -49,14 +52,14 @@ def test_parse_not_existing_gifti_suraface():
 
 def test_parse_not_gifti_surface():
     parser = GiftiSurfaceParser()
-    file_path = get_data_file(TEST_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
+    file_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
     with pytest.raises(ImageFileError):
         parser.read(file_path)
 
 
 def test_write_fs_surface():
     parser = FreesurferParser()
-    file_path = get_data_file(TEST_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
+    file_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
     original_surface = parser.read(file_path)
     triangles_number = len(original_surface.triangles)
 
@@ -69,7 +72,7 @@ def test_write_fs_surface():
 
 def test_write_gifti_surface():
     parser = GiftiSurfaceParser()
-    file_path = get_data_file(TEST_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
+    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
     original_surface = parser.read(file_path)
     triangles_number = len(original_surface.triangles)
 
@@ -82,7 +85,7 @@ def test_write_gifti_surface():
 
 def test_read_transformation_matrix_from_fs_metadata():
     parser = FreesurferParser()
-    file_path = get_data_file(TEST_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
+    file_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
     surf = parser.read(file_path)
     matrix = parser.read_transformation_matrix_from_metadata(surf.get_main_metadata())
     assert matrix.tolist() == [[-1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]]
@@ -90,7 +93,7 @@ def test_read_transformation_matrix_from_fs_metadata():
 
 def test_write_transformation_matrix_fs_metadata():
     parser = FreesurferParser()
-    file_path = get_data_file(TEST_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
+    file_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
     surf = parser.read(file_path)
     parser.write_transformation_matrix(surf.get_main_metadata())
     matrix = parser.read_transformation_matrix_from_metadata(surf.get_main_metadata())
@@ -99,7 +102,7 @@ def test_write_transformation_matrix_fs_metadata():
 
 def test_read_transformation_matrix_from_gifti_metadata():
     parser = GiftiSurfaceParser()
-    file_path = get_data_file(TEST_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
+    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
     surf = parser.read(file_path)
     matrix = parser.read_transformation_matrix_from_metadata(surf.get_main_metadata())
     assert matrix == [[-1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]]
@@ -107,7 +110,7 @@ def test_read_transformation_matrix_from_gifti_metadata():
 
 def test_write_transformation_matrix_gifti_metadata():
     parser = GiftiSurfaceParser()
-    file_path = get_data_file(TEST_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
+    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
     surf = parser.read(file_path)
     parser.write_transformation_matrix(surf.get_main_metadata())
     matrix = parser.read_transformation_matrix_from_metadata(surf.get_main_metadata())
