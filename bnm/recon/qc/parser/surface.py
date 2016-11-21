@@ -64,7 +64,7 @@ class GiftiSurfaceParser(ABCSurfaceParser):
         vol_geom_center_ras[1] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[1]])
         vol_geom_center_ras[2] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[2]])
 
-        return Surface(vertices, triangles, [0,0,0], image_metadata, vertices_metadata,
+        return Surface(vertices, triangles, vol_geom_center_ras, image_metadata, vertices_metadata,
                        vertices_coord_system, triangles_metadata)
 
     def write(self, surface_obj, file_path):
