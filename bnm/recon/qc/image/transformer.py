@@ -4,6 +4,8 @@ import os
 import subprocess
 from os.path import basename
 
+from bnm.recon.logger import get_logger
+
 
 class ImageTransformer(object):
     use_ras_transform = False
@@ -11,6 +13,7 @@ class ImageTransformer(object):
     use_cc_point = False
     converted_files_directory = "converted_files"
     created_files = []
+    logger = get_logger(__name__)
 
     def __init__(self, path):
         self.converted_files_directory_path = os.path.join(path, self.converted_files_directory)
@@ -31,7 +34,7 @@ class ImageTransformer(object):
             self.created_files.append(output_volume_path)
             return output_volume_path
         except subprocess.CalledProcessError:
-            print "Error converting volume"
+            self.logger.error("Error converting volume")
 
     def center_surface(self, surface):
         if not self.use_center_surface:
@@ -45,7 +48,7 @@ class ImageTransformer(object):
             self.created_files.append(surface_new_path)
             return surface_new_path
         except subprocess.CalledProcessError:
-            print "Error converting surface"
+            self.logger.error("Error converting surface")
 
     def transform_single_volume(self, volume_path):
         return self.apply_transform(volume_path)
