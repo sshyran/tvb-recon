@@ -22,7 +22,14 @@ def test_parse_fs_surface():
     assert len(surf.triangles) == 327680
 
 
-def test_parse_not_existing_fs_suraface():
+def test_parse_centered_fs_surface():
+    parser = FreesurferParser()
+    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh-centered.pial")
+    surf = parser.read(file_path)
+    assert surf.center_ras == [0, 0, 0]
+
+
+def test_parse_not_existing_fs_surface():
     parser = FreesurferParser()
     file_path = "not_existing_surface.pial"
     with pytest.raises(IOError):
