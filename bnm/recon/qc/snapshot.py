@@ -56,10 +56,6 @@ if __name__ == "__main__":
 
     args = parse_arguments()
     abs_path = os.path.abspath(os.path.dirname(__file__))
-    imageTransformer = ImageTransformer(abs_path)
-
-    imageTransformer.use_ras_transform = args.ras_transform
-    imageTransformer.use_center_surface = args.center_surface
 
     snapshots_directory = os.environ[SNAPSHOTS_DIRECTORY_ENVIRON_VAR]
     if snapshots_directory is "":
@@ -67,7 +63,12 @@ if __name__ == "__main__":
         logger.warning(
             "There is no value assigned to %s environment variable. The snapshots will be in %s directory by default.",
             SNAPSHOTS_DIRECTORY_ENVIRON_VAR, SNAPSHOTS_DIRECTORY)
+
     snapshot_count = int(os.environ.get(SNAPSHOT_NUMBER_ENVIRON_VAR, 0))
+
+    imageTransformer = ImageTransformer(abs_path)
+    imageTransformer.use_ras_transform = args.ras_transform
+    imageTransformer.use_center_surface = args.center_surface
 
     imageProcessor = ImageProcessor(snapshots_directory=snapshots_directory, snapshot_count=snapshot_count)
 
@@ -109,4 +110,4 @@ if __name__ == "__main__":
             os.remove(created_file)
         os.rmdir(imageTransformer.converted_files_directory_path)
     except OSError:
-        print "Cannot delete files"
+        logger.error("Cannot delete files created at transform step")
