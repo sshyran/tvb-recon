@@ -238,15 +238,15 @@ import numpy as np
 #
 #aaT12aaD=np.dot(np.linalg.inv(affT1),aaD.affine)
 #aaT12aaD[:3,:][:,:3]=aaT12aaD[:3,:][:,:3]/2.0
-surf_path=SURF+'/rh.white'
-annot_path=LABEL+'/rh.white.annot'
-con_verts_idx=SEGMENT+'/rh.white-mask-idx.npy'
+surf_path=SURF+'/rh.aseg'
+annot_path=LABEL+'/rh.aseg.annot'
+con_verts_idx=SEGMENT+'/rh.aseg-mask-idx.npy'
 parc_area=100
-out_annot_path=SEGMENT+'/rh.white'+str(parc_area)+'-geod.annot'
+out_annot_path=SEGMENT+'/rh.aseg'+str(parc_area)+'-geod.annot'
 ref_vol_path=DMR+'/tdi_lbl-v4.nii.gz'
 consim_path=SEGMENT+'/consim-vol-counts5M-v4.npy'
-labels= None #ASEG_LIST_RH
-hemi='rh'
+labels= ASEG_LIST_RH
+hemi=None #'rh'
 mode="geod" #con+adj+
 d2t= DMR+'/d2t.mat' 
 lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')

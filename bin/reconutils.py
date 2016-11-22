@@ -902,7 +902,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
     #Initialize the output:
     out_names=[]
     out_ctab=[]
-    out_lab=lab
+    out_lab=np.array(lab)
     nL=0
     #For every annotation name:
     for iL in range(len(names)):
