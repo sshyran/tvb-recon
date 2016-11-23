@@ -33,6 +33,11 @@ dwi2mask ./dwi.mif ./mask.mif -nthreads $MRTRIX_THRDS
 #Extract bzero…
 dwiextract ./dwi.mif ./b0.nii.gz -bzero -nthreads $MRTRIX_THRDS
 
+#Generate nifti files with good orientation
+mri_convert ./b0-in-ras.nii.gz ./b0-in-ras.nii.gz --out_orientation RAS -rt nearest
+fslreorient2std ./b0-in-ras.nii.gz ./b0-in-ras-reo.nii.gz
+mv ./b0-in-ras-reo.nii.gz ./b0-in-ras.nii.gz
+
 popd
 
 

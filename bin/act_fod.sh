@@ -30,7 +30,7 @@ then
     #Perform spherical deconvolution to get fiber orientation distributions
     #dwi2fod ./dwi.mif ./response.txt ./wm_fod.mif -mask mask.mif -nthreads $MRTRIX_THRDS
     #dwi2fod: [ERROR] expected exactly 3 arguments (4 supplied) if I give csd in the command as below:
-    dwi2fod csd ./dwi.mif ./response.txt ./wm_fod.mif -mask mask.mif -nthreads $MRTRIX_THRDS
+    dwi2fod csd ./dwi.mif ./response.txt ./wm_fod.mif -mask ./mask.mif -nthreads $MRTRIX_THRDS
 
 else
 

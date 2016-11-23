@@ -49,7 +49,7 @@ done
 flirt -in ./CT-reo.nii.gz \
     -ref  ./T1-big.nii.gz \
     -omat ./c2t.mat \
-    -out  ./CT-in-T1.nii.gz \
+    -out  ./CT-in-t1.nii.gz \
     -dof  12 \
     -searchrx -180 180 \
     -searchry -180 180 \
@@ -63,9 +63,9 @@ flirt -in ./CT-reo.nii.gz \
 mrview ./T1-big.nii.gz
 #screenshot
 # XXX check registration, should fit
-#freeview -v ./T1-big.nii.gz ./CT-in-T1.nii.gz:opacity=0.5:colormap=jet \
-#    -viewport sagittal -layout 1 -screenshot $FIGS/ss00-CT-in-T1.png
-source snapshot.sh 2vols ./T1-big.nii.gz ./CT-in-T1.nii.gz
+#freeview -v ./T1-big.nii.gz ./CT-in-t1.nii.gz:opacity=0.5:colormap=jet \
+#    -viewport sagittal -layout 1 -screenshot $FIGS/ss00-CT-in-t1.png
+source snapshot.sh 2vols ./T1-big.nii.gz ./CT-in-t1.nii.gz
 
 # invert CT to T1 transform
 convert_xfm -omat ./t2c.mat -inverse ./c2t.mat
@@ -102,7 +102,7 @@ mri_binarize --erode 8 \
 source snapshot.sh 2vols CT-reo.nii.gz brain-mask.nii.gz
 
 # apply mask to ct
-mri_binarize --i CT-in-T1.nii.gz --o CT-mask.nii.gz \
+mri_binarize --i CT-in-t1.nii.gz --o CT-mask.nii.gz \
     --min $electrode_intensity_threshold \
     --mask brain-mask.nii.gz
 

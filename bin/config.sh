@@ -305,8 +305,8 @@ CONNECTOME_MODE=surf #vol
 export CONNECTOME_MODE
 echo CONNECTOME_MODE=$CONNECTOME_MODE
 
-#Volume voxel edge length in case of volumetric tractography
-VOX=5
+#Volume voxel edge length (in mm) in case of volumetric tractography
+VOX=4
 export VOX
 echo VOX=$VOX
 

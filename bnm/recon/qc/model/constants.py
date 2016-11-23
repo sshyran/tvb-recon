@@ -1,21 +1,32 @@
 # -*- coding: utf-8 -*-
 
-sagittal = 'sagittal'
-coronal = 'coronal'
-axial = 'axial'
+SNAPSHOTS_DIRECTORY_ENVIRON_VAR = 'FIGS'
+SNAPSHOT_NUMBER_ENVIRON_VAR = 'SNAPSHOT_NUMBER'
+SURFACES_DIRECTORY_ENVIRON_VAR = 'SURF'
 
-projections = {sagittal, coronal, axial}
+SAGITTAL = 'sagittal'
+CORONAL = 'coronal'
+AXIAL = 'axial'
 
-plane_normals = {
-    sagittal: (1, 0, 0),
-    coronal: (0, 1, 0),
-    axial: (0, 0, 1)
+PROJECTIONS = [SAGITTAL, CORONAL, AXIAL]
+
+PLANE_NORMALS = {
+    SAGITTAL: (1, 0, 0),
+    CORONAL: (0, 1, 0),
+    AXIAL: (0, 0, 1)
 }
 
-x_y_index = {
-    sagittal: [1, 2],
-    coronal: [0, 2],
-    axial: [0, 1]
+X_Y_INDEX = {
+    SAGITTAL: [1, 2],
+    CORONAL: [0, 2],
+    AXIAL: [0, 1]
 }
 
-origin = [0, 0, 0]
+ORIGIN = [0, 0, 0]
+
+SNAPSHOT_NAME = "snapshot"
+SNAPSHOT_EXTENSION = ".png"
+SNAPSHOTS_DIRECTORY = "snapshots"
+
+CENTER_RAS_FS_SURF = 'cras'
+CENTER_RAS_GIFTI_SURF = ['VolGeomC_R', 'VolGeomC_A', 'VolGeomC_S']
