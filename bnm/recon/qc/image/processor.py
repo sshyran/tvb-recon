@@ -6,7 +6,7 @@ from bnm.recon.qc.parser.annotation import AnnotationParser
 from bnm.recon.qc.parser.generic import GenericParser
 from bnm.recon.qc.parser.surface import FreesurferParser, GiftiSurfaceParser
 from bnm.recon.qc.parser.volume import VolumeParser
-from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME
+from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTENSION
 
 
 class ImageProcessor(object):
@@ -24,10 +24,9 @@ class ImageProcessor(object):
 
     @staticmethod
     def factory_surface_parser(surface_path):
-        gifti_extension = ".gii"
         filename, extension = os.path.splitext(surface_path)
 
-        if extension == gifti_extension:
+        if extension == GIFTI_EXTENSION:
             return GiftiSurfaceParser()
         else:
             return FreesurferParser()
@@ -87,8 +86,8 @@ class ImageProcessor(object):
         for projection in PROJECTIONS:
             x, y, background_matrix = volume.slice_volume(projection, ras)
             clear_flag = True
-            for surface in surfaces:
+            for i, surface in enumerate(surfaces):
                 surf_x_array, surf_y_array = surface.cut_by_plane(projection, ras)
-                self.writer.write_matrix_and_surfaces(x, y, background_matrix, surf_x_array, surf_y_array, clear_flag)
+                self.writer.write_matrix_and_surfaces(x, y, background_matrix, surf_x_array, surf_y_array, i, clear_flag)
                 clear_flag = False
             self.writer.save_figure(self.generate_file_name(projection))

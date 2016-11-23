@@ -12,16 +12,11 @@ class Volume(object):
 
     Has a method that cuts a slice from the volume.
     """
-    # TODO use this
-    # transparency used when displaying a volume slice
-    transparency = 1.0
-    # color map used when displaying a volume slice
-    color_map = None  # Reference to ColorMap obj, or empty
 
     def __init__(self, data, affine_matrix):
-        self.data = data # 3D array
-        self.dimensions = data.shape # array with the length of each data dimension
-        self.affine_matrix = affine_matrix # matrix containing voxel to ras transformation
+        self.data = data  # 3D array
+        self.dimensions = data.shape  # array with the length of each data dimension
+        self.affine_matrix = affine_matrix  # matrix containing voxel to ras transformation
 
     def slice_volume(self, projection=SAGITTAL, ras=ORIGIN):
         """

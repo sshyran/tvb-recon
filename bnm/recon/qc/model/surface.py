@@ -11,23 +11,19 @@ class Surface(object):
 
     Has also few methods to read from this mesh (e.g. a contour cut).
     """
-    # color used when displaying this surface as a contour
-    # TODO use this
-    contour_color = 'r'
 
     def __init__(self, vertices, triangles, center_ras, generic_metadata, vertices_metadata=None,
                  vertices_coord_system=None, triangles_metadata=None):
 
-        self.vertices = vertices # array of (x,y,z) tuples
-        self.triangles = triangles # array of (v1, v2, v3) indices in vertices array
-        self.center_ras = center_ras # [x, y, z]
+        self.vertices = vertices  # array of (x,y,z) tuples
+        self.triangles = triangles  # array of (v1, v2, v3) indices in vertices array
+        self.center_ras = center_ras  # [x, y, z]
 
         self.generic_metadata = generic_metadata
         self.vertices_metadata = vertices_metadata
         self.triangles_metadata = triangles_metadata
 
         self.vertices_coord_system = vertices_coord_system
-
 
     def get_main_metadata(self):
         if self.vertices_metadata is not None:
@@ -40,11 +36,9 @@ class Surface(object):
         else:
             self.generic_metadata = new_metadata
 
-
     def _get_plane_origin(self, ras):
         plane_origin = numpy.subtract(ras, self.center_ras)
         return list(plane_origin)
-
 
     def cut_by_plane(self, projection=SAGITTAL, ras=ORIGIN):
         """

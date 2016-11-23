@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import matplotlib.pyplot as pyplot
+from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
 from bnm.recon.logger import get_logger
 from bnm.recon.qc.model.constants import SNAPSHOT_EXTENSION
@@ -9,6 +9,10 @@ from bnm.recon.qc.model.constants import SNAPSHOT_EXTENSION
 
 class ImageWriter(object):
     logger = get_logger(__name__)
+
+    contour_colors = ['y', 'r', 'b', 'g', 'm', 'c', 'w', 'k']
+    volume_cmaps = ['gray', 'hot', 'jet']
+    transparency = [0.3, 0.5]
 
     def __init__(self, snapshots_directory):
         self.snapshots_directory = snapshots_directory
@@ -20,16 +24,16 @@ class ImageWriter(object):
         return self.snapshots_directory + '/' + result_name + SNAPSHOT_EXTENSION
 
     def write_matrix(self, x, y, matrix, result_name):
-        pyplot.pcolormesh(x, y, matrix, cmap="gray")
+        pyplot.pcolormesh(x, y, matrix, cmap=self.volume_cmaps[0])
         pyplot.axes().set_aspect('equal', 'datalim')
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
         pyplot.clf()
 
     def write_2_matrices(self, x, y, matrix_background, x1, y1, matrix_overlap, result_name):
-        pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
+        pyplot.pcolormesh(x, y, matrix_background, cmap=self.volume_cmaps[0])
         # masked = numpy.ma.masked_where(matrix_overlap < 0.9, matrix_overlap)
-        pyplot.pcolormesh(x1, y1, matrix_overlap, cmap="hot", alpha=0.3)
+        pyplot.pcolormesh(x1, y1, matrix_overlap, cmap=self.volume_cmaps[1], alpha=self.transparency[0])
         pyplot.axes().set_aspect('equal', 'datalim')
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
@@ -37,9 +41,9 @@ class ImageWriter(object):
 
     def write_3_matrices(self, x, y, matrix_background, x1, y1, matrix_overlap_1, x2, y2, matrix_overlap_2,
                          result_name):
-        pyplot.pcolormesh(x, y, matrix_background, cmap="gray")
-        pyplot.pcolormesh(x1, y1, matrix_overlap_1, cmap="hot", alpha=0.3)
-        pyplot.pcolormesh(x2, y2, matrix_overlap_2, cmap="jet", alpha=0.5)
+        pyplot.pcolormesh(x, y, matrix_background, cmap=self.volume_cmaps[0])
+        pyplot.pcolormesh(x1, y1, matrix_overlap_1, cmap=self.volume_cmaps[1], alpha=self.transparency[0])
+        pyplot.pcolormesh(x2, y2, matrix_overlap_2, cmap=self.volume_cmaps[2], alpha=self.transparency[1])
         pyplot.axes().set_aspect('equal', 'datalim')
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
@@ -108,9 +112,10 @@ class ImageWriter(object):
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
-    def write_matrix_and_surfaces(self, x_axis_coords, y_axis_coords, matrix_background, surface_x_array, surface_y_array, clear_flag):
+    def write_matrix_and_surfaces(self, x_axis_coords, y_axis_coords, matrix_background, surface_x_array, surface_y_array, surface_index, clear_flag):
         if clear_flag:
             pyplot.clf()
-        pyplot.pcolormesh(x_axis_coords, y_axis_coords, matrix_background, cmap="gray")
+            pyplot.pcolormesh(x_axis_coords, y_axis_coords, matrix_background, cmap=self.volume_cmaps[0])
+        color_index = surface_index % len(self.contour_colors)
         for contour in xrange(len(surface_x_array)):
-            pyplot.plot(surface_x_array[contour][:], surface_y_array[contour][:], 'y')
+            pyplot.plot(surface_x_array[contour][:], surface_y_array[contour][:], self.contour_colors[color_index])
