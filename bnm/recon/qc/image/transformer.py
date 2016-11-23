@@ -3,8 +3,8 @@
 import os
 import subprocess
 from os.path import basename
-
 from bnm.recon.logger import get_logger
+from bnm.recon.qc.model.constants import GIFTI_EXTENSION
 
 
 class ImageTransformer(object):
@@ -64,12 +64,17 @@ class ImageTransformer(object):
         new_surfaces_list = [self.center_surface(os.path.expandvars(surf)) for surf in surfaces_list]
         return self.apply_transform(background_path), new_surfaces_list
 
-    def transform_volume_white_pial(self, background_path, resampled_surface, surfaces_path):
+    def transform_volume_white_pial(self, background_path, resampled_surface, surfaces_path, use_gifti):
         if resampled_surface is not "":
             resampled_surface = "." + resampled_surface
-        # TODO should this work for Gifti?
-        white_pial_surfaces_path = [hemi + "." + surface_type + resampled_surface for hemi in "rh", "lh" for
-                                    surface_type in "pial", "white"]
+
+        gii = ""
+        if use_gifti:
+            gii = GIFTI_EXTENSION
+
+        white_pial_surfaces_path = [hemi + "." + surface_type + resampled_surface + gii for hemi in "rh", "lh" for
+                                        surface_type in "pial", "white"]
+
         new_surfaces_list = [self.center_surface(os.path.expandvars(os.path.join(surfaces_path, surface))) for surface
                              in white_pial_surfaces_path]
         return self.apply_transform(background_path), new_surfaces_list

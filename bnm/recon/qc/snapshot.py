@@ -29,7 +29,7 @@ def parse_arguments():
     subcommand_surf_annot = subparsers.add_parser(arg_surf_annot, help='Display a surface with annotations')
     subcommand_vol_surf = subparsers.add_parser(arg_vol_surf, help='Display a surface overlapped on a volume')
     subcommand_vol_2surf = subparsers.add_parser(arg_vol_white_pial,
-                                                 help='Display white and pial surfaces over a volume')
+                                                 help='Display white and pial freesurfer surfaces over a volume')
 
     subcommand_1_vol.add_argument("volume")
 
@@ -48,6 +48,7 @@ def parse_arguments():
 
     subcommand_vol_2surf.add_argument("background")
     subcommand_vol_2surf.add_argument("-resampled_surface_name", default='')
+    subcommand_vol_2surf.add_argument("-gifti", help="Use gifti white and pial surfaces", action="store_true")
     return parser.parse_args()
 
 
@@ -99,10 +100,8 @@ if __name__ == "__main__":
     elif args.subcommand == arg_vol_white_pial:
         surfaces_path = os.environ[SURFACES_DIRECTORY_ENVIRON_VAR]
         background, surfaces_paths_list = imageTransformer.transform_volume_white_pial(
-            os.path.expandvars(args.background),
-            os.path.expandvars(
-                args.resampled_surface_name),
-            os.path.expandvars(surfaces_path))
+            os.path.expandvars(args.background), os.path.expandvars(args.resampled_surface_name),
+            os.path.expandvars(surfaces_path), args.gifti)
         imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths_list))
 
     try:
