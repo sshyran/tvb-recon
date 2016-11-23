@@ -32,8 +32,8 @@ if __name__ == "__main__":
     generic_parser = GenericParser()
 
     logger.info("The surface transformation process has began")
-    surface = image_processor.read_surface(surface_path)
     surface_parser = image_processor.factory_surface_parser(surface_path)
+    surface = surface_parser.read(surface_path)
 
     if len(args.matrix_paths) is not 0:
         transformation_matrices = []
@@ -49,7 +49,7 @@ if __name__ == "__main__":
                 else:
                     vertex_coords = surface.vertices[i]
 
-                new_vertex_coords = vertex_coords.dot(transformation_matrices[j])
+                new_vertex_coords = transformation_matrices[j].dot(vertex_coords)
                 surface.vertices[i] = new_vertex_coords[:3]
 
     else:
