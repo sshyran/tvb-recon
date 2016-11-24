@@ -22,7 +22,7 @@ def parse_arguments():
 
     parser.add_argument("--ras_transform", help="This flag applies the RAS orientation on volumes.",
                         action="store_true")
-    parser.add_argument("--center_surfaces",
+    parser.add_argument("--center_surface",
                         help="Centers surfaces using the ras centering point. "
                              "This will correctly align the surface contour over a RAS oriented volume. "
                              "If the flag is not used, the correct surface contour will be displayed but "
