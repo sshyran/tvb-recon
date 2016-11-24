@@ -20,16 +20,26 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate a BNM snapshot")
     subparsers = parser.add_subparsers(title='Sub Commands', dest='subcommand')
 
-    parser.add_argument("--ras_transform", help="Applies RAS transformation on volumes", action="store_true")
-    parser.add_argument("--center_surface", help="Centers surfaces using cras", action="store_true")
+    parser.add_argument("--ras_transform", help="This flag applies the RAS orientation on volumes.",
+                        action="store_true")
+    parser.add_argument("--center_surfaces",
+                        help="Centers surfaces using the ras centering point. "
+                             "This will correctly align the surface contour over a RAS oriented volume. "
+                             "If the flag is not used, the correct surface contour will be displayed but "
+                             "it will not be perfectly aligned over the volume. Always use the original "
+                             "surfaces (not already centered ones) with an overlapping sub-command.",
+                        action="store_true")
 
     subcommand_1_vol = subparsers.add_parser(arg_1vol, help='Display a single volume')
     subcommand_2_vols = subparsers.add_parser(arg_2vols, help='Display 2 volumes overlapped')
     subcommand_3_vols = subparsers.add_parser(arg_3vols, help='Display 3 volumes overlapped')
     subcommand_surf_annot = subparsers.add_parser(arg_surf_annot, help='Display a surface with annotations')
-    subcommand_vol_surf = subparsers.add_parser(arg_vol_surf, help='Display a surface overlapped on a volume')
+    subcommand_vol_surf = subparsers.add_parser(arg_vol_surf,
+                                                help='Display a surface overlapped on a volume. '
+                                                     'The flag --center_surface can be used with this sub-command.')
     subcommand_vol_2surf = subparsers.add_parser(arg_vol_white_pial,
-                                                 help='Display white and pial freesurfer surfaces over a volume')
+                                                 help='Display white and pial freesurfer surfaces over a volume. '
+                                                      'The flag --center_surface can be used with this sub-command.')
 
     subcommand_1_vol.add_argument("volume")
 
@@ -95,14 +105,15 @@ if __name__ == "__main__":
     elif args.subcommand == arg_vol_surf:
         background, surfaces_paths_list = imageTransformer.transform_volume_surfaces(
             os.path.expandvars(args.background), args.surfaces_list)
-        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), surfaces_paths_list)
+        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), surfaces_paths_list, args.center_surface)
 
     elif args.subcommand == arg_vol_white_pial:
         surfaces_path = os.environ[SURFACES_DIRECTORY_ENVIRON_VAR]
         background, surfaces_paths_list = imageTransformer.transform_volume_white_pial(
             os.path.expandvars(args.background), os.path.expandvars(args.resampled_surface_name),
             os.path.expandvars(surfaces_path), args.gifti)
-        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths_list))
+        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths_list),
+                                               args.center_surface)
 
     try:
         for created_file in imageTransformer.created_files:

@@ -17,7 +17,7 @@ class ABCSurfaceParser(object):
     This will define the behaviour needed for a surface parser.
     """
 
-    def read(self, data_file):
+    def read(self, data_file, use_center_surface):
         raise NotImplementedError()
 
     def write(self, surface_obj, file_path):
@@ -41,7 +41,7 @@ class GiftiSurfaceParser(ABCSurfaceParser):
     """
     logger = get_logger(__name__)
 
-    def read(self, data_file):
+    def read(self, data_file, use_center_surface):
         gifti_image = giftiio.read(data_file)
         image_metadata = gifti_image.meta.metadata
         self.logger.info("From the file %s the extracted metadata is %s", data_file, image_metadata)
@@ -59,10 +59,12 @@ class GiftiSurfaceParser(ABCSurfaceParser):
         triangles_metadata = data_arrays[1].metadata
         self.logger.info("The metadata from triangles data array is %s", triangles_metadata)
 
-        #TODO same as fs read. If we have an already centered surface this is not ok.
-        vol_geom_center_ras[0] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[0]])
-        vol_geom_center_ras[1] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[1]])
-        vol_geom_center_ras[2] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[2]])
+        if use_center_surface:
+            vol_geom_center_ras = [0, 0, 0]
+        else:
+            vol_geom_center_ras[0] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[0]])
+            vol_geom_center_ras[1] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[1]])
+            vol_geom_center_ras[2] = float(vertices_metadata[CENTER_RAS_GIFTI_SURF[2]])
 
         return Surface(vertices, triangles, vol_geom_center_ras, image_metadata, vertices_metadata,
                        vertices_coord_system, triangles_metadata)
@@ -116,18 +118,21 @@ TRANSFORM_MATRIX_FS_KEYS = ['xras', 'yras', 'zras', CENTER_RAS_FS_SURF]
 class FreesurferParser(ABCSurfaceParser):
     logger = get_logger(__name__)
 
-    def read(self, surface_path):
+    def read(self, surface_path, use_center_surface):
         vertices, triangles, metadata = read_geometry(surface_path, read_metadata=True)
         self.logger.info("From the file %s the extracted metadata is %s", surface_path, metadata)
 
-        # TODO this is not good if the cras of a centered surface can be read.
-        if CENTER_RAS_FS_SURF in metadata:
-            cras = metadata[CENTER_RAS_FS_SURF]
-            self.logger.info("The ras centering point for surface %s is %s", surface_path, cras)
-        else:
+        if use_center_surface:
             cras = [0, 0, 0]
-            self.logger.warning("Could not read the ras centering point from surface %s header. The cras will be %s",
-                                surface_path, cras)
+            self.logger.info("The --center_ras flag was specified, so the ras centering point is %s", cras)
+        else:
+            if CENTER_RAS_FS_SURF in metadata:
+                cras = metadata[CENTER_RAS_FS_SURF]
+                self.logger.info("The ras centering point for surface %s is %s", surface_path, cras)
+            else:
+                cras = [0, 0, 0]
+                self.logger.warning("Could not read the ras centering point from surface %s header. The cras will be %s",
+                                    surface_path, cras)
 
         return Surface(vertices, triangles, cras, metadata)
 

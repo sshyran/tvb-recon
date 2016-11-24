@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     logger.info("The surface transformation process has began")
     surface_parser = image_processor.factory_surface_parser(surface_path)
-    surface = surface_parser.read(surface_path)
+    surface = surface_parser.read(surface_path, False)
 
     if len(args.matrix_paths) is not 0:
         transformation_matrices = []
