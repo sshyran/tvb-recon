@@ -6,7 +6,7 @@ from bnm.recon.qc.parser.annotation import AnnotationParser
 from bnm.recon.qc.parser.generic import GenericParser
 from bnm.recon.qc.parser.surface import FreesurferParser, GiftiSurfaceParser
 from bnm.recon.qc.parser.volume import VolumeParser
-from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTENSION
+from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTENSION, T1_RAS_VOLUME, MRI_DIRECTORY
 
 
 class ImageProcessor(object):
@@ -20,6 +20,10 @@ class ImageProcessor(object):
     def generate_file_name(self, current_projection):
         file_name = SNAPSHOT_NAME + str(self.snapshot_count) + current_projection
         return file_name
+
+    def read_t1_affine_matrix(self):
+        t1_volume = self.parser_volume.parse(os.path.join(os.environ[MRI_DIRECTORY], os.environ[T1_RAS_VOLUME]))
+        return t1_volume.affine_matrix
 
     @staticmethod
     def factory_surface_parser(surface_path):
@@ -38,7 +42,7 @@ class ImageProcessor(object):
     def show_single_volume(self, volume_path):
 
         volume = self.parser_volume.parse(volume_path)
-        ras = self.generic_parser.get_ras_coordinates()
+        ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
 
         for projection in PROJECTIONS:
             x_axis_coords, y_axis_coords, volume_matrix = volume.slice_volume(projection, ras)
@@ -49,7 +53,8 @@ class ImageProcessor(object):
         background_volume = self.parser_volume.parse(background_path)
         overlay_volume = self.parser_volume.parse(overlay_path)
 
-        ras = self.generic_parser.get_ras_coordinates()
+        ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
+        print ras
 
         for projection in PROJECTIONS:
             x, y, background_matrix = background_volume.slice_volume(projection, ras)
@@ -63,7 +68,7 @@ class ImageProcessor(object):
         volume_overlay_1 = self.parser_volume.parse(overlay_1_path)
         volume_overlay_2 = self.parser_volume.parse(overlay_2_path)
 
-        ras = self.generic_parser.get_ras_coordinates()
+        ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
 
         for projection in PROJECTIONS:
             x, y, background_matrix = volume_background.slice_volume(projection, ras)
@@ -79,7 +84,7 @@ class ImageProcessor(object):
 
     def overlap_volume_surfaces(self, volume_background, surfaces_path, use_center_surface):
         volume = self.parser_volume.parse(volume_background)
-        ras = self.generic_parser.get_ras_coordinates()
+        ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
         surfaces = [self.read_surface(os.path.expandvars(surface), use_center_surface) for surface in surfaces_path]
 
         for projection in PROJECTIONS:

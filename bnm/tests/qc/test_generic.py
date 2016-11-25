@@ -4,13 +4,6 @@ from bnm.recon.qc.parser.generic import GenericParser
 from bnm.tests.base import get_data_file
 
 
-def test_read_transformation_matrix():
-    parser = GenericParser()
-    file_path = get_data_file("matrix.txt")
-    matrix = parser.read_transformation_matrix(file_path)
-    assert matrix == [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
-
-
 def test_read_cc_point():
     parser = GenericParser()
     file_path = get_data_file("cc_point.txt")

@@ -62,6 +62,33 @@ def parse_arguments():
     return parser.parse_args()
 
 
+def check_files_for_cc_exist():
+    mri_directory = os.environ[MRI_DIRECTORY]
+    if mri_directory is "":
+        message = "There is no value assigned to %s environment variable. It should specify the path to %s." % (
+            MRI_DIRECTORY, T1_RAS_VOLUME)
+        logger.error(message)
+        raise Exception(message)
+
+    t1_name = os.environ[T1_RAS_VOLUME]
+    if t1_name is "":
+        message = "There is no value assigned to %s environment variable. It should specify the name of T1 RAS oriented " \
+                  "volume" % T1_RAS_VOLUME
+        logger.error(message)
+        raise Exception(message)
+
+    t1_path = os.path.join(mri_directory, t1_name)
+    if not os.path.exists(t1_path):
+        message = "File %s does not exist. Please change %s value to %s path." % (t1_path, MRI_DIRECTORY, T1_RAS_VOLUME)
+        logger.error(message)
+        raise Exception(message)
+
+    if not os.path.exists(os.path.expandvars(CC_POINT_FILE)):
+        message = "File %s does not exist." % CC_POINT_FILE
+        logger.error(message)
+        raise Exception(message)
+
+
 if __name__ == "__main__":
     logger = get_logger(__name__)
 
@@ -80,6 +107,9 @@ if __name__ == "__main__":
     imageTransformer = ImageTransformer(abs_path)
     imageTransformer.use_ras_transform = args.ras_transform
     imageTransformer.use_center_surface = args.center_surface
+
+    if args.subcommand != arg_surf_annot:
+        check_files_for_cc_exist()
 
     imageProcessor = ImageProcessor(snapshots_directory=snapshots_directory, snapshot_count=snapshot_count)
 
