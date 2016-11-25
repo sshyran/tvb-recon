@@ -1,0 +1,20 @@
+# This file represents the default values when a customer has not filled them out
+coverage:
+  precision: 0
+  round: nearest
+  range: "50...100"
+  notify:
+    require_ci_to_pass: yes
+    threshold: 3%
+    message: "Coverage {{changed}} for {{owner}}/{{repo}}"  # customize the message
+
+  status:
+    project: yes
+
+    patch: yes
+
+    changes: yes
+
+comment:
+  layout: "header, diff, changes"
+  behavior: default
