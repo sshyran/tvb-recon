@@ -1,4 +1,4 @@
-# This file represents the default values when a customer has not filled them out
+# This file represents the Coverage configuration
 coverage:
   precision: 0
   round: nearest
