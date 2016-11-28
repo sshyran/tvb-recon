@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import numpy
 from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
 from bnm.recon.logger import get_logger
@@ -84,11 +85,14 @@ class ImageWriter(object):
 
         fig = pyplot.figure()
 
-        ax = Axes3D(fig)
-        ax.set_xlim3d(-90, 90)
-        ax.set_ylim3d(-120, 120)
-        ax.set_zlim3d(-90, 90)
-        ax.dist = 4
+        ax = Axes3D(fig, aspect='equal')
+
+        min = numpy.min([numpy.min(x), numpy.min(y), numpy.min(z)])
+        max = numpy.max([numpy.max(x), numpy.max(y), numpy.max(z)])
+
+        ax.set_xlim3d(min, max)
+        ax.set_ylim3d(min, max)
+        ax.set_zlim3d(min, max)
 
         face_colors = annot.compute_face_colors(surface.triangles)
 
@@ -104,7 +108,7 @@ class ImageWriter(object):
         snapshot_index = 0
         for e, a in positions:
             ax.view_init(elev=e, azim=a)
-            pyplot.savefig(self.get_path(result_name + str(snapshot_index)))
+            pyplot.savefig(self.get_path(result_name + str(snapshot_index)), dpi=fig.dpi)
             snapshot_index += 1
 
     def save_figure(self, result_name):
