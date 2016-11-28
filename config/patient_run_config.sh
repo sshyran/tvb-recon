@@ -2,23 +2,14 @@
 
 #TODO place these in a better form ?
 
-PEGASUS_HOME=/opt/pegasus-home
-echo ${PEGASUS_HOME}
-export PEGASUS_HOME
+export PEGASUS_HOME=/opt/pegasus-home
 
-OS=MACOSX
-echo ${OS}
-export OS
+export OS=MACOSX
 
-SUBJECTS_FOLDER=/Applications/freesurfer_dev/subjects
-echo ${SUBJECTS_FOLDER}
-export SUBJECTS_FOLDER
+export SUBJECTS_FOLDER=/Applications/freesurfer_dev/subjects
 
-SUBJECT_NAME=XYZ
-export SUBJECT_NAME
+export SUBJECT_NAME=XYZ
 
-OPENMP_THRDS=4
-export OPENMP_THRDS
+export OPENMP_THRDS=4
 
-MRTRIX_THRDS=4
-export MRTRIX_THRDS
+export MRTRIX_THRDS=4
