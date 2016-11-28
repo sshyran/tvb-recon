@@ -6,36 +6,8 @@ vol=aparc+aseg
 
 pushd $SEGMENT
 
+
 #Volume workflow:
-
-#Get the voxels that lie at the external surface (or border) of the target volume structures:
-
-#Using my python code:
-#python -c "import reconutils; reconutils.vol_to_ext_surf_vol('$MRI/$vol.nii.gz',labels='$ASEG_LIST',hemi='lh rh',out_vol_path='./$vol-surf.nii.gz',labels_surf=None,labels_inner='0')"
-#flirt -applyxfm -in ./$vol-surf.nii -ref $DMR/b0.nii.gz -out ./$vol-surf-in-d.nii.gz -init $DMR/t2d.mat -interp nearestneighbour
-
-#Using freesurfer:
-mris_calc $MRI/T1.mgz mul 0
-for srf in white aseg
-do
-    for h in lh rh
-    do
-        mri_surf2vol --mkmask --hemi $h --surf $srf --identity $SUBJECT --template $MRI/T1.mgz --o ./$h.$srf-surf-mask.mgz --vtxvol ./$h.$srf-surf-map.mgz
-
-        mris_calc ./out.mgz or ./$h.$srf-surf-mask.mgz
-
-    done
-done
-mv ./out.mgz ./$vol-surf-mask.mgz
-mris_calc $MRI/$vol.mgz masked ./$vol-surf-mask.mgz
-mv ./out.mgz ./$vol-surf.mgz
-
-for v in ./$vol-surf-mask ./$vol-surf
-    do
-        mri_convert ./$v.mgz ./$v.nii.gz --out_orientation RAS -rt nearest
-        fslreorient2std ./$v.nii.gz ./$v-reo.nii.gz
-        mv ./$v-reo.nii.gz ./$v.nii.gz
-done
 
 
 if [ "$SEGMENT_METHOD" = "tdi" ] || [ "$SEGMENT_METHOD" = "tdi+gwi" ] || [ "$SEGMENT_METHOD" = "tdi*gwi" ];
@@ -125,6 +97,8 @@ then
     popd
 fi
 
+#Create the final mask
+
 if [ "$SEGMENT_METHOD" = "tdi" ]
 then
     cp $TDI/tdi_mask.nii.gz ./mask-$SEGMENT_METHOD.nii.gz
@@ -145,30 +119,71 @@ then
     mv ./mask-$SEGMENT_METHOD-reo.nii.gz ./mask-$SEGMENT_METHOD.nii.gz
 fi
 
-#Apply the mask to the border voxels
+
+#If segmentation is performed via parcellation of the surface, maybe it is not necessary to work on the surface voxels of aparc+aseg volume. In this case we directly mask the aparc+aseg.
+if [ "$APARC_SURF" = "yes" ]
+then
+    #Apply the mask to the border voxels
+
+    #Get the voxels that lie at the external surface (or border) of the target volume structures:
+
+    #Using my python code:
+    #python -c "import reconutils; reconutils.vol_to_ext_surf_vol('$MRI/$vol.nii.gz',labels='$ASEG_LIST',hemi='lh rh',out_vol_path='./$vol-surf.nii.gz',labels_surf=None,labels_inner='0')"
+    #flirt -applyxfm -in ./$vol-surf.nii -ref $DMR/b0.nii.gz -out ./$vol-surf-in-d.nii.gz -init $DMR/t2d.mat -interp nearestneighbour
+
+    #Using freesurfer:
+    mris_calc $MRI/T1.mgz mul 0
+    for srf in white aseg
+    do
+        for h in lh rh
+        do
+            mri_surf2vol --mkmask --hemi $h --surf $srf --identity $SUBJECT --template $MRI/T1.mgz --o ./$h.$srf-surf-mask.mgz --vtxvol ./$h.$srf-surf-map.mgz
+
+            mris_calc ./out.mgz or ./$h.$srf-surf-mask.mgz
+
+        done
+    done
+    mv ./out.mgz ./$vol-surf-mask.mgz
+    mris_calc $MRI/$vol.mgz masked ./$vol-surf-mask.mgz
+    mv ./out.mgz ./$vol-surf.mgz
+
+    for v in ./$vol-surf-mask ./$vol-surf
+    do
+        mri_convert ./$v.mgz ./$v.nii.gz --out_orientation RAS -rt nearest
+        fslreorient2std ./$v.nii.gz ./$v-reo.nii.gz
+        mv ./$v-reo.nii.gz ./$v.nii.gz
+    done
+
+    mask_this_vol=$vol-surf
+else
+    #Apply the mask to the whole aparc+aseg, not only to the border voxels
+    mask_this_vol=$vol
+done
 
 #Using my python code:
 #python -c "import reconutils; reconutils.mask_to_vol('./$vol-surf.nii.gz','./mask-$SEGMENT_METHOD.nii.gz','./$vol-mask.nii.gz',labels='$ASEG_LIST',hemi='lh rh',vol2mask_path=None,vn=$VOL_VN,th=1,labels_mask=None,labels_nomask='0')"
 
 #Using freesurfer:
-mris_calc ./$vol-surf.nii.gz masked ./mask-$SEGMENT_METHOD.nii.gz
+mris_calc ./$mask_this_vol.nii.gz masked ./mask-$SEGMENT_METHOD.nii.gz
 mri_convert ./out.mgz ./$vol-mask.nii.gz --out_orientation RAS -rt nearest
 rm ./out.mgz
 fslreorient2std ./$vol-mask.nii.gz ./$vol-mask-reo.nii
 mv ./$vol-mask-reo.nii.gz ./$vol-mask.nii.gz
 
 
-#Get final masked surfaces:
+#Get final masked surfaces by sampling the surface with the surviving voxels:
+#Cortical:
+#Give an empty list for add_lbl, if you want cerebral white matter to be masked out
 for h in lh rh
 do
-    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.aseg','./$vol-mask.nii.gz','$LABEL/$h.aseg.annot','./$h.aseg-mask',surf_ref_path='$SURF/$h.aseg-ras',out_surf_ref_path='./$h.aseg-mask-ras',ctx=None,vn=$SURF_VN)"
+    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.white','./$vol-mask.nii.gz','$LABEL/$h.aparc.annot','./$h.white-mask',surf_ref_path='$SURF/$h.white-ras',out_surf_ref_path='./$h.white-mask-ras',ctx='$h',vn=$SURF_VN,add_lbl=[2,41])"
+done
+#Sub-cortical:
+for h in lh rh
+do
+    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.aseg','./$vol-mask.nii.gz','$LABEL/$h.aseg.annot','./$h.aseg-mask',surf_ref_path='$SURF/$h.aseg-ras',out_surf_ref_path='./$h.aseg-mask-ras',ctx=None,vn=$SURF_VN,add_lbl=[])"
 done
 
-#Sample the surface with the surviving voxels
-for h in lh rh
-do
-    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.white','./$vol-mask.nii.gz','$LABEL/$h.aparc.annot','./$h.white-mask',surf_ref_path='$SURF/$h.white-ras',out_surf_ref_path='./$h.white-mask-ras',ctx='$h',vn=$SURF_VN)"
-done
 
 
 #Take the tdi_lbl to T1 standard space, without upsampling:
