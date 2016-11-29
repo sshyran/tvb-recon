@@ -26,15 +26,15 @@ then
     do
         for metric in count meanlength
         do
-        tck2connectome $STRMLNS_SIFT_NO.tck ./$vol_lbl.nii.gz $assignment ./$vol-counts$STRMLNS_SIFT_NO.csv
-        tck2connectome $STRMLNS_SIFT_NO.tck ./$vol_lbl.nii.gz $assignment -scale_length -stat_edge mean ./$vol-mean_tract_lengths$STRMLNS_SIFT_NO.csv
+            tck2connectome $STRMLNS_SIFT_NO.tck ./$vol_lbl.nii.gz $assignment ./$vol-counts$STRMLNS_SIFT_NO.csv
+            tck2connectome $STRMLNS_SIFT_NO.tck ./$vol_lbl.nii.gz $assignment -scale_length -stat_edge mean ./$vol-mean_tract_lengths$STRMLNS_SIFT_NO.csv
         done
     done
 
 else
 
     #Get volume labels:
-    tckmap ./$STRMLNS_SIFT_NO.tck ./tdi_ends-v$VOX.mif -vox $VOX -ends_only -force #vox: size of bin
+    tckmap ./$STRMLNS_SIFT_NO.tck ./tdi_ends-v$VOX.mif -vox $VOX -ends_only -template ./b0.nii.gz -force #vox: size of bin
     mrconvert ./tdi_ends-v$VOX.mif ./tdi_ends-v$VOX.nii.gz -force
 
     #Visual check (interactive)

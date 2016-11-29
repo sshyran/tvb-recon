@@ -13,4 +13,4 @@ cov=""
 if [[ $COV == "yes" ]]; then cov="--cov=bnm"; fi
 
 # run 'em
-py.test $cov $ignores
+py.test --cov-config .coveragec $cov $ignores

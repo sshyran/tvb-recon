@@ -699,9 +699,9 @@ def simple_label_config(aparc_fname, out_fname):
  #-------------------------Surfaces from/to volumes----------------------------  
 
 #Sample a volume of a specific label on a surface, by keeping  
-#only those surface vertices, the nearest voxel of which is of the given label
+#only those surface vertices, the nearest voxel of which is of the given label (+ of possibly additional target labels, such as white matter)
 #Allow optionally for vertices within a given voxel distance vn from the target voxels
-def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path=None, out_surf_ref_path=None, ctx=None,vn=1,lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):
+def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path=None, out_surf_ref_path=None, ctx=None,vn=1,add_lbl=[],lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):
     #Read the surfaces...
     (verts, faces,volume_info) = fsio.read_geometry(surf_path,read_metadata=True)
     if surf_ref_path is not None:
@@ -732,7 +732,8 @@ def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path
             print 'ctx-'+ctx+'-'+names[iL]
         else:
             print names[iL]
-        lbl=labels[iL]
+        #Form the target label by adding to the current label any additional labels, if any
+        lbl=add_lbl+labels[iL]
         #Get the indexes of the vertices of this label:
         verts_lbl_inds,=np.where(lab[:]==iL)
         if verts_lbl_inds.size==0:
@@ -742,8 +743,8 @@ def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path
         ijk = np.round(xyz2ijk.dot(np.c_[verts_ref[verts_lbl_inds,:], np.ones(verts_lbl_inds.size)].T)[:3].T).astype('i')
         #Get the labels of these voxels:
         surf_vxls=vol[ijk[:,0],ijk[:,1],ijk[:,2]]        
-        #Vertex mask to keep:
-        verts_keep,=np.where(surf_vxls==lbl)
+        #Vertex mask to keep: those that correspond to voxels of one of the target labels
+        verts_keep,=np.where(np.in1d(surf_vxls,lbl)) #surf_vxls==lbl if only one target label
         verts_out_mask[verts_lbl_inds[verts_keep]]=True
         if vn>0:
             #These are now the remaining indexes to be checked for neighboring voxels
@@ -760,8 +761,8 @@ def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path
                 ijk_grid=ijk_grid[indexes_within_limits,:]
                 #Get the labels of these voxels:
                 surf_vxls=vol[ijk_grid[:, 0],ijk_grid[:, 1],ijk_grid[:, 2]]
-                #If any of the neighbors is of this label...
-                if np.any(surf_vxls==lbl):
+                #If any of the neighbors is of the target labels...
+                if np.any(np.in1d(surf_vxls,lbl)): #surf_vxls==lbl if only one target label
                     #...include this vertex
                     verts_out_mask[verts_lbl_inds[iV]]=True
         #Vertex indexes to keep:
@@ -861,10 +862,10 @@ def subparc_files(hemi, parc_name, out_parc_name, trg_area):
 
 
             
-            
+      #d2t=None,       
 def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=None,
                                   ref_vol_path=None,consim_path=None,parc_area=100,
-                                  labels=None,hemi=None, mode="con+geod+adj", d2t=None, 
+                                  labels=None,hemi=None, mode="con+geod+adj", 
                                   lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):                                      
     from scipy.spatial.distance import cdist
     from sklearn.cluster import AgglomerativeClustering  
@@ -885,7 +886,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         #Load voxel connectivity similarity matrix:
         con=np.load(consim_path)
         #Read the DTI to T1 transform: 
-        d2t=np.loadtxt(d2t)
+        #d2t=np.loadtxt(d2t)
         #Read the reference tdi_lbl volume:
         vollbl=nbl.load(ref_vol_path)
         vox=vollbl.get_data().astype('i')
@@ -897,7 +898,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         #...and their coordinates in xyz space
         voxxzy=vollbl.affine.dot(np.c_[voxijk[0],voxijk[1],voxijk[2], np.ones(vox.shape[0])].T)[:3].T
         #...and transform them to the T1 RAS space of the surface:
-        voxxzy=d2t.dot(np.c_[voxxzy[:,0],voxxzy[:,1],voxxzy[:,2], np.ones(voxxzy.shape[0])].T)[:3].T
+        #voxxzy=d2t.dot(np.c_[voxxzy[:,0],voxxzy[:,1],voxxzy[:,2], np.ones(voxxzy.shape[0])].T)[:3].T
         del vollbl, voxijk
     #Initialize the output:
     out_names=[]

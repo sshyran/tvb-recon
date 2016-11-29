@@ -27,6 +27,11 @@ ORIGIN = [0, 0, 0]
 SNAPSHOT_NAME = "snapshot"
 SNAPSHOT_EXTENSION = ".png"
 SNAPSHOTS_DIRECTORY = "snapshots"
+GIFTI_EXTENSION = ".gii"
 
 CENTER_RAS_FS_SURF = 'cras'
 CENTER_RAS_GIFTI_SURF = ['VolGeomC_R', 'VolGeomC_A', 'VolGeomC_S']
+
+MRI_DIRECTORY = 'MRI'
+T1_RAS_VOLUME = 'T1_RAS'
+CC_POINT_FILE = "$SUBJ_DIR/scripts/ponscc.cut.log"
