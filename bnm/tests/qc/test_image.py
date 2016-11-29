@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-
 import os
+
+import pytest
 from bnm.recon.qc.image.processor import ImageProcessor
 from bnm.recon.qc.model.constants import SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME, SNAPSHOT_EXTENSION, AXIAL
 from bnm.tests.base import get_data_file
@@ -17,6 +18,7 @@ TEST_SURF = "lh.pial"
 TEST_ANNOT = "lh.aparc.annot"
 
 
+@pytest.mark.skip
 def setup_module():
     os.environ["MRI"] = os.path.join("data", TEST_SUBJECT_MODIF, TEST_MRI_FOLDER)
     os.environ["T1_RAS"] = TEST_T1
@@ -29,6 +31,7 @@ def teardown_module():
     os.rmdir(SNAPSHOTS_DIRECTORY)
 
 
+@pytest.mark.skip
 def test_show_single_volume():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
@@ -37,6 +40,7 @@ def test_show_single_volume():
         os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
 
 
+@pytest.mark.skip
 def test_overlap_2_volumes():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     background_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
@@ -46,6 +50,7 @@ def test_overlap_2_volumes():
         os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
 
 
+@pytest.mark.skip
 def test_overlap_3_volumes():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     background_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
@@ -56,6 +61,16 @@ def test_overlap_3_volumes():
         os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
 
 
+def test_overlap_surface_annotation():
+    processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
+    surface_path = get_data_file(TEST_SUBJECT, TEST_SURF_FOLDER, TEST_SURF)
+    annotation_path = get_data_file(TEST_SUBJECT, TEST_ANNOT_FOLDER, TEST_ANNOT)
+    processor.overlap_surface_annotation(surface_path, annotation_path)
+    assert os.path.exists(
+        os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + "surface_annotation0" + SNAPSHOT_EXTENSION))
+
+
+@pytest.mark.skip
 def test_overlap_volume_surface():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
@@ -65,6 +80,7 @@ def test_overlap_volume_surface():
         os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
 
 
+@pytest.mark.skip
 def test_overlap_volume_centered_surface():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
