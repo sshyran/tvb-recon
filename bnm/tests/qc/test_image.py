@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import os
 
+import os
 from bnm.recon.qc.image.processor import ImageProcessor
 from bnm.recon.qc.model.constants import SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME, SNAPSHOT_EXTENSION, AXIAL
 from bnm.tests.base import get_data_file
@@ -54,15 +54,6 @@ def test_overlap_3_volumes():
     processor.overlap_3_volumes(background_path, overlay1_path, overlay2_path)
     assert os.path.exists(
         os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
-
-
-def test_overlap_surface_annotation():
-    processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
-    surface_path = get_data_file(TEST_SUBJECT, TEST_SURF_FOLDER, TEST_SURF)
-    annotation_path = get_data_file(TEST_SUBJECT, TEST_ANNOT_FOLDER, TEST_ANNOT)
-    processor.overlap_surface_annotation(surface_path, annotation_path)
-    assert os.path.exists(
-        os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + "surface_annotation0" + SNAPSHOT_EXTENSION))
 
 
 def test_overlap_volume_surface():
