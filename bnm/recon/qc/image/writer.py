@@ -2,6 +2,8 @@
 
 import os
 import numpy
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
 from bnm.recon.logger import get_logger

@@ -18,21 +18,21 @@ TEST_SURF = "lh.pial"
 TEST_ANNOT = "lh.aparc.annot"
 
 
-@pytest.mark.skip
+
 def setup_module():
     os.environ["MRI"] = os.path.join("data", TEST_SUBJECT_MODIF, TEST_MRI_FOLDER)
     os.environ["T1_RAS"] = TEST_T1
     os.environ["SUBJ_DIR"] = os.path.join("data", TEST_SUBJECT_MODIF)
 
 
-@pytest.mark.skip
+
 def teardown_module():
     for file_path in os.listdir(SNAPSHOTS_DIRECTORY):
         os.remove(os.path.join(SNAPSHOTS_DIRECTORY, file_path))
     os.rmdir(SNAPSHOTS_DIRECTORY)
 
 
-@pytest.mark.skip
+
 def test_show_single_volume():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
@@ -41,7 +41,7 @@ def test_show_single_volume():
         os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
 
 
-@pytest.mark.skip
+
 def test_overlap_2_volumes():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     background_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
@@ -51,7 +51,7 @@ def test_overlap_2_volumes():
         os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
 
 
-@pytest.mark.skip
+
 def test_overlap_3_volumes():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     background_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
@@ -62,7 +62,8 @@ def test_overlap_3_volumes():
         os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
 
 
-@pytest.mark.skip
+
+@pytest.mark.skip("Because it takes about 10 min to complete")
 def test_overlap_surface_annotation():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     surface_path = get_data_file(TEST_SUBJECT, TEST_SURF_FOLDER, TEST_SURF)
@@ -73,7 +74,7 @@ def test_overlap_surface_annotation():
                      SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + "surface_annotation0" + SNAPSHOT_EXTENSION))
 
 
-@pytest.mark.skip
+
 def test_overlap_volume_surface():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
@@ -83,7 +84,7 @@ def test_overlap_volume_surface():
         os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
 
 
-@pytest.mark.skip
+
 def test_overlap_volume_centered_surface():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
