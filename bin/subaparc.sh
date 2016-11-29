@@ -16,7 +16,7 @@ do
     #TODO: sub-segmentation of aseg
     #aseg2surf etc...
 
-    #Create aparc+asseg
+    #Create aparc+aseg
     #mri_aparc2aseg --s ${SUBJECT} --aseg aseg$area --annot aparc$area
     #for as long as we don't have aseg%area:
     mri_aparc2aseg --s ${SUBJECT} --aseg aseg --annot aparc.sub$area

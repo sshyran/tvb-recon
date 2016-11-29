@@ -862,10 +862,10 @@ def subparc_files(hemi, parc_name, out_parc_name, trg_area):
 
 
             
-            
+      #d2t=None,       
 def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=None,
                                   ref_vol_path=None,consim_path=None,parc_area=100,
-                                  labels=None,hemi=None, mode="con+geod+adj", d2t=None, 
+                                  labels=None,hemi=None, mode="con+geod+adj", 
                                   lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):                                      
     from scipy.spatial.distance import cdist
     from sklearn.cluster import AgglomerativeClustering  
@@ -886,7 +886,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         #Load voxel connectivity similarity matrix:
         con=np.load(consim_path)
         #Read the DTI to T1 transform: 
-        d2t=np.loadtxt(d2t)
+        #d2t=np.loadtxt(d2t)
         #Read the reference tdi_lbl volume:
         vollbl=nbl.load(ref_vol_path)
         vox=vollbl.get_data().astype('i')
@@ -898,7 +898,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         #...and their coordinates in xyz space
         voxxzy=vollbl.affine.dot(np.c_[voxijk[0],voxijk[1],voxijk[2], np.ones(vox.shape[0])].T)[:3].T
         #...and transform them to the T1 RAS space of the surface:
-        voxxzy=d2t.dot(np.c_[voxxzy[:,0],voxxzy[:,1],voxxzy[:,2], np.ones(voxxzy.shape[0])].T)[:3].T
+        #voxxzy=d2t.dot(np.c_[voxxzy[:,0],voxxzy[:,1],voxxzy[:,2], np.ones(voxxzy.shape[0])].T)[:3].T
         del vollbl, voxijk
     #Initialize the output:
     out_names=[]

@@ -88,13 +88,25 @@ export CT
 echo CT=$CT
 
 
+#CO-REGISTRATION
 
-#Freesurfer:
+#Co-registration method: default "flirt", else: "bbregister"
+COREG_USE = "flirt"
+export COREG_USE
+echo COREG_USE=$COREG_USE
+
+
+#FREESURFER:
 
 #mri folder location:
 MRI=$SUBJ_DIR/mri
 export MRI
 echo MRI=$MRI
+
+#T1 in RAS:
+T1_RAS=$MRI/T1.nii.gz
+export T1_RAS
+echo T1_RAS=$T1_RAS
 
 #surf folder location:
 SURF=$SUBJ_DIR/surf
@@ -162,6 +174,7 @@ do
 done
 export SUBPARCS
 echo SUBPARCS=$SUBPARCS
+
 
 #SEGMENTATION:
 
@@ -244,7 +257,7 @@ export TRGSUBJECT
 echo TRGSUBJECT=$TRGSUBJECT
 
 
-#Tractography:
+#TRACTOGRAPHY:
 
 #dmr folder location:
 DMR=$SUBJ_DIR/dmr
