@@ -50,7 +50,6 @@ class ImageWriter(object):
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
     def write_surface(self, surface, result_name, positions=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
-        #TODO show bigger surfaces in snapshots
         figs_folder = self.snapshots_directory
         self.logger.info("6 snapshots of the 3D surface will be generated in folder: %s" % figs_folder)
 
@@ -108,6 +107,7 @@ class ImageWriter(object):
         snapshot_index = 0
         for e, a in positions:
             ax.view_init(elev=e, azim=a)
+            ax.dist = 6
             pyplot.savefig(self.get_path(result_name + str(snapshot_index)), dpi=fig.dpi)
             snapshot_index += 1
 
