@@ -2,6 +2,8 @@
 
 #Post recon-all:
 
+#TODO!!: Find cras and set the environment variable
+
 #Generate nifti files with good orientation
 for vol in aparc+aseg aseg norm orig wm
 do

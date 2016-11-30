@@ -1,5 +1,5 @@
 import os
-FREESURFER_HOME, SUBJECTS_DIR, SUBJECT, SUBJ_DIR, DMR, SEGMENT, ASEG_LIST, ASEG_LIST_LH_BS, ASEG_LIST_RH, SURF_VN, VOL_VN, SURF, LABEL, MRI= [os.environ[key] for key in 'FREESURFER_HOME SUBJECTS_DIR SUBJECT SUBJ_DIR DMR SEGMENT ASEG_LIST ASEG_LIST_LH_BS ASEG_LIST_RH SURF_VN VOL_VN SURF LABEL MRI'.split()]
+FREESURFER_HOME, SUBJECTS_DIR, SUBJECT, SUBJ_DIR, DMR, SEGMENT, ASEG_LIST, ASEG_LIST_LH_BS, ASEG_LIST_RH, SURF_VN, VOL_VN, SURF, LABEL, MRI, SUBAPARC_MODE= [os.environ[key] for key in 'FREESURFER_HOME SUBJECTS_DIR SUBJECT SUBJ_DIR DMR SEGMENT ASEG_LIST ASEG_LIST_LH_BS ASEG_LIST_RH SURF_VN VOL_VN SURF LABEL MRI SUBAPARC_MODE'.split()]
 #ASEG_LIST="8 10 11 12 13 16 17 18 26 47 49 50 51 52 53 54 58"
 #ASEG_SURF="/Users/dionperd/CBR/VEP/JUNG/JUNG/aseg_surf"
 import reconutils
@@ -245,10 +245,10 @@ parc_area=100
 out_annot_path=SEGMENT+'/rh.aseg'+str(parc_area)+'-geod.annot'
 ref_vol_path=DMR+'/tdi_lbl-v4.nii.gz'
 consim_path=SEGMENT+'/consim-vol-counts5M-v4.npy'
-labels= ASEG_LIST_RH
+labels= ASEG_LIST_rh
 hemi=None #'rh'
 mode="geod" #con+adj+
-d2t= DMR+'/d2t.mat' 
+vox2rastkr_path=SEGMENT+'/' 
 lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')
 reconutils.connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=out_annot_path,
                                   ref_vol_path=ref_vol_path,consim_path=consim_path,parc_area=parc_area,

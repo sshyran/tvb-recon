@@ -243,13 +243,21 @@ ASEG_LIST="8 10 11 12 13 16 17 18 26 47 49 50 51 52 53 54 58"
 export ASEG_LIST
 echo ASEG_LIST=$ASEG_LIST
 #Left hemi plus Brain Stem
-ASEG_LIST_LH_BS="8 10 11 12 13 16 17 18 26"
-export ASEG_LIST_LH_BS
-echo ASEG_LIST_LH_BS=$ASEG_LIST_LH_BS
+ASEG_LIST_lh="8 10 11 12 13 16 17 18 26"
+export ASEG_LIST_lh
+echo ASEG_LIST_lh=$ASEG_LIST_lh
 #Right hemi
-ASEG_LIST_RH="47 49 50 51 52 53 54 58"
-export ASEG_LIST_RH
-echo ASEG_LIST_RH=$ASEG_LIST_RH
+ASEG_LIST_rh="47 49 50 51 52 53 54 58"
+export ASEG_LIST_rh
+echo ASEG_LIST_rh=$ASEG_LIST_rh
+
+#Sub-parcellation mode:
+#Any combination of "con", "geod", "adj"
+SUBAPARC_MODE='con+geod+adj'
+export SUBAPARC_MODE
+echo SUBAPARC_MODE=$SUBAPARC_MODE
+
+#DOWNSAMPLING:
 
 #Target subject for surface downsampling:
 TRGSUBJECT=fsaverage5

@@ -14,12 +14,8 @@ tcksift ./$STRMLNS_NO.tck ./wm_fod.mif ./$STRMLNS_SIFT_NO.tck -term_number $STRM
 #Visual check (track density image -tdi)
 tckmap ./$STRMLNS_SIFT_NO.tck ./tdi_ends.mif -vox 1 #vox: size of bin
 #mrview ./t1-in-d.nii.gz -overlay.load ./tdi.mif -overlay.opacity 0.5
-<<<<<<< HEAD
+
 mrconvert ./tdi_ends.mif ./tdi_ends.nii.gz
 source snapshot.sh 2vols ./t1-in-d.nii.gz ./tdi.nii.gz
-=======
-mrconvert ./tdi.mif ./tdi.nii.gz	
-source snapshot.sh use_freeview 2vols ./t1-in-d.nii.gz ./tdi.nii.gz
->>>>>>> origin/DenisWorkflow
 
 popd
