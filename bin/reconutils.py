@@ -858,8 +858,8 @@ def subparc_files(hemi, parc_name, out_parc_name, trg_area):
             
       #d2t=None,       
 def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=None,
-                                  ref_vol_path=None,consim_path=None,parc_area=100,
-                                  labels=None,hemi=None, mode="con+geod+adj", vox2rastkr_path=None,
+                                  parc_area=100, labels=None, hemi=None, mode="con+geod+adj",
+                                  consim_path=None, ref_vol_path=None, vox2rastkr_path=None,
                                   lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):                                      
     from scipy.spatial.distance import cdist
     from sklearn.cluster import AgglomerativeClustering  

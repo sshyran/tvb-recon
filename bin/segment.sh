@@ -29,7 +29,7 @@ then
 
     if [ "$COREG_USE" = "flirt" ]
     then
-        flirt -applyxfm -in $tdiends -ref $MRI/T1.nii.gz -init $DMR/t2d.mat -out ./tdi_ends-in-t1.nii.gz
+        flirt -applyxfm -in $tdiends -ref $MRI/T1.nii.gz -init $DMR/d2t.mat -out ./tdi_ends-in-t1.nii.gz
     else
         mri_vol2vol --mov $tdiends --targ $MRI/T1.mgz --o ./tdi_ends-in-t1.mgz --reg ./d2t.reg
         mri_convert ./tdi_ends-in-t1.mgz ./tdi_ends-in-t1.nii.gz -out_orientation ras
@@ -188,12 +188,12 @@ rm ./out.mgz
 #Give an empty list for add_lbl, if you want cerebral white matter to be masked out
 for h in lh rh
 do
-    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.white','./$vol-mask.nii.gz','$LABEL/$h.aparc.annot','./$h.white-mask','$vox2rastkr_path',ctx='$h',vn=$SURF_VN,add_lbl=[2,41])"
+    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.white','./$vol-mask.nii.gz','$LABEL/$h.aparc.annot','./$h.white-mask','$T1_VOX2RASTKR_PATH',ctx='$h',vn=$SURF_VN,add_lbl=[2,41])"
 done
 #Sub-cortical:
 for h in lh rh
 do
-    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.aseg','./$vol-mask.nii.gz','$LABEL/$h.aseg.annot','./$h.aseg-mask','$vox2rastkr_path',ctx=None,vn=$SURF_VN,add_lbl=[])"
+    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.aseg','./$vol-mask.nii.gz','$LABEL/$h.aseg.annot','./$h.aseg-mask','$T1_VOX2RASTKR_PATH',ctx=None,vn=$SURF_VN,add_lbl=[])"
 done
 
 
@@ -209,29 +209,33 @@ then
     #Sample the connectome volume to T1 space
     if [ "$COREG_USE" = "flirt" ]
     then
-        flirt -applyxfm -in $DMR/tdi_lbl-v$VOX.nii.gz -ref $MRI/T1.nii.gz -init $DMR/t2d.mat -out ./tdi_lbl-v$VOX-in-t1.nii.gz -interp nearestneighbour
+        flirt -applyxfm -in $DMR/tdi_lbl-v$VOX.nii.gz -ref $MRI/T1.nii.gz -init $DMR/d2t.mat -out ./tdi_lbl-v$VOX-in-t1.nii.gz -interp nearestneighbour
         ref_vol_path=./tdi_lbl-v$VOX-in-t1.nii.gz
+        vox2rastkr_path=$T1_VOX2TKRAS_PATH
     else
-        mri_vol2vol --mov $DMR/tdi_lbl-v$VOX.nii.gz --targ $MRI/T1.mgz --o ./tdi_lbl-v$VOX-in-t1.mgz --reg ./d2t.reg --nearest
-        mri_convert ./tdi_lbl-v$VOX-in-t1.mgz ./tdi_lbl-v$VOX-in-t1.nii.gz-out_orientation ras
+        mri_vol2vol --mov $DMR/tdi_lbl-v$VOX.nii.gz --targ $MRI/T1.mgz --o ./tdi_lbl-v$VOX-in-t1.mgz --reg $DMR/d2t.reg --nearest
+        mri_convert ./tdi_lbl-v$VOX-in-t1.mgz ./tdi_lbl-v$VOX-in-t1.nii.gz --out_orientation ras
         ref_vol_path=./tdi_lbl-v$VOX-in-t1.mgz
-
+        vox2rastkr_path=$T1NAT_VOX2TKRAS_PATH
     fi
 
 else
     ref_vol_path=''
-    vox2rastkr_path=
+    vox2rastkr_path=''
+    out_consim_path=''
 fi
 
 for h in lh rh
 do
-    python -c "import reconutils; reconutils.connectivity_geodesic_subparc('$SURF/$h.white','$LABEL/$h.aparc.annot','./$h.white-mask-idx.npy',out_annot_path='$SURF/$h.aparc$SUBAPARC_AREA-$SUBAPARC_MODE.annot', ref_vol_path='$ref_vol_path',consim_path='$out_consim_path',parc_area=$SUBAPARC_AREA, labels=None,hemi='$h', mode='$SUBAPARC_MODE', vox2rastkr_path='$vox2rastkr_path',lut_path=os.path.join('$FREESURFER_HOME','FreeSurferColorLUT.txt'))"
+    python -c "import reconutils; reconutils.connectivity_geodesic_subparc('$SURF/$h.white', '$LABEL/$h.aparc.annot', './$h.white-mask-idx.npy', out_annot_path='$SURF/$h.aparc$SUBAPARC_AREA-$SUBAPARC_MODE.annot', parc_area=$SUBAPARC_AREA, labels=None, hemi='$h', mode='$SUBAPARC_MODE', ref_vol_path='$ref_vol_path', consim_path='$out_consim_path', vox2rastkr_path='$vox2rastkr_path', lut_path=os.path.join('$FREESURFER_HOME','FreeSurferColorLUT.txt'))"
 done
 
 for h in lh rh
 do
-    python -c "import reconutils; reconutils.connectivity_geodesic_subparc('$SURF/$h.aseg','$LABEL/$h.aseg.annot','./$h.white-mask-idx.npy',out_annot_path='$SURF/$h.aseg$SUBAPARC_AREA-$SUBAPARC_MODE.annot', ref_vol_path='$ref_vol_path',consim_path='$out_consim_path',parc_area=$SUBAPARC_AREA, labels='${ASEG_LIST_$h}',hemi=None, mode='$SUBAPARC_MODE', vox2rastkr_path='$vox2rastkr_path',lut_path=os.path.join('$FREESURFER_HOME','FreeSurferColorLUT.txt'))"
+    python -c "import reconutils; reconutils.connectivity_geodesic_subparc('$SURF/$h.aseg', '$LABEL/$h.aseg.annot', './$h.white-mask-idx.npy', out_annot_path='$SURF/$h.aseg$SUBAPARC_AREA-$SUBAPARC_MODE.annot', parc_area=$SUBAPARC_AREA, labels='${ASEG_LIST_$h}', hemi=None, mode='$SUBAPARC_MODE', consim_path='$out_consim_path', ref_vol_path='$ref_vol_path',  vox2rastkr_path='$vox2rastkr_path', lut_path=os.path.join('$FREESURFER_HOME','FreeSurferColorLUT.txt'))"
 done
+
+
 popd
 
 

@@ -21,14 +21,16 @@ then
     flirt -applyxfm -in $MRI/T1.nii.gz -ref ./b0.nii.gz -out ./t1-in-d.nii.gz -init ./t2d.mat
 else
     #Register DWI to T1 and get the relevant transform
-    bbregister --s $SUBJECT --mov ./b0.nii.gz --o ./b0-in-t1.mgz --dti --reg ./d2t.dat --lta ./d2t.lta --fslmat ./d2t.mat
+    bbregister --s $SUBJECT --mov ./b0.nii.gz --o ./b0-in-t1.mgz --dti --reg ./d2t.reg --lta ./d2t.lta --fslmat ./d2t.mat
 
     #Convert to ras coordinates
-    mri_convert ./b0-in-t1.mgz ./b0-in-t1.nii.gz -out_orientation ras
+    mri_convert ./b0-in-t1.mgz ./b0-in-t1.nii.gz --out_orientation ras
     rm ./b0-in-t1.mgz
 
     #Apply the inverse transform from T1 to DWI for T1
-    mri_vol2vol --mov $MRI/T1.mgz --targ ./b0.nii.gz --o ./t1-in-d.nii.gz --lta-inv ./d2t.lta --save_reg ./t2d.{dat,lta}
+    mri_vol2vol --mov $MRI/T1.mgz --targ ./b0.nii.gz --o ./t1-in-d.nii.gz --lta-inv ./d2t.lta --save-reg
+    mv ./t1-in-d.nii.gz.lta ./t2d.lta
+    mv ./t1-in-d.nii.gz.reg ./t2d.reg
 fi
 
 #Visual check:

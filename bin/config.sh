@@ -176,6 +176,33 @@ export SUBPARCS
 echo SUBPARCS=$SUBPARCS
 
 
+#TRANSFORMS:
+
+#T1 cras path:
+CRAS_PATH=$MRI/transforms/cras.txt
+export CRAS_PATH
+echo CRAS_PATH=$CRAS_PATH
+
+#T1 native (mgz) vox2ras path:
+T1_NAT_VOX2RAS_PATH=$MRI/transforms/vox2ras_nat.txt
+export T1_NAT_VOX2RAS_PATH
+echo T1_NAT_VOX2RAS_PATH=$T1_NAT_VOX2RAS_PATH
+
+#T1 native (mgz) vox2ras-tkr path:
+T1_NAT_VOX2RASTKR_PATH=$MRI/transforms/vox2rastkr_nat.txt
+export T1_NAT_VOX2RASTKR_PATH
+echo T1_NAT_VOX2RASTKR_PATH=$T1_NAT_VOX2RASTKR_PATH
+
+#T1 ras (nii) vox2ras path:
+T1_VOX2RAS_PATH=$MRI/transforms/vox2ras.txt
+export T1_VOX2RAS_PATH
+echo T1_VOX2RAS_PATH=$T1_VOX2RAS_PATH
+
+#T1 ras (nii) vox2ras-tkr path:
+T1_VOX2RASTKR_PATH=$MRI/transforms/vox2rastkr.txt
+export T1_VOX2RASTKR_PATH
+echo T1_VOX2RASTKR_PATH=$T1_VOX2RASTKR_PATH
+
 #SEGMENTATION:
 
 #Sub-segmentations
@@ -327,7 +354,7 @@ export CONNECTOME_MODE
 echo CONNECTOME_MODE=$CONNECTOME_MODE
 
 #Volume voxel edge length (in mm) in case of volumetric tractography
-VOX=4
+VOX=2
 export VOX
 echo VOX=$VOX
 

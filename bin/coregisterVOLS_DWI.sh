@@ -21,7 +21,7 @@ do
         flirt -applyxfm -in $MRI/$vol.nii.gz -ref ./b0.nii.gz -out ./$vol-in-d.nii.gz -init ./t2d.mat -interp nearestneighbour
     else
         #Apply the transform from T1 to DWI for the volumes
-        mri_vol2vol --mov $MRI/$vol.mgz --targ ./b0.nii.gz --o ./$vol-in-d.nii.gz --reg ./t2d.dat --nearest
+        mri_vol2vol --mov $MRI/$vol.mgz --targ ./b0.nii.gz --o ./$vol-in-d.nii.gz --reg ./t2d.reg --nearest
     fi
 
     #Visual check (interactive):
