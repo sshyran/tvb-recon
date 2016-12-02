@@ -34,15 +34,16 @@ fi
 
 #Visual checks (screeshots) for brain, pial, white,
 mri_convert $MRI/T1.mgz $MRI/T1-in-surf.nii.gz
-source $CODE/snapshot.sh vol_white_pial $MRI/T1-in-surf.nii.gz
+#source $SNAPSHOT vol_white_pial $MRI/T1-in-surf.nii.gz
+python -m $SNAPSHOT --snapshot_name t1_white_pial --center_surface vol_white_pial $MRI/T1-in-surf.nii.gz
 
 #and for aparc+aseg:
 for h in lh rh
 do
-    #freeview -f $SUBJ_DIR/surf/$h.inflated:annot=aparc \
-    #    -viewport 3D -ss $FIGS/aparc-$h-aparc-annot-$SUBJECT.png
-    mris_convert $SUBJ_DIR/surf/$h.inflated $SUBJ_DIR/surf/$h.inflated.gii
-    source $CODE/snapshot.sh surf_annot $SUBJ_DIR/surf/$h.inflated.gii $SUBJ_DIR/label/$h.aparc.annot
+    #freeview -f $SURF/$h.inflated:annot=aparc \
+    #    -viewport 3D -ss $FIGS/aparc-$h-annot.png
+    python -m $SNAPSHOT --snapshot_name aparc_annot_$h surf_annot $SURF/$h.inflated $LABEL/$h.aparc.annot
+
 done
 
 

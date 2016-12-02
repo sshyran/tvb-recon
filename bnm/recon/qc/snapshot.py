@@ -7,6 +7,7 @@ from bnm.recon.logger import get_logger
 from bnm.recon.qc.image.processor import ImageProcessor
 from bnm.recon.qc.image.transformer import ImageTransformer
 from bnm.recon.qc.model.constants import *
+from bnm.recon.qc.model.constants import SNAPSHOT_NAME
 
 arg_1vol = "1vol"
 arg_2vols = "2vols"
@@ -20,6 +21,9 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate a BNM snapshot")
     subparsers = parser.add_subparsers(title='Sub Commands', dest='subcommand')
 
+    parser.add_argument("--snapshot_name", help="String to optionally substitute the default constant SNAPSHOT_NAME in the output filenames.",
+                    action="store", default=SNAPSHOT_NAME, required=False)
+    
     parser.add_argument("--ras_transform", help="This flag applies the RAS orientation on volumes.",
                         action="store_true")
     parser.add_argument("--center_surface",
@@ -115,35 +119,34 @@ if __name__ == "__main__":
 
     if args.subcommand == arg_1vol:
         volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.volume))
-        imageProcessor.show_single_volume(os.path.expandvars(volume_path))
+        imageProcessor.show_single_volume(os.path.expandvars(volume_path), snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_2vols:
         background, overlay = imageTransformer.transform_2_volumes(os.path.expandvars(args.background),
                                                                    os.path.expandvars(args.overlay))
-        imageProcessor.overlap_2_volumes(os.path.expandvars(background), os.path.expandvars(overlay))
+        imageProcessor.overlap_2_volumes(os.path.expandvars(background), os.path.expandvars(overlay), snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_3vols:
         background, overlay1, overlay2 = imageTransformer.transform_3_volumes(os.path.expandvars(args.background),
                                                                               os.path.expandvars(args.overlay1),
                                                                               os.path.expandvars(args.overlay2))
         imageProcessor.overlap_3_volumes(os.path.expandvars(background), os.path.expandvars(overlay1),
-                                         os.path.expandvars(overlay2))
+                                         os.path.expandvars(overlay2),snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_surf_annot:
-        imageProcessor.overlap_surface_annotation(os.path.expandvars(args.surface), os.path.expandvars(args.annotation))
+        imageProcessor.overlap_surface_annotation(os.path.expandvars(args.surface), os.path.expandvars(args.annotation), snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_vol_surf:
         background, surfaces_paths_list = imageTransformer.transform_volume_surfaces(
             os.path.expandvars(args.background), args.surfaces_list)
-        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), surfaces_paths_list, args.center_surface)
+        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), surfaces_paths_list, args.center_surface, snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_vol_white_pial:
         surfaces_path = os.environ[SURFACES_DIRECTORY_ENVIRON_VAR]
         background, surfaces_paths_list = imageTransformer.transform_volume_white_pial(
             os.path.expandvars(args.background), os.path.expandvars(args.resampled_surface_name),
             os.path.expandvars(surfaces_path), args.gifti)
-        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths_list),
-                                               args.center_surface)
+        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths_list), args.center_surface, snapshot_name=args.snapshot_name)
 
     try:
         for created_file in imageTransformer.created_files:

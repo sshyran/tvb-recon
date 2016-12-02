@@ -3,10 +3,15 @@
 #Configuration common for all processing streams:
 
 #The path to the pipeline code
-CODE=/Users/dionperd/VirtualVEP/software/bnm-recon-tools/PipelineWorkflow
-#CODE=/Users/dionperd/CBR/software/git/bnm-recon-tools/PipelineWorkflow
+CODE=/Users/dionperd/VirtualVEP/software/bnm-recon-tools/bin
+#CODE=/Users/dionperd/CBR/software/git/bnm-recon-tools/bin
 export CODE
 echo CODE=$CODE
+
+#The path to the snapshot tool
+SNAPSHOT=bnm.recon.qc.snapshot
+export SNAPSHOT
+echo SNAPSHOT=$SNAPSHOT
 
 #Add utils in PYTHONPATH
 PYTHONPATH="$PYTHONPATH:$CODE"
@@ -91,7 +96,7 @@ echo CT=$CT
 #CO-REGISTRATION
 
 #Co-registration method: default "flirt", else: "bbregister"
-COREG_USE = "flirt"
+COREG_USE="flirt"
 export COREG_USE
 echo COREG_USE=$COREG_USE
 
@@ -170,7 +175,7 @@ echo SUBAPARC_AREA=$SUBAPARC_AREA
 #Sub-parcellations
 for area in $SUBAPARC_AREA
 do
-    SUBPARCS="aparc.sub$area"
+    SUBPARCS="aparc$area"
 done
 export SUBPARCS
 echo SUBPARCS=$SUBPARCS
@@ -209,7 +214,7 @@ echo T1_VOX2RASTKR_PATH=$T1_VOX2RASTKR_PATH
 VOLS="aparc+aseg"
 for area in $SUBAPARC_AREA
 do
-    VOLS="aparc.sub$area+aseg $VOLS"  #add this to aseg$area when sub-aseg is ready
+    VOLS="aparc$area+aseg$area $VOLS"  #add this to aseg$area when sub-aseg is ready
 done
 export VOLS
 echo VOLS=$VOLS
@@ -354,7 +359,7 @@ export CONNECTOME_MODE
 echo CONNECTOME_MODE=$CONNECTOME_MODE
 
 #Volume voxel edge length (in mm) in case of volumetric tractography
-VOX=2
+VOX=3
 export VOX
 echo VOX=$VOX
 

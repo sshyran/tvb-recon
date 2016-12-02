@@ -4,12 +4,6 @@
 
 pushd $DMR
 
-#Convert T1 to NIFTI with good orientation
-mri_convert $MRI/T1.mgz $MRI/T1.nii.gz --out_orientation RAS
-##!!Probably not necesary anymore
-#fslreorient2std $MRI/T1.nii.gz $MRI/T1-reo.nii.gz
-#mv $MRI/T1-reo.nii.gz $MRI/T1.nii.gz
-
 if [ "$COREG_USE" = "flirt" ]
 then
     #Register DWI to T1 and get the relevant transform
@@ -35,7 +29,9 @@ fi
 
 #Visual check:
 #mrview ./b0.nii.gz -overlay.load ./T1-in-d.nii.gz -overlay.opacity 0.3 -mode 2 #-mode 2 is the view
-source $CODE/snapshot.sh use_freeview 2vols ./b0.nii.gz ./t1-in-d.nii.gz
+#source $CODE/snapshot.sh use_freeview 2vols ./b0.nii.gz ./t1-in-d.nii.gz
+python -m $SNAPSHOT --snapshot_name b0_t1_in_d --ras_transform 2vols ./b0.nii.gz ./t1-in-d.nii.gz
+python -m $SNAPSHOT --snapshot_name b0_t1_in_t1 2vols $MRI/T1.nii.gz ./b0-in-t1.nii.gz
 
 popd
 

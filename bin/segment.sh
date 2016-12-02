@@ -219,6 +219,8 @@ then
         vox2rastkr_path=$T1NAT_VOX2TKRAS_PATH
     fi
 
+    #TODO: in case that VOX>1.0 mm, there should be a qc screenshot of 3 vols: T1, tdi_ends-in-t1 (where VOX=1mm) and tdi_lbl-v$VOX-in-T1, because we should test whether the second one runs more or less through the "middle" of the third one, i.e., to evaluate how much distortion the upsampling brings.
+
 else
     ref_vol_path=''
     vox2rastkr_path=''
