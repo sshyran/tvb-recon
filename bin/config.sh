@@ -291,11 +291,17 @@ echo SUBAPARC_MODE=$SUBAPARC_MODE
 
 #DOWNSAMPLING:
 
+#Decimating factor:
+DECIM_FACTOR=0.1
+export DECIM_FACTOR
+echo DECIM_FACTOR=$DECIM_FACTOR
+
 #Target subject for surface downsampling:
 TRGSUBJECT=fsaverage5
+#Custom, using mris_decimate:
+#TRGSUBJECT=$SUBJECT-RESAMP_$DECIM_FACTOR
 export TRGSUBJECT
 echo TRGSUBJECT=$TRGSUBJECT
-
 
 #TRACTOGRAPHY:
 

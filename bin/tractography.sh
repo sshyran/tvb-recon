@@ -18,6 +18,6 @@ tckmap ./$STRMLNS_SIFT_NO.tck ./tdi_ends.mif -vox 1 -force
 #mrview ./t1-in-d.nii.gz -overlay.load ./tdi.mif -overlay.opacity 0.5
 #Snapshot
 mrconvert ./tdi_ends.mif ./tdi_ends.nii.gz -force
-python -m $SNAPSHOT --snapshot_name t1_tdi_in_d --ras_transform 2vols ./t1-in-d.nii.gz ./tdi.nii.gz
+python -m $SNAPSHOT --ras_transform --snapshot_name t1_tdi_in_d 2vols ./t1-in-d.nii.gz ./tdi_ends.nii.gz
 
 popd

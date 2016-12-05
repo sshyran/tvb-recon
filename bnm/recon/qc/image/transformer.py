@@ -66,7 +66,7 @@ class ImageTransformer(object):
 
     def transform_volume_white_pial(self, background_path, resampled_surface, surfaces_path, use_gifti):
         if resampled_surface is not "":
-            resampled_surface = "." + resampled_surface
+            resampled_surface = "-" + resampled_surface
 
         gii = ""
         if use_gifti:

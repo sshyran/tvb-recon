@@ -42,6 +42,7 @@ done
 
 
 #Snapshot for aseg surfs and annot:
+python -m $SNAPSHOT --center_surface --snapshot_name aseg_t1_$TRGSUBJECT vol_surf $MRI/T1.nii.gz $SURF/{lh,rh}.aseg
 for h in lh rh
 do
     #freeview -f $SURF/$h.aseg:annot=aseg \

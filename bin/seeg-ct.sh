@@ -14,8 +14,7 @@ then
 fi
 
 # set up topic folder insider subject folder
-seeg_dir=$SEEG
-pushd $seeg_dir
+pushd $SEEG
 
 #CT input pre-processing
 # convert source CT to standard format (input could be e.g. DICOM folder)
@@ -28,18 +27,16 @@ mri_convert $CT ./CT.nii.gz --out_orientation RAS -rt nearest
 #fi
 
 # standardize image orientation
+#???DO WE REALLY NEED THIS REORIENTING???
 fslreorient2std ./CT.nii.gz ./CT-reo.nii.gz
 
 # TODO rewrite slightly for resized T1 usage
 # TODO set up testing on jenkins
 
-for image in T1 brain #aparc+aseg
+for image in T1 brain aparc+aseg
 do
-    # convert FS images to Nifti for use with FSL
-    mri_convert $MRI/$image.mgz $MRI/$image.nii.gz --out_orientation RAS -rt nearest
-    # AND standardize image orientations
+#???DO WE REALLY NEED THIS REORIENTING???
     fslreorient2std $MRI/$image.nii.gz $MRI/$image-reo.nii.gz
-    # upsampling T1 and brain
     mrresize $MRI/$image-reo.nii.gz ./$image-big.nii.gz -scale 2
 done
 
@@ -64,30 +61,30 @@ mrview ./T1-big.nii.gz
 #screenshot
 # XXX check registration, should fit
 #freeview -v ./T1-big.nii.gz ./CT-in-t1.nii.gz:opacity=0.5:colormap=jet \
-#    -viewport sagittal -layout 1 -screenshot $FIGS/ss00-CT-in-t1.png
-source snapshot.sh 2vols ./T1-big.nii.gz ./CT-in-t1.nii.gz
+#    -viewport sagittal -layout 1 -screenshot $FIGS/CT-in-T1.png
+python -m $SNAPSHOT --ras_transform --snapshot_name CT-in-T1 2vols ./T1-big.nii.gz ./CT-in-t1.nii.gz
 
 # invert CT to T1 transform
 convert_xfm -omat ./t2c.mat -inverse ./c2t.mat
 
 # move FS images to CT space (mainly brain mask, others for viz)
-for image in T1 brain #aparc+aseg
+for image in T1 brain aparc+aseg
 do
     opts="-applyxfm -init ./t2c.mat -ref ./CT-reo.nii.gz"
     # for the volume region mapping, turn off interpolation:
-#if [[ $image == "aparc+aseg" ]]
-#then
-#       opts="$opts -interp nearestneighbour"
-#    fi
+    if [[ $image == "aparc+aseg" ]]
+    then
+           opts="$opts -interp nearestneighbour"
+        fi
     # apply transform
-    flirt $opts -in $MRI/$image-reo.nii.gz -out $image-in-ct.nii.gz
+    flirt $opts -in $MRI/$image.nii.gz -out $image-in-ct.nii.gz
 done
 
 #Visual checks (screenshot)
 # XXX check brain on CT, should fit
 #freeview -v CT-reo.nii.gz brain-in-ct.nii.gz:opacity=0.5:colormap=jet \
 #    -viewport axial -layout 1 -screenshot $FIGS/ss01-brain-in-CT.png
-source snapshot.sh 2vols CT-reo.nii.gz brain-in-ct.nii.gz
+python -m $SNAPSHOT --ras_transform --snapshot_name brain-in-CT-reo CT-reo.nii.gz brain-in-ct.nii.gz
 
 # binarize brain with erosion to avoid false positives
 mri_binarize --erode 8 \
@@ -99,7 +96,7 @@ mri_binarize --erode 8 \
 # XXX check mask on CT, ovals should line up
 #freeview -v CT-reo.nii.gz brain-mask.nii.gz:opacity=0.5:colormap=jet \
 #    -viewport axial -layout 1 -screenshot $FIGS/ss02-brain-mask.png
-source snapshot.sh 2vols CT-reo.nii.gz brain-mask.nii.gz
+python -m $SNAPSHOT --snapshot_name brainmask-in-CT-reo 2vols CT-reo.nii.gz brain-mask.nii.gz
 
 # apply mask to ct
 mri_binarize --i CT-in-t1.nii.gz --o CT-mask.nii.gz \
@@ -112,7 +109,7 @@ mri_binarize --i CT-in-t1.nii.gz --o CT-mask.nii.gz \
 # TODO navigate to axial slice where mask most nonzeros
 #freeview -v CT-reo.nii.gz CT-mask.nii.gz:opacity=0.5:colormap=jet \
 #    -viewport axial -layout 1 -screenshot $FIGS/ss03-ct-mask.png
-source snapshot.sh 2vols CT-reo.nii.gz CT-mask.nii.gz
+python -m $SNAPSHOT --ras_transform --snapshot_name CT-mask 2vols CT-reo.nii.gz CT-mask.nii.gz
 
 # dilate mask for labeling
 mri_binarize --i CT-mask.nii.gz --o CT-dil-mask.nii.gz \
@@ -122,7 +119,7 @@ mri_binarize --i CT-mask.nii.gz --o CT-dil-mask.nii.gz \
 #freeview -v CT-reo.nii.gz CT-mask.nii.gz:opacity=0.4:colormap=jet \
 #    CT-dil-mask.nii.gz:colormap=hot:opacity=0.4 \
 #    -viewport axial -screenshot $FIGS/ss04-ct-dil-mask.png
-source snapshot.sh 3vols CT-reo.nii.gz CT-mask.nii.gz CT-dil-mask.nii.gz
+python -m $SNAPSHOT --ras_transform --snapshot_name CT-mask-dilation 3vols CT-reo.nii.gz CT-mask.nii.gz CT-dil-mask.nii.gz
 
 # label dil mask and apply to mask
 # XXX reported number of electrodes should match implantation schema
@@ -133,7 +130,7 @@ python -c "import reconutils; reconutils.label_with_dilation('CT-mask.nii.gz', '
 # TODO use nibabel to generate subplots per electrode
 #freeview -v CT-reo.nii.gz CT-lab-mask.nii.gz:opacity=0.5:colormap=jet \
 #    -viewport axial -screenshot $FIGS/ss05-ct-dil-mask.png
-source snapshot.sh 2vols CT-reo.nii.gz CT-lab-mask.nii.gz
+python -m $SNAPSHOT --ras_transform --snapshot_name  CT-lab-mask 2vols CT-reo.nii.gz CT-lab-mask.nii.gz
 
 # find contact positions
 python<<EOF

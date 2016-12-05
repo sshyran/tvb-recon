@@ -20,28 +20,61 @@ done
 # establish target anatomy
 if [ -z "$TRGSUBJECT" ]
 then
-	echo "No target subject specified via TRGSUBJECT: using fsaverage5."
-	export TRGSUBJECT=fsaverage5
+	echo "No target subject specified via TRGSUBJECT. Creating a new one with decimation factor:"
+    echo $DECIM_FACTOR
+    export TRGSUBJECT=$SUBJECT-RESAMP_$DECIM_FACTOR
+    echo "TRGSUBJECT="
+    echo $TRGSUBJECT
 fi
 
-# copy target to avoid modifying it
+
+#If this target subject doesn't exist...
 if [ ! -d $SUBJECTS_DIR/$TRGSUBJECT ]
 then
-	# try in fs home subjects
-	if [ ! -d $FREESURFER_HOME/subjects/$TRGSUBJECT ]
-	then
-		echo "Cannot find folder for target subject $TRGSUBJECT."
-		exit 1
-	fi
-	cp -r $FREESURFER_HOME/subjects/$TRGSUBJECT \
-		$SUBJECTS_DIR/$SUBJECT-$TRGSUBJECT
+    #...and if it is not one of the default freesurfer subjects
+    if [ ! -d $FREESURFER_HOME/subjects/$TRGSUBJECT ]
+    then
+        #Create necessary folders for the resampled target subject
+        trg=$SUBJECTS_DIR/$TRGSUBJECT
+        mkdir $trg
+        trgsurf=$trg/surf
+        mkdir $trgsurf
+        trglbl=$trg/label
+        mkdir $trglbl
+        #Decimate the original l/rh.sphere.reg
+        for h in lh rh
+        do
+            mris_decimate -d $DECIM_FACTOR $SURF/$h.sphere.reg $trgsurf/$h.sphere.reg
+        done
+    else
+        #We can use the one of the default subject
+        cp -r $FREESURFER_HOME/subjects/$TRGSUBJECT $SUBJECTS_DIR/$SUBJECT-$TRGSUBJECT
+        export TRGSUBJECT=$SUBJECT-$TRGSUBJECT
+        echo "TRGSUBJECT="
+        echo TRGSUBJECT
+        #paths to target folders
+        trg=$SUBJECTS_DIR/$TRGSUBJECT
+        trgsurf=$trg/surf
+        trglbl=$trg/label
+    fi
 else
-	cp -r $SUBJECTS_DIR/$TRGSUBJECT $SUBJECTS_DIR/$SUBJECT-$TRGSUBJECT
+    #If the target subject exists:
+    #If we are inside the freesurfer home folder, we need to make a copy to protect the original
+    if [ $SUBJECTS_DIR = $FREESURFER_HOME/subjects ]
+    then
+        cp -r $FREESURFER_HOME/subjects/$TRGSUBJECT $SUBJECTS_DIR/$SUBJECT-$TRGSUBJECT§
+        export TRGSUBJECT=$SUBJECT-$TRGSUBJECT
+        echo "TRGSUBJECT="
+        echo TRGSUBJECT
+    fi
+    #paths to target folders
+    trg=$SUBJECTS_DIR/$TRGSUBJECT
+    trgsurf=$trg/surf
+    trglbl=$trg/label
 fi
 
-# paths to source and target folders
+# paths to source folders
 src=$SUBJ_DIR
-trg=$SUBJECTS_DIR/$SUBJECT-$TRGSUBJECT
 
 # map pial and white surfaces
 for hemi in lh rh
@@ -51,23 +84,23 @@ do
 		# resamp src surf to trg
 		mri_surf2surf \
 			--srcsubject $SUBJECT \
-			--trgsubject $SUBJECT-$TRGSUBJECT \
+			--trgsubject $TRGSUBJECT \
 			--hemi $hemi \
 			--sval-xyz $sval \
-			--tval $sval.$SUBJECT \
-			--tval-xyz $src/mri/T1.mgz
+			--tval $sval-$SUBJECT \
+			--tval-xyz $MRI/T1.mgz
 		
 		# copy to src dir
-		cp $trg/surf/$hemi.$sval.$SUBJECT \
-		   $src/surf/$hemi.$sval.$TRGSUBJECT
+		cp $trgsurf/$hemi.$sval-$SUBJECT \
+		   $SURF/$hemi.$sval-$TRGSUBJECT
 	done
 done
 
 # check
 # Visual check (screenshot)
-#freeview -v $src/mri/T1.mgz -f $src/surf/{lh,rh}.{white,pial}.$TRGSUBJECT \
-#         -viewport coronal -ss $FIGS/resamp-surfs-$SUBJECT-$TRGSUBJECT.png
-source snapshot.sh vol_white_pial $src/mri/T1.nii.gz -resampled_surface_name $TRGSUBJECT
+#freeview -v $MRI/T1.mgz -f $SURF/{lh,rh}.{white,pial}-$TRGSUBJECT \
+#         -viewport coronal -ss $FIGS/resamp-surfs-$TRGSUBJECT.png
+python -m $SNAPSHOT --center_surface --snapshot_name resamp_white_pial_t1_$TRGSUBJECT vol_white_pial $MRI/T1.nii.gz -resampled_surface_name $TRGSUBJECT
 
 # resamp parcs
 for parc in $parcs
@@ -76,10 +109,10 @@ do
 	do
 		mri_surf2surf \
 			--srcsubject $SUBJECT \
-			--trgsubject $SUBJECT-$TRGSUBJECT \
+			--trgsubject $TRGSUBJECT \
 			--hemi $hemi \
-			--sval-annot $src/label/$hemi.$parc.annot \
-			--tval $src/label/$hemi.$parc.annot.$TRGSUBJECT
+			--sval-annot $LABEL/$hemi.$parc.annot \
+			--tval $LABEL/$hemi.$parc-$TRGSUBJECT.annot
 	done
 done
 
@@ -89,13 +122,23 @@ for parc in $parcs
 do
     for hemi in lh rh
     do
-        #freeview -f $src/surf/$hemi.pial.$TRGSUBJECT:annot=$src/label/$hemi.$parc.annot.$TRGSUBJECT \
-        #        -viewport 3D -ss $FIGS/resamp-$hemi-pial-$parc-annot-$SUBJECT-$TRGSUBJECT.png
-        mris_convert $src/surf/$hemi.pial.$TRGSUBJECT $src/surf/$hemi.pial.$TRGSUBJECT.gii
-	    source snapshot.sh surf_annot $src/surf/$hemi.pial.$TRGSUBJECT.gii $src/label/$hemi.$parc.annot.$TRGSUBJECT
+        #freeview -f $SURF/$hemi.inflated.$TRGSUBJECT:annot=$LABEL/$hemi.$parc-$TRGSUBJECT.annot \
+        #        -viewport 3D -ss $FIGS/resamp-$hemi-inflated-$parc-$TRGSUBJECT-annot.png
+	    python -m $SNAPSHOT --snapshot_name resamp-$parc-$TRGSUBJECT surf_annot $SURF/$hemi.inflated-$TRGSUBJECT $LABEL/$hemi.$parc-$TRGSUBJECT.annot
     done
 done
 
+#Downsample now the aseg surfs
+for h in rh lh
+do
+    mris_decimate -d $DECIM_FACTOR $SURF/$h.aseg $SURF/$h.aseg-$TRGSUBJECT
+done
+#Screenshot:
+python -m $SNAPSHOT --center_surface --snapshot_name resamp_aseg_t1_$TRGSUBJECT vol_surf $MRI/T1.nii.gz $SURF/{lh,rh}.aseg $SURF/{lh,rh}.aseg-$TRGSUBJECT
+
+#TODO!: downsample aseg surf annotations!
+
+
 
 # clean up
-rm -r $SUBJECTS_DIR/$SUBJECT-$TRGSUBJECT
+rm -r $trg

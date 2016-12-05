@@ -29,6 +29,7 @@ done
 python<<EOF
 import os
 subj = os.environ['SUBJECT']
+TRGSUBJECT = os.environ['TRGSUBJECT']
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import nibabel.freesurfer
@@ -43,13 +44,13 @@ def plotsurf(fname, **kwds):
 bem_templ = './watershed/{subj}_{surf}_surface-low'
 for surf in 'brain inner_skull outer_skull outer_skin'.split():
     plotsurf(bem_templ.format(subj=subj, surf=surf))
-plotsurf('../surf/lh.pial.fsaverage5', color='r')
+plotsurf('../surf/lh.pial-'+TRGSUBJECT, color='r')
 app.exec_()
 EOF
 
 # Visual check
 #freeview -v $MRI/T1.mgz -f ./watershed/*_surface-low -viewport coronal -screenshot $FIGS/bem_surfs_low.png
-source snapshot.sh use_freeview vol_surf $MRI/T1.nii.gz ./watershed/*_surface-low.gii
+python -m $SNAPSHOT --center_surface --snapshot_name watershed_lowsurf_t1 vol_surf $MRI/T1.nii.gz ./watershed/*_surface-low
 
 
 # convert surfaces to BrainVisa format

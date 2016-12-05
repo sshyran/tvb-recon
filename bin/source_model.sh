@@ -12,7 +12,7 @@ pushd $BEM
 for h in rh lh;
 do
     # convert cortical surfaces format
-    cp ../surf/$h.pial.fsaverage5 ./cortical-$h
+    cp $SURF/$h.white.fsaverage5 ./cortical-$h
     python -c "import reconutils; reconutils.convert_fs_to_brain_visa('cortical-$h')"
     # source model for cortical hemispheres
     om_assemble -SurfSourceMat head_model.{geom,cond} cortical-$h.{tri,ssm}
