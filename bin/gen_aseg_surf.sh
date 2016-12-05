@@ -34,11 +34,18 @@ done
 
 #Concatenate surfaces and create annotation:
 #!!Probably not necessary for aseg-ras
-for aseg in aseg
+for h in lh rh
 do
-    python -c "import reconutils; reconutils.aseg_surf_conc_annot('$ASEG_SURFS/$aseg','$SURF/lh.$aseg','$LABEL/lh.$aseg.annot','$ASEG_LIST_LH_BS',lut_path='$FREESURFER_HOME/FreeSurferColorLUT.txt')"
-    python -c "import reconutils; reconutils.aseg_surf_conc_annot('$ASEG_SURFS/$aseg','$SURF/rh.$aseg','$LABEL/rh.$aseg.annot','$ASEG_LIST_RH',lut_path='$FREESURFER_HOME/FreeSurferColorLUT.txt')"
+    aseglist=ASEG_LIST_$h
+    python -c "import reconutils; reconutils.aseg_surf_conc_annot('$ASEG_SURFS/aseg','$SURF/$h.aseg','$LABEL/$h.aseg.annot','${!aseglist}',lut_path='$FREESURFER_HOME/FreeSurferColorLUT.txt')"
 done
 
 
+#Snapshot for aseg surfs and annot:
+for h in lh rh
+do
+    #freeview -f $SURF/$h.aseg:annot=aseg \
+    #    -viewport 3D -ss $FIGS/aseg-$h-annot.png
+    python -m $SNAPSHOT --snapshot_name aseg_annot_$h surf_annot $SURF/$h.aseg $LABEL/$h.aseg.annot
 
+done

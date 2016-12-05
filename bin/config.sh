@@ -3,10 +3,15 @@
 #Configuration common for all processing streams:
 
 #The path to the pipeline code
-CODE=/Users/dionperd/VirtualVEP/software/bnm-recon-tools/PipelineWorkflow
-#CODE=/Users/dionperd/CBR/software/git/bnm-recon-tools/PipelineWorkflow
+CODE=/Users/dionperd/VirtualVEP/software/bnm-recon-tools/bin
+#CODE=/Users/dionperd/CBR/software/git/bnm-recon-tools/bin
 export CODE
 echo CODE=$CODE
+
+#The path to the snapshot tool
+SNAPSHOT=bnm.recon.qc.snapshot
+export SNAPSHOT
+echo SNAPSHOT=$SNAPSHOT
 
 #Add utils in PYTHONPATH
 PYTHONPATH="$PYTHONPATH:$CODE"
@@ -91,7 +96,7 @@ echo CT=$CT
 #CO-REGISTRATION
 
 #Co-registration method: default "flirt", else: "bbregister"
-COREG_USE = "flirt"
+COREG_USE="flirt"
 export COREG_USE
 echo COREG_USE=$COREG_USE
 
@@ -170,11 +175,38 @@ echo SUBAPARC_AREA=$SUBAPARC_AREA
 #Sub-parcellations
 for area in $SUBAPARC_AREA
 do
-    SUBPARCS="aparc.sub$area"
+    SUBPARCS="aparc$area"
 done
 export SUBPARCS
 echo SUBPARCS=$SUBPARCS
 
+
+#TRANSFORMS:
+
+#T1 cras path:
+CRAS_PATH=$MRI/transforms/cras.txt
+export CRAS_PATH
+echo CRAS_PATH=$CRAS_PATH
+
+#T1 native (mgz) vox2ras path:
+T1_NAT_VOX2RAS_PATH=$MRI/transforms/vox2ras_nat.txt
+export T1_NAT_VOX2RAS_PATH
+echo T1_NAT_VOX2RAS_PATH=$T1_NAT_VOX2RAS_PATH
+
+#T1 native (mgz) vox2ras-tkr path:
+T1_NAT_VOX2RASTKR_PATH=$MRI/transforms/vox2rastkr_nat.txt
+export T1_NAT_VOX2RASTKR_PATH
+echo T1_NAT_VOX2RASTKR_PATH=$T1_NAT_VOX2RASTKR_PATH
+
+#T1 ras (nii) vox2ras path:
+T1_VOX2RAS_PATH=$MRI/transforms/vox2ras.txt
+export T1_VOX2RAS_PATH
+echo T1_VOX2RAS_PATH=$T1_VOX2RAS_PATH
+
+#T1 ras (nii) vox2ras-tkr path:
+T1_VOX2RASTKR_PATH=$MRI/transforms/vox2rastkr.txt
+export T1_VOX2RASTKR_PATH
+echo T1_VOX2RASTKR_PATH=$T1_VOX2RASTKR_PATH
 
 #SEGMENTATION:
 
@@ -182,7 +214,7 @@ echo SUBPARCS=$SUBPARCS
 VOLS="aparc+aseg"
 for area in $SUBAPARC_AREA
 do
-    VOLS="aparc.sub$area+aseg $VOLS"  #add this to aseg$area when sub-aseg is ready
+    VOLS="aparc$area+aseg$area $VOLS"  #add this to aseg$area when sub-aseg is ready
 done
 export VOLS
 echo VOLS=$VOLS
@@ -243,13 +275,21 @@ ASEG_LIST="8 10 11 12 13 16 17 18 26 47 49 50 51 52 53 54 58"
 export ASEG_LIST
 echo ASEG_LIST=$ASEG_LIST
 #Left hemi plus Brain Stem
-ASEG_LIST_LH_BS="8 10 11 12 13 16 17 18 26"
-export ASEG_LIST_LH_BS
-echo ASEG_LIST_LH_BS=$ASEG_LIST_LH_BS
+ASEG_LIST_lh="8 10 11 12 13 16 17 18 26"
+export ASEG_LIST_lh
+echo ASEG_LIST_lh=$ASEG_LIST_lh
 #Right hemi
-ASEG_LIST_RH="47 49 50 51 52 53 54 58"
-export ASEG_LIST_RH
-echo ASEG_LIST_RH=$ASEG_LIST_RH
+ASEG_LIST_rh="47 49 50 51 52 53 54 58"
+export ASEG_LIST_rh
+echo ASEG_LIST_rh=$ASEG_LIST_rh
+
+#Sub-parcellation mode:
+#Any combination of "con", "geod", "adj"
+SUBAPARC_MODE='con+geod+adj'
+export SUBAPARC_MODE
+echo SUBAPARC_MODE=$SUBAPARC_MODE
+
+#DOWNSAMPLING:
 
 #Target subject for surface downsampling:
 TRGSUBJECT=fsaverage5
@@ -319,7 +359,7 @@ export CONNECTOME_MODE
 echo CONNECTOME_MODE=$CONNECTOME_MODE
 
 #Volume voxel edge length (in mm) in case of volumetric tractography
-VOX=4
+VOX=3
 export VOX
 echo VOX=$VOX
 

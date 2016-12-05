@@ -24,7 +24,7 @@ class ImageWriter(object):
             os.mkdir(self.snapshots_directory)
 
     def get_path(self, result_name):
-        return self.snapshots_directory + '/' + result_name + SNAPSHOT_EXTENSION
+        return os.path.join(self.snapshots_directory, result_name + SNAPSHOT_EXTENSION)
 
     def write_matrix(self, x, y, matrix, result_name):
         pyplot.pcolormesh(x, y, matrix, cmap=self.volume_cmaps[0])

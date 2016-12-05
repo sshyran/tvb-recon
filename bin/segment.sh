@@ -21,7 +21,6 @@ then
         #Get volume labels:
         tckmap $DMR/$STRMLNS_SIFT_NO.tck ./tdi_ends.mif -vox 1.0 -ends_only -template $DMR/b0.nii.gz
         mrconvert ./tdi_ends.mif ./tdi_ends.nii.gz
-        rm ./tdi_ends.mif
         tdiends=./tdi_ends.nii.gz
     fi
 
@@ -30,7 +29,7 @@ then
 
     if [ "$COREG_USE" = "flirt" ]
     then
-        flirt -applyxfm -in $tdiends -ref $MRI/T1.nii.gz -init $DMR/t2d.mat -out ./tdi_ends-in-t1.nii.gz
+        flirt -applyxfm -in $tdiends -ref $MRI/T1.nii.gz -init $DMR/d2t.mat -out ./tdi_ends-in-t1.nii.gz
     else
         mri_vol2vol --mov $tdiends --targ $MRI/T1.mgz --o ./tdi_ends-in-t1.mgz --reg ./d2t.reg
         mri_convert ./tdi_ends-in-t1.mgz ./tdi_ends-in-t1.nii.gz -out_orientation ras
@@ -189,19 +188,55 @@ rm ./out.mgz
 #Give an empty list for add_lbl, if you want cerebral white matter to be masked out
 for h in lh rh
 do
-    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.white','./$vol-mask.nii.gz','$LABEL/$h.aparc.annot','./$h.white-mask',surf_ref_path='$SURF/$h.white-ras',out_surf_ref_path='./$h.white-mask-ras',ctx='$h',vn=$SURF_VN,add_lbl=[2,41])"
+    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.white','./$vol-mask.nii.gz','$LABEL/$h.aparc.annot','./$h.white-mask','$T1_VOX2RASTKR_PATH',ctx='$h',vn=$SURF_VN,add_lbl=[2,41])"
 done
 #Sub-cortical:
 for h in lh rh
 do
-    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.aseg','./$vol-mask.nii.gz','$LABEL/$h.aseg.annot','./$h.aseg-mask',surf_ref_path='$SURF/$h.aseg-ras',out_surf_ref_path='./$h.aseg-mask-ras',ctx=None,vn=$SURF_VN,add_lbl=[])"
+    python -c "import reconutils; reconutils.sample_vol_on_surf('$SURF/$h.aseg','./$vol-mask.nii.gz','$LABEL/$h.aseg.annot','./$h.aseg-mask','$T1_VOX2RASTKR_PATH',ctx=None,vn=$SURF_VN,add_lbl=[])"
 done
 
 
+#If connectivity similarity is one of the criteria for parcellation
+if [[ $SUBAPARC_MODE == *"con"* ]]
+then
 
-#Compute the voxel connectivity similarity
-#This takes a lot of time...
-python -c "import reconutils; reconutils.node_connectivity_metric('$DMR/vol-counts$STRMLNS_SIFT_NO-v$VOX.npy',metric='cosine', mode='sim',out_consim_path='./consim-vol-counts$STRMLNS_SIFT_NO-v$VOX.npy')"
+    out_consim_path=./consim-vol-counts$STRMLNS_SIFT_NO-v$VOX.npy
+    #Compute the voxel connectivity similarity
+    #This takes a lot of time...
+    python -c "import reconutils; reconutils.node_connectivity_metric('$DMR/vol-counts$STRMLNS_SIFT_NO-v$VOX.npy',metric='cosine', mode='sim',out_consim_path='$out_consim_path')"
+
+    #Sample the connectome volume to T1 space
+    if [ "$COREG_USE" = "flirt" ]
+    then
+        flirt -applyxfm -in $DMR/tdi_lbl-v$VOX.nii.gz -ref $MRI/T1.nii.gz -init $DMR/d2t.mat -out ./tdi_lbl-v$VOX-in-t1.nii.gz -interp nearestneighbour
+        ref_vol_path=./tdi_lbl-v$VOX-in-t1.nii.gz
+        vox2rastkr_path=$T1_VOX2TKRAS_PATH
+    else
+        mri_vol2vol --mov $DMR/tdi_lbl-v$VOX.nii.gz --targ $MRI/T1.mgz --o ./tdi_lbl-v$VOX-in-t1.mgz --reg $DMR/d2t.reg --nearest
+        mri_convert ./tdi_lbl-v$VOX-in-t1.mgz ./tdi_lbl-v$VOX-in-t1.nii.gz --out_orientation ras
+        ref_vol_path=./tdi_lbl-v$VOX-in-t1.mgz
+        vox2rastkr_path=$T1NAT_VOX2TKRAS_PATH
+    fi
+
+    #TODO: in case that VOX>1.0 mm, there should be a qc screenshot of 3 vols: T1, tdi_ends-in-t1 (where VOX=1mm) and tdi_lbl-v$VOX-in-T1, because we should test whether the second one runs more or less through the "middle" of the third one, i.e., to evaluate how much distortion the upsampling brings.
+
+else
+    ref_vol_path=''
+    vox2rastkr_path=''
+    out_consim_path=''
+fi
+
+for h in lh rh
+do
+    python -c "import reconutils; reconutils.connectivity_geodesic_subparc('$SURF/$h.white', '$LABEL/$h.aparc.annot', './$h.white-mask-idx.npy', out_annot_path='$SURF/$h.aparc$SUBAPARC_AREA-$SUBAPARC_MODE.annot', parc_area=$SUBAPARC_AREA, labels=None, hemi='$h', mode='$SUBAPARC_MODE', ref_vol_path='$ref_vol_path', consim_path='$out_consim_path', vox2rastkr_path='$vox2rastkr_path', lut_path=os.path.join('$FREESURFER_HOME','FreeSurferColorLUT.txt'))"
+done
+
+for h in lh rh
+do
+    python -c "import reconutils; reconutils.connectivity_geodesic_subparc('$SURF/$h.aseg', '$LABEL/$h.aseg.annot', './$h.white-mask-idx.npy', out_annot_path='$SURF/$h.aseg$SUBAPARC_AREA-$SUBAPARC_MODE.annot', parc_area=$SUBAPARC_AREA, labels='${ASEG_LIST_$h}', hemi=None, mode='$SUBAPARC_MODE', consim_path='$out_consim_path', ref_vol_path='$ref_vol_path',  vox2rastkr_path='$vox2rastkr_path', lut_path=os.path.join('$FREESURFER_HOME','FreeSurferColorLUT.txt'))"
+done
+
 
 popd
 

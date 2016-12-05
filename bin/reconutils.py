@@ -701,13 +701,9 @@ def simple_label_config(aparc_fname, out_fname):
 #Sample a volume of a specific label on a surface, by keeping  
 #only those surface vertices, the nearest voxel of which is of the given label (+ of possibly additional target labels, such as white matter)
 #Allow optionally for vertices within a given voxel distance vn from the target voxels
-def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path=None, out_surf_ref_path=None, ctx=None,vn=1,add_lbl=[],lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):
+def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,vox2rastkr_path, ctx=None,vn=1,add_lbl=[],lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):
     #Read the surfaces...
     (verts, faces,volume_info) = fsio.read_geometry(surf_path,read_metadata=True)
-    if surf_ref_path is not None:
-        (verts_ref, faces,volume_info_ref) = fsio.read_geometry(surf_ref_path,read_metadata=True)
-    else:
-        verts_ref=np.array(verts)
     #...and its annotation:
     lab, ctab, names = fs.read_annot(annot_path)
     #Get the region names of these labels:
@@ -718,8 +714,9 @@ def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path
     #...and get its data
     vol = volume.get_data()
     vol_shape=vol.shape  
-    #...and invert its affine transform
-    xyz2ijk = np.linalg.inv(volume.affine) 
+    #...and invert its vox2ras-tkr transform
+    vox2rastkr=np.loadtxt(vox2rastkr_path)
+    xyz2ijk = np.linalg.inv(vox2rastkr) 
     #Prepare grid if needed for possible use:
     if vn>0:
         grid=np.meshgrid(range(-vn,vn+1,1),range(-vn,vn+1,1),range(-vn,vn+1,1),indexing='ij')
@@ -740,7 +737,7 @@ def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path
             continue
         #Apply the affine transform to the selected surface vertices, and get integer indices
         #of the corresponding nearest voxels in the vol
-        ijk = np.round(xyz2ijk.dot(np.c_[verts_ref[verts_lbl_inds,:], np.ones(verts_lbl_inds.size)].T)[:3].T).astype('i')
+        ijk = np.round(xyz2ijk.dot(np.c_[verts[verts_lbl_inds,:], np.ones(verts_lbl_inds.size)].T)[:3].T).astype('i')
         #Get the labels of these voxels:
         surf_vxls=vol[ijk[:,0],ijk[:,1],ijk[:,2]]        
         #Vertex mask to keep: those that correspond to voxels of one of the target labels
@@ -769,7 +766,6 @@ def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path
         verts_out_inds,=np.where(verts_out_mask)
         #These are the vertices to keep
         verts_out=verts[verts_out_inds]
-        verts_out_ref=verts[verts_out_inds]
         #TODO maybe: make sure that all voxels of this label correspond to at least one vertex.
         #Create a similar mask for faces by picking only triangles
         #of which all 3 vertices are included
@@ -782,8 +778,6 @@ def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,surf_ref_path
                 faces_out[iF,iV],= np.where(faces_out[iF,iV]==verts_out_inds)
         #Write the output surfaces to a file
         fsio.write_geometry(out_surf_path,verts_out,faces_out,create_stamp=None,volume_info=volume_info)
-        if out_surf_ref_path is not None:        
-            fsio.write_geometry(out_surf_ref_path,verts_out_ref,faces_out,create_stamp=None,volume_info=volume_info_ref)
         #Create and write output annotations to files
         lab_out=lab[verts_out_inds]
         fs.write_annot(out_surf_path+".annot", lab_out, ctab, names)
@@ -864,8 +858,8 @@ def subparc_files(hemi, parc_name, out_parc_name, trg_area):
             
       #d2t=None,       
 def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=None,
-                                  ref_vol_path=None,consim_path=None,parc_area=100,
-                                  labels=None,hemi=None, mode="con+geod+adj", 
+                                  parc_area=100, labels=None, hemi=None, mode="con+geod+adj",
+                                  consim_path=None, ref_vol_path=None, vox2rastkr_path=None,
                                   lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):                                      
     from scipy.spatial.distance import cdist
     from sklearn.cluster import AgglomerativeClustering  
@@ -895,8 +889,9 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         voxijk,=np.where(vox.flatten()>0)
         voxijk=np.unravel_index(voxijk, voxdim)
         vox=vox[voxijk[0],voxijk[1],voxijk[2]]
-        #...and their coordinates in xyz space
-        voxxzy=vollbl.affine.dot(np.c_[voxijk[0],voxijk[1],voxijk[2], np.ones(vox.shape[0])].T)[:3].T
+        #...and their coordinates in surface ras xyz space
+        vox2rastkr=np.loadtxt(vox2rastkr_path)
+        voxxzy=vox2rastkr.dot(np.c_[voxijk[0],voxijk[1],voxijk[2], np.ones(vox.shape[0])].T)[:3].T
         #...and transform them to the T1 RAS space of the surface:
         #voxxzy=d2t.dot(np.c_[voxxzy[:,0],voxxzy[:,1],voxxzy[:,2], np.ones(voxxzy.shape[0])].T)[:3].T
         del vollbl, voxijk

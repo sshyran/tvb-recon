@@ -29,9 +29,13 @@ else
 fi
 
 #Create brain mask
-dwi2mask ./dwi.mif ./mask.mif -nthreads $MRTRIX_THRDS
+dwi2mask ./dwi.mif ./mask.mif -nthreads $MRTRIX_THRDS -force
 #Extract bzero…
-dwiextract ./dwi.mif ./b0.nii.gz -bzero -nthreads $MRTRIX_THRDS
+dwiextract ./dwi.mif ./b0.nii.gz -bzero -nthreads $MRTRIX_THRDS -force
+
+#Snapshot
+mrconvert ./mask.mif ./mask.nii.gz
+python -m $SNAPSHOT --snapshot_name b0_mask --ras_transform 2vols ./b0.nii.gz ./mask.nii.gz
 
 popd
 

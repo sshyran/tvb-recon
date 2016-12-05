@@ -3,6 +3,7 @@
 import os
 import pytest
 from bnm.recon.qc.image.processor import ImageProcessor
+from bnm.recon.qc.image.writer import ImageWriter
 from bnm.recon.qc.model.constants import SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME, SNAPSHOT_EXTENSION, AXIAL
 from bnm.tests.base import get_data_file
 
@@ -18,12 +19,10 @@ TEST_SURF = "lh.pial"
 TEST_ANNOT = "lh.aparc.annot"
 
 
-
 def setup_module():
     os.environ["MRI"] = os.path.join("data", TEST_SUBJECT_MODIF, TEST_MRI_FOLDER)
     os.environ["T1_RAS"] = TEST_T1
     os.environ["SUBJ_DIR"] = os.path.join("data", TEST_SUBJECT_MODIF)
-
 
 
 def teardown_module():
@@ -32,14 +31,12 @@ def teardown_module():
     os.rmdir(SNAPSHOTS_DIRECTORY)
 
 
-
 def test_show_single_volume():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
     processor.show_single_volume(volume_path)
-    assert os.path.exists(
-        os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
-
+    resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
+    assert os.path.exists(processor.writer.get_path(resulted_file_name))
 
 
 def test_overlap_2_volumes():
@@ -47,9 +44,8 @@ def test_overlap_2_volumes():
     background_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
     overlay_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_BRAIN)
     processor.overlap_2_volumes(background_path, overlay_path)
-    assert os.path.exists(
-        os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
-
+    resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
+    assert os.path.exists(processor.writer.get_path(resulted_file_name))
 
 
 def test_overlap_3_volumes():
@@ -58,9 +54,8 @@ def test_overlap_3_volumes():
     overlay1_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_BRAIN)
     overlay2_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_BRAIN)
     processor.overlap_3_volumes(background_path, overlay1_path, overlay2_path)
-    assert os.path.exists(
-        os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
-
+    resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
+    assert os.path.exists(processor.writer.get_path(resulted_file_name))
 
 
 @pytest.mark.skip("Because it takes about 10 min to complete")
@@ -69,10 +64,8 @@ def test_overlap_surface_annotation():
     surface_path = get_data_file(TEST_SUBJECT, TEST_SURF_FOLDER, TEST_SURF)
     annotation_path = get_data_file(TEST_SUBJECT, TEST_ANNOT_FOLDER, TEST_ANNOT)
     processor.overlap_surface_annotation(surface_path, annotation_path)
-    assert os.path.exists(
-        os.path.join(SNAPSHOTS_DIRECTORY,
-                     SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + "surface_annotation0" + SNAPSHOT_EXTENSION))
-
+    resulted_file_name = processor.generate_file_name('surface_annotation', SNAPSHOT_NAME)
+    assert os.path.exists(processor.writer.get_path(resulted_file_name + str(0)))
 
 
 def test_overlap_volume_surface():
@@ -80,9 +73,8 @@ def test_overlap_volume_surface():
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
     surface_path = get_data_file(TEST_SUBJECT, TEST_SURF_FOLDER, TEST_SURF)
     processor.overlap_volume_surfaces(volume_path, [surface_path], False)
-    assert os.path.exists(
-        os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
-
+    resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
+    assert os.path.exists(processor.writer.get_path(resulted_file_name))
 
 
 def test_overlap_volume_centered_surface():
@@ -90,5 +82,5 @@ def test_overlap_volume_centered_surface():
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
     surface_path = get_data_file(TEST_SUBJECT, TEST_SURF_FOLDER, TEST_SURF)
     processor.overlap_volume_surfaces(volume_path, [surface_path], True)
-    assert os.path.exists(
-        os.path.join(SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME + str(SNAPSHOT_NUMBER) + AXIAL + SNAPSHOT_EXTENSION))
+    resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
+    assert os.path.exists(processor.writer.get_path(resulted_file_name))
