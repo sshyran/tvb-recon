@@ -77,7 +77,7 @@ def xyz2rgb(vl):
     vcrgb = np.c_[nvl, np.ones((nv, 1))]
     return vcrgb
 
-
+#TODO same as algo.geom
 def vertex_normals(v, f):
     vf = v[f]
     fn = np.cross(vf[:,1] - vf[:, 0], vf[:, 2] - vf[:, 0])

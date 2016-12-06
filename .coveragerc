@@ -5,3 +5,6 @@ omit =
         *__init__*
         bnm/recon/dax/*
         bnm/tests/*
+
+[report]
+precision = 0

@@ -23,7 +23,7 @@ class ImageTransformer(object):
     def apply_transform(self, volume_path):
         if not self.use_ras_transform:
             return volume_path
-        # TODO Test if file is created by mri_convert on fedora
+
         output_volume_path = os.path.join(self.converted_files_directory_path, 'ras' + basename(volume_path))
 
         try:
