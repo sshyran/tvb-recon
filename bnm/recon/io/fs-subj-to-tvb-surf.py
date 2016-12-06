@@ -32,8 +32,8 @@ if __name__ == '__main__':
     rv, rf = fsio.read_surf('rh', 'pial')
 
     # load left and right region mapping
-    lrm = fsio.read_annot('lh', 'aparc')[0]
-    rrm = fsio.read_annot('rh', 'aparc')[0]
+    lrm = fsio.read_annot_from_keywords('lh', 'aparc')[0]
+    rrm = fsio.read_annot_from_keywords('rh', 'aparc')[0]
 
     # merge surfaces and roi maps
     v, f, rm = merge_lh_rh(lv, lf, rv, rf, lrm, rrm)
