@@ -3,7 +3,6 @@
 import os
 import pytest
 from bnm.recon.qc.image.processor import ImageProcessor
-from bnm.recon.qc.image.writer import ImageWriter
 from bnm.recon.qc.model.constants import SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME, SNAPSHOT_EXTENSION, AXIAL
 from bnm.tests.base import get_data_file
 
@@ -16,6 +15,7 @@ TEST_ANNOT_FOLDER = "label"
 TEST_T1 = "T1.nii.gz"
 TEST_BRAIN = "brain.nii.gz"
 TEST_SURF = "lh.pial"
+TEST_GIFTI_SURF = "lh.pial.gii"
 TEST_ANNOT = "lh.aparc.annot"
 
 
@@ -82,5 +82,13 @@ def test_overlap_volume_centered_surface():
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
     surface_path = get_data_file(TEST_SUBJECT, TEST_SURF_FOLDER, TEST_SURF)
     processor.overlap_volume_surfaces(volume_path, [surface_path], True)
+    resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
+    assert os.path.exists(processor.writer.get_path(resulted_file_name))
+
+def test_overlap_volume_gifti_surface():
+    processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
+    volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
+    surface_path = get_data_file(TEST_SUBJECT_MODIF, TEST_SURF_FOLDER, TEST_GIFTI_SURF)
+    processor.overlap_volume_surfaces(volume_path, [surface_path], False)
     resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
     assert os.path.exists(processor.writer.get_path(resulted_file_name))
