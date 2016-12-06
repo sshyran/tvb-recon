@@ -14,14 +14,17 @@ if [ "$SEGMENT_METHOD" = "tdi" ] || [ "$SEGMENT_METHOD" = "tdi+gwi" ] || [ "$SEG
 then
     pushd $TDI
 
-    if [ -e $DMR/tdi_ends-v1.nii.gz ]
+    if [ -e $DMR/tdi_ends.nii.gz ]
+    then
+        tdiends=$DMR/tdi_ends.nii.gz
+    elif [ -e $DMR/tdi_ends-v1.nii.gz ]
     then
         tdiends=$DMR/tdi_ends-v1.nii.gz
     else
         #Get volume labels:
-        tckmap $DMR/$STRMLNS_SIFT_NO.tck ./tdi_ends.mif -vox 1.0 -ends_only -template $DMR/b0.nii.gz
-        mrconvert ./tdi_ends.mif ./tdi_ends.nii.gz
-        tdiends=./tdi_ends.nii.gz
+        tckmap $DMR/$STRMLNS_SIFT_NO.tck $DMR//tdi_ends.mif -vox 1.0 -ends_only -template $DMR/b0.nii.gz -force
+        mrconvert $DMR//tdi_ends.mif $DMR//tdi_ends.nii.gz -force
+        tdiends=$DMR//tdi_ends.nii.gz
     fi
 
     #Get the transform of tdi_ends in T1 space
@@ -36,8 +39,14 @@ then
         rm ./tdi_ends-in-t1.mgz
     fi
 
+    #QC snapshot
+    python -m $SNAPSHOT --snapshot_name tdi-in-T1 2vols $MRI/T1.nii.gz ./tdi_ends-in-t1.nii.gz
+
     #...and binarize it to create a tdi mask with a threshold equal to the number of tracks
     mri_binarize --i ./tdi_ends-in-t1.nii.gz --min $TDI_THR --o ./tdi_mask.nii.gz
+
+    #QC snapshot
+    python -m $SNAPSHOT --snapshot_name tdimask-in-T1 2vols $MRI/T1.nii.gz ./tdi_mask.nii.gz
 
     popd
 fi
@@ -70,7 +79,6 @@ then
     #freeview -v $MRI/T1.nii ../$vol.nii.gz ./gmwmi-in-t1-256.nii:opacity=0.5
     #(screenshot):
     #freeview -v $MRI/T1.nii.gz ../$vol.nii.gz ./gmwmi-in-t1-256.nii.gz:opacity=0.5 -ss $FIGS/gmwmi-in-t1-$vol.png
-    #source snapshot.sh 3vols $MRI/T1.nii.gz ../$vol.nii.gz ./gmwmi-in-t1-256.nii.gz
 
     #Resample and register gmwmi with aparc+aseg
     #tkregister2 --mov ./gmwmi-in-t1.nii.gz --targ $MRI/T1.nii.gz --reg ./resamp_gw-in-t1.dat --noedit --regheader
@@ -82,11 +90,18 @@ then
     mri_convert ./out.mgz ./gmwmi-in-t1-resamp-norm.nii.gz --out_orientation RAS -rt nearest
     #rm ./out.mgz
     #...and binarize it to create a gmwmi mask
+
+    #QC snapshot
+    python -m $SNAPSHOT --snapshot_name gmwmi-in-T1 2vols $MRI/T1.nii.gz ./gmwmi-in-t1-resamp-norm.nii.gz
+
     mri_binarize --i ./gmwmi-in-t1-resamp-norm.nii.gz --min $GWI_THR --o ./gmwmi-in-t1-bin.mgz
     mri_convert ./gmwmi-in-t1-bin.mgz ./gmwmi-in-t1-bin.nii.gz --out_orientation RAS -rt nearest
     ##!!Probably not necesary anymore
     #fslreorient2std ./gmwmi-in-t1-bin.nii.gz ./gmwmi-in-t1-bin-reo.nii.gz
     #mv ./gmwmi-in-t1-bin-reo.nii.gz ./gmwmi-in-t1-bin.nii.gz
+
+    #QC snapshot
+    python -m $SNAPSHOT --snapshot_name gmwmi-bin-in-T1 2vols $MRI/T1.nii.gz ./gmwmi-in-t1-bin.nii.gz
 
     #Visual checks
     #(interactive):
@@ -102,6 +117,9 @@ then
     ##!!Probably not necesary anymore
     #fslreorient2std ./gwi_mask.nii.gz ./gwi_mask-reo.nii.gz
 #   mv ./gwi_mask-reo.nii.gz ./gwi_mask.nii.gz
+
+    #QC snapshot
+    python -m $SNAPSHOT --snapshot_name gwimask-in-T1 2vols $MRI/T1.nii.gz ./gwi_mask.nii.gz
 
     popd
 fi
@@ -128,6 +146,8 @@ then
     #fslreorient2std ./mask-$SEGMENT_METHOD.nii.gz ./mask-$SEGMENT_METHOD-reo.nii.gz
     #mv ./mask-$SEGMENT_METHOD-reo.nii.gz ./mask-$SEGMENT_METHOD.nii.gz
 fi
+#QC snapshot
+python -m $SNAPSHOT --snapshot_name mask-$SEGMENT_METHOD-in-T1 2vols $MRI/T1.nii.gz ./mask-$SEGMENT_METHOD.nii.gz
 
 
 #If segmentation is performed via parcellation of the surface, maybe it is not necessary to work on the surface voxels of aparc+aseg volume. In this case we directly mask the aparc+aseg.
@@ -165,22 +185,30 @@ then
         #mv ./$v-reo.nii.gz ./$v.nii.gz
     done
 
-    mask_this_vol=$vol-surf
+    mask_this_vol=./$vol-surf
+
+    #QC snapshot
+    python -m $SNAPSHOT --snapshot_name $vol-surf 2vols $MRI/T1.nii.gz ./$vol-surf.nii.gz
+
 else
     #Apply the mask to the whole aparc+aseg, not only to the border voxels
-    mask_this_vol=$vol
-done
+    mask_this_vol=$MRI/$vol
+fi
+
 
 #Using my python code:
-#python -c "import reconutils; reconutils.mask_to_vol('./$vol-surf.nii.gz','./mask-$SEGMENT_METHOD.nii.gz','./$vol-mask.nii.gz',labels='$ASEG_LIST',hemi='lh rh',vol2mask_path=None,vn=$VOL_VN,th=1,labels_mask=None,labels_nomask='0')"
+#python -c "import reconutils; reconutils.mask_to_vol('$mask_this_vol.nii.gz','./mask-$SEGMENT_METHOD.nii.gz','./$vol-mask.nii.gz',labels='$ASEG_LIST',hemi='lh rh',vol2mask_path=None,vn=$VOL_VN,th=1,labels_mask=None,labels_nomask='0')"
 
 #Using freesurfer:
-mris_calc ./$mask_this_vol.nii.gz masked ./mask-$SEGMENT_METHOD.nii.gz
+mris_calc $mask_this_vol.nii.gz masked ./mask-$SEGMENT_METHOD.nii.gz
 mri_convert ./out.mgz ./$vol-mask.nii.gz --out_orientation RAS -rt nearest
 rm ./out.mgz
 ##!!Probably not necesary anymore
 #fslreorient2std ./$vol-mask.nii.gz ./$vol-mask-reo.nii
 #mv ./$vol-mask-reo.nii.gz ./$vol-mask.nii.gz
+
+#QC snapshot
+python -m $SNAPSHOT --snapshot_name $vol-mask 2vols $MRI/T1.nii.gz ./$vol-mask.nii.gz
 
 
 #Get final masked surfaces by sampling the surface with the surviving voxels:

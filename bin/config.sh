@@ -167,19 +167,6 @@ DEFAULT_APARC="aparc"
 export DEFAULT_APARC
 echo DEFAULT_APARC=$DEFAULT_APARC
 
-#Sub-parcellation area in mm2
-SUBAPARC_AREA=100
-export SUBAPARC_AREA
-echo SUBAPARC_AREA=$SUBAPARC_AREA
-
-#Sub-parcellations
-for area in $SUBAPARC_AREA
-do
-    SUBPARCS="aparc$area"
-done
-export SUBPARCS
-echo SUBPARCS=$SUBPARCS
-
 
 #TRANSFORMS:
 
@@ -209,6 +196,19 @@ export T1_VOX2RASTKR_PATH
 echo T1_VOX2RASTKR_PATH=$T1_VOX2RASTKR_PATH
 
 #SEGMENTATION:
+
+#Sub-parcellation area in mm2
+SUBAPARC_AREA=100
+export SUBAPARC_AREA
+echo SUBAPARC_AREA=$SUBAPARC_AREA
+
+#Sub-parcellations
+for area in $SUBAPARC_AREA
+do
+SUBPARCS="aparc$area"
+done
+export SUBPARCS
+echo SUBPARCS=$SUBPARCS
 
 #Sub-segmentations
 VOLS="aparc+aseg"
@@ -258,6 +258,11 @@ then
     export GWI_THR
     echo GWI_THR=$GWI_THR
 fi
+
+#Set yes for sampling of the border/surface voxels of the regions only.
+APARC_SURF=no
+export APARC_SURF
+echo APARC_SURF=$APARC_SURF
 
 #number of tdi voxel neighbors to be considered during masking
 VOL_VN=1

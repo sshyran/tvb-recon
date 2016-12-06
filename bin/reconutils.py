@@ -588,7 +588,7 @@ def mask_to_vol(in_vol_path,mask_vol_path,out_vol_path=None,labels=None,hemi=Non
 def label_with_dilation(to_label_nii_fname, dilated_nii_fname, out_nii_fname):
     "Label one nifti with its dilation, cf seeg-ct.sh"
     # TODO could make dilation with ndimage also.
-    import nbl, scipy.ndimage
+    import scipy.ndimage
     mask = nbl.load(to_label_nii_fname)
     dil_mask = nbl.load(dilated_nii_fname)
     lab, n = scipy.ndimage.label(dil_mask.get_data())
