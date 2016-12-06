@@ -33,11 +33,13 @@ fslreorient2std ./CT.nii.gz ./CT-reo.nii.gz
 # TODO rewrite slightly for resized T1 usage
 # TODO set up testing on jenkins
 
-for image in T1 brain aparc+aseg
+#Not needed:
+#brain aparc+aseg
+for image in T1
 do
 #???DO WE REALLY NEED THIS REORIENTING???
-    fslreorient2std $MRI/$image.nii.gz $MRI/$image-reo.nii.gz
-    mrresize $MRI/$image-reo.nii.gz ./$image-big.nii.gz -scale 2
+    fslreorient2std $MRI/$image.nii.gz ./$image-reo.nii.gz
+    mrresize ./$image-reo.nii.gz ./$image-big.nii.gz -scale 2 -force
 done
 
 # align to original res first

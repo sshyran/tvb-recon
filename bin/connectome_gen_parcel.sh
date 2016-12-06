@@ -5,7 +5,7 @@ pushd $DMR
 # Volumes for connectome generation should be provided as arguments.
 vols=aparc+aseg
 
-for vol in vols
+for vol in $vols
 do
     if [ "$vol" = "aparc+aseg" ]
     then
@@ -28,5 +28,7 @@ do
     done
 done
 
+#TODO: quality control of the connectome.
+#T1 or aparc+aseg as a background, and lines between the nodes for the network. Thickness for strength.
 
 popd

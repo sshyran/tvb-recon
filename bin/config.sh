@@ -370,8 +370,8 @@ export VOX
 echo VOX=$VOX
 
 #fs_default.txt location
-#FS_DEFAULT=/Users/dionperd/VirtualVEP/software/mrtrix3/src/connectome/tables/fs_default.txt
-FS_DEFAULT=/Users/dionperd/CBR/software/git/mrtrix3/src/connectome/tables/fs_default.txt
+FS_DEFAULT=/Users/dionperd/VirtualVEP/software/mrtrix3/src/connectome/tables/fs_default.txt
+#FS_DEFAULT=/Users/dionperd/CBR/software/git/mrtrix3/src/connectome/tables/fs_default.txt
 export FS_DEFAULT
 echo FS_DEFAULT=$FS_DEFAULT
 
