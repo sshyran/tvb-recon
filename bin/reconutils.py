@@ -701,22 +701,24 @@ def simple_label_config(aparc_fname, out_fname):
 #Sample a volume of a specific label on a surface, by keeping  
 #only those surface vertices, the nearest voxel of which is of the given label (+ of possibly additional target labels, such as white matter)
 #Allow optionally for vertices within a given voxel distance vn from the target voxels
-def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,vox2rastkr_path, ctx=None,vn=1,add_lbl=[],lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):
+def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,cras_path, ctx=None,vn=1,add_lbl=[],lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):
     #Read the surfaces...
     (verts, faces,volume_info) = fsio.read_geometry(surf_path,read_metadata=True)
     #...and its annotation:
     lab, ctab, names = fs.read_annot(annot_path)
     #Get the region names of these labels:
     labels=annot_names_to_labels(names,ctx,lut_path)          
-    nLbl=len(labels)           
+    nLbl=len(labels)     
     #Read the volume...
     volume = nbl.load(vol_path)
     #...and get its data
     vol = volume.get_data()
     vol_shape=vol.shape  
     #...and invert its vox2ras-tkr transform
-    vox2rastkr=np.loadtxt(vox2rastkr_path)
-    xyz2ijk = np.linalg.inv(vox2rastkr) 
+    vox2ras=volume.affine
+    xyz2ijk = np.linalg.inv(vox2ras) 
+    #Read the cras
+    cras=np.loadtxt(cras_path)
     #Prepare grid if needed for possible use:
     if vn>0:
         grid=np.meshgrid(range(-vn,vn+1,1),range(-vn,vn+1,1),range(-vn,vn+1,1),indexing='ij')
@@ -729,15 +731,21 @@ def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,vox2rastkr_pa
             print 'ctx-'+ctx+'-'+names[iL]
         else:
             print names[iL]
-        #Form the target label by adding to the current label any additional labels, if any
-        lbl=add_lbl+labels[iL]
+        #Form the target labels by adding to the input label any additional labels, if any
+        lbl=[labels[iL]]+add_lbl 
         #Get the indexes of the vertices of this label:
         verts_lbl_inds,=np.where(lab[:]==iL)
-        if verts_lbl_inds.size==0:
+        nVlbl=verts_lbl_inds.size
+        if nVlbl==0:
             continue
         #Apply the affine transform to the selected surface vertices, and get integer indices
         #of the corresponding nearest voxels in the vol
-        ijk = np.round(xyz2ijk.dot(np.c_[verts[verts_lbl_inds,:], np.ones(verts_lbl_inds.size)].T)[:3].T).astype('i')
+        #Get the specific vertices in tkras coordinates...
+        verts_lbl=verts[verts_lbl_inds,:]
+        #...add the cras to take them to scanner ras...
+        verts_lbl+=np.repeat(np.expand_dims(cras,1).T,nVlbl,axis=0)
+        #...and compute the nearest voxel coordinates
+        ijk = np.round(xyz2ijk.dot(np.c_[verts_lbl, np.ones(nVlbl)].T)[:3].T).astype('i')
         #Get the labels of these voxels:
         surf_vxls=vol[ijk[:,0],ijk[:,1],ijk[:,2]]        
         #Vertex mask to keep: those that correspond to voxels of one of the target labels
@@ -859,13 +867,13 @@ def subparc_files(hemi, parc_name, out_parc_name, trg_area):
       #d2t=None,       
 def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=None,
                                   parc_area=100, labels=None, hemi=None, mode="con+geod+adj",
-                                  consim_path=None, ref_vol_path=None, vox2rastkr_path=None,
+                                  cras_path=None,ref_vol_path=None, consim_path=None,  
                                   lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):                                      
     from scipy.spatial.distance import cdist
     from sklearn.cluster import AgglomerativeClustering  
     from scipy.sparse.csgraph import connected_components
-    if "geod" in mode:
-        from scipy.sparse.csgraph import shortest_path
+    from scipy.sparse.csgraph import shortest_path
+    
     #Read the surface...
     (verts, faces,volume_info) = fsio.read_geometry(surf_path,read_metadata=True)
     #...its annotation
@@ -879,6 +887,8 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
     if "con" in mode:  
         #Load voxel connectivity similarity matrix:
         con=np.load(consim_path)
+        #Read the cras:
+        cras=np.loadtxt(cras_path)
         #Read the DTI to T1 transform: 
         #d2t=np.loadtxt(d2t)
         #Read the reference tdi_lbl volume:
@@ -890,8 +900,8 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         voxijk=np.unravel_index(voxijk, voxdim)
         vox=vox[voxijk[0],voxijk[1],voxijk[2]]
         #...and their coordinates in surface ras xyz space
-        vox2rastkr=np.loadtxt(vox2rastkr_path)
-        voxxzy=vox2rastkr.dot(np.c_[voxijk[0],voxijk[1],voxijk[2], np.ones(vox.shape[0])].T)[:3].T
+        vox2ras=vollbl.affine
+        voxxzy=vox2ras.dot(np.c_[voxijk[0],voxijk[1],voxijk[2], np.ones(vox.shape[0])].T)[:3].T
         #...and transform them to the T1 RAS space of the surface:
         #voxxzy=d2t.dot(np.c_[voxxzy[:,0],voxxzy[:,1],voxxzy[:,2], np.ones(voxxzy.shape[0])].T)[:3].T
         del vollbl, voxijk
@@ -922,7 +932,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
             nL+=1
             out_lab[iV]=nL
             continue   
-        #Get the vertices and faces of this label:
+        #Get the vertices and faces of this label !in tk ras coordinates!:
         (verts_lbl,faces_lbl)=extract_subsurf(verts,faces,iVmask)
         #Compute distances among directly connected vertices
         dist=vertex_connectivity(verts_lbl,faces_lbl,mode="sparse",metric='euclidean')
@@ -984,6 +994,8 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         if "con" in mode: 
             #Get again after correction the connectome neighboring vertices and faces of this label:
             (verts_lbl_con,faces_lbl_con)=extract_subsurf(verts_lbl,faces_lbl,iV_con)
+            #Add the cras to take them to scanner ras coordinates:
+            verts_lbl_con+=np.repeat(np.expand_dims(cras,1).T,nVcon,axis=0)
             print "Compute connectivity similarity affinity matrix..."
             #TODO?: to use aparc+aseg to correspond vertices only to voxels of the same label
             #There would have to be a vertex->voxel of aparc+aseg of the same label -> voxel of tdi_lbl_in_T1 mapping
@@ -1027,7 +1039,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
             geodist=geodist/max_gdist
             #...and add them to the affinity metric
             affinity+=geodist
-        del geodist, temp_ind
+            del geodist, temp_ind
         print "Run clustering" 
         model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed", connectivity=connectivity, linkage='average')
         model.fit(affinity) 

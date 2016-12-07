@@ -13,11 +13,11 @@ tcksift ./$STRMLNS_NO.tck ./wm_fod.mif ./$STRMLNS_SIFT_NO.tck -term_number $STRM
 
 #Visual check (track density image -tdi)
 #vox: size of bin
-tckmap ./$STRMLNS_SIFT_NO.tck ./tdi_ends.mif -vox 1 -template ./b0.nii.gz -force
+tckmap ./$STRMLNS_SIFT_NO.tck ./tdi_ends-v1.mif -vox 1 -template ./b0.nii.gz -force
 #Interactive:
-#mrview ./t1-in-d.nii.gz -overlay.load ./tdi.mif -overlay.opacity 0.5
+#mrview ./t1-in-d.nii.gz -overlay.load ./tdi-v1.mif -overlay.opacity 0.5
 #Snapshot
-mrconvert ./tdi_ends.mif ./tdi_ends.nii.gz -force
-python -m $SNAPSHOT --ras_transform --snapshot_name t1_tdi_in_d 2vols ./t1-in-d.nii.gz ./tdi_ends.nii.gz
+mrconvert ./tdi_ends-v1.mif ./tdi_ends-v1.nii.gz -force
+python -m $SNAPSHOT --ras_transform --snapshot_name t1_tdi_in_d 2vols ./t1-in-d.nii.gz ./tdi_ends-v1.nii.gz
 
 popd

@@ -4,18 +4,6 @@
 # fsaverage5 subject is used, which results in a lower resolution
 # cortical surface.
 
-# Parcellations to resample should be provided as arguments.
-parcs=aparc
-parcs="$SUBPARCS $parcs"
-
-# Make sure we process default ones
-for default_parc in aparc.a2009s aparc.DKTatlas
-do
-	if [[ $parcs != *"$default_parc"* ]]
-	then
-		parcs="$default_parc $parcs"
-	fi
-done
 
 # establish target anatomy
 if [ -z "$TRGSUBJECT" ]
@@ -39,8 +27,6 @@ then
         mkdir $trg
         trgsurf=$trg/surf
         mkdir $trgsurf
-        trglbl=$trg/label
-        mkdir $trglbl
         #Decimate the original l/rh.sphere.reg
         for h in lh rh
         do
@@ -55,7 +41,6 @@ then
         #paths to target folders
         trg=$SUBJECTS_DIR/$TRGSUBJECT
         trgsurf=$trg/surf
-        trglbl=$trg/label
     fi
 else
     #If the target subject exists:
@@ -70,14 +55,13 @@ else
     #paths to target folders
     trg=$SUBJECTS_DIR/$TRGSUBJECT
     trgsurf=$trg/surf
-    trglbl=$trg/label
 fi
 
 # paths to source folders
 src=$SUBJ_DIR
 
 # map pial and white surfaces
-for hemi in lh rh
+for h in lh rh
 do
 	for sval in white pial inflated
 	do
@@ -85,14 +69,14 @@ do
 		mri_surf2surf \
 			--srcsubject $SUBJECT \
 			--trgsubject $TRGSUBJECT \
-			--hemi $hemi \
+			--hemi $h \
 			--sval-xyz $sval \
 			--tval $sval-$SUBJECT \
 			--tval-xyz $MRI/T1.mgz
 		
 		# copy to src dir
-		cp $trgsurf/$hemi.$sval-$SUBJECT \
-		   $SURF/$hemi.$sval-$TRGSUBJECT
+		cp $trgsurf/$h.$sval-$SUBJECT \
+		   $SURF/$h.$sval-$TRGSUBJECT
 	done
 done
 
@@ -102,32 +86,6 @@ done
 #         -viewport coronal -ss $FIGS/resamp-surfs-$TRGSUBJECT.png
 python -m $SNAPSHOT --center_surface --snapshot_name resamp_white_pial_t1_$TRGSUBJECT vol_white_pial $MRI/T1.nii.gz -resampled_surface_name $TRGSUBJECT
 
-# resamp parcs
-for parc in $parcs
-do
-	for hemi in lh rh
-	do
-		mri_surf2surf \
-			--srcsubject $SUBJECT \
-			--trgsubject $TRGSUBJECT \
-			--hemi $hemi \
-			--sval-annot $LABEL/$hemi.$parc.annot \
-			--tval $LABEL/$hemi.$parc-$TRGSUBJECT.annot
-	done
-done
-
-#Visual check (screenshot)
-# plot resamped parcs
-for parc in $parcs
-do
-    for hemi in lh rh
-    do
-        #freeview -f $SURF/$hemi.inflated.$TRGSUBJECT:annot=$LABEL/$hemi.$parc-$TRGSUBJECT.annot \
-        #        -viewport 3D -ss $FIGS/resamp-$hemi-inflated-$parc-$TRGSUBJECT-annot.png
-	    python -m $SNAPSHOT --snapshot_name resamp-$parc-$TRGSUBJECT surf_annot $SURF/$hemi.inflated-$TRGSUBJECT $LABEL/$hemi.$parc-$TRGSUBJECT.annot
-    done
-done
-
 #Downsample now the aseg surfs
 for h in rh lh
 do
@@ -136,9 +94,5 @@ done
 #Screenshot:
 python -m $SNAPSHOT --center_surface --snapshot_name resamp_aseg_t1_$TRGSUBJECT vol_surf $MRI/T1.nii.gz $SURF/{lh,rh}.aseg $SURF/{lh,rh}.aseg-$TRGSUBJECT
 
-#TODO!: downsample aseg surf annotations!
-
-
-
-# clean up
-rm -r $trg
+# clean up but NOT before all annotations have been also downsampled!
+#rm -r $trg
