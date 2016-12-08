@@ -27,43 +27,48 @@ import numpy as np
 #                                  CRAS_PATH,ctx=None,
 #                                  vn=int(SURF_VN),add_lbl=[])
 
-SUBAPARC_MODE="con+adj"
+#SUBAPARC_MODE="con+adj"
+SUBAPARC_MODE="geod"
 
 ref_vol_path=SEGMENT+'/tdi_lbl-v'+VOX+'-in-t1.nii.gz'
 consim_path=SEGMENT+'/consim-vol-counts'+STRMLNS_SIFT_NO+'-v'+VOX+'.npy'
+labels=dict()
+labels['lh']="1001 1007 1008 1009 1015 1030"
+labels['rh']="2030"
 for h in ['lh', 'rh']:
     reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.white',
                                              LABEL+'/'+h+'.aparc.annot',
                                              SEGMENT+'/'+h+'.white-mask-idx.npy', 
                                              out_annot_path=LABEL+'/'+h+'.aparc'+SUBAPARC_AREA+'-'+SUBAPARC_MODE+'.annot',
                                              parc_area=int(SUBAPARC_AREA), 
-                                             labels=None, hemi=h, 
+                                             labels=labels[h], hemi=None, ctx=h, 
                                              mode=SUBAPARC_MODE, 
                                              cras_path=CRAS_PATH, 
                                              ref_vol_path=ref_vol_path, 
                                              consim_path=consim_path, 
                                              lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt'))
-h='lh'
-reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.aseg',
-                                         LABEL+'/'+h+'.aseg.annot',
-                                         SEGMENT+'/'+h+'.aseg-mask-idx.npy', 
-                                         out_annot_path=LABEL+'/'+h+'.aseg'+SUBAPARC_AREA+'-'+SUBAPARC_MODE+'.annot',
-                                         parc_area=int(SUBAPARC_AREA), 
-                                         labels=ASEG_LIST_lh, hemi=None, 
-                                         mode=SUBAPARC_MODE, 
-                                         cras_path=CRAS_PATH, 
-                                         ref_vol_path=ref_vol_path, 
-                                         consim_path=consim_path, 
-                                         lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt'))
-h='rh'
-reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.aseg',
-                                         LABEL+'/'+h+'.aseg.annot',
-                                         SEGMENT+'/'+h+'.aseg-mask-idx.npy', 
-                                         out_annot_path=LABEL+'/'+h+'.aseg'+SUBAPARC_AREA+'-'+SUBAPARC_MODE+'.annot',
-                                         parc_area=int(SUBAPARC_AREA), 
-                                         labels=ASEG_LIST_rh, hemi=None, 
-                                         mode=SUBAPARC_MODE, 
-                                         cras_path=CRAS_PATH, 
-                                         ref_vol_path=ref_vol_path, 
-                                         consim_path=consim_path, 
-                                         lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt'))
+#h='lh'
+#reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.aseg',
+#                                         LABEL+'/'+h+'.aseg.annot',
+#                                         SEGMENT+'/'+h+'.aseg-mask-idx.npy', 
+#                                         out_annot_path=LABEL+'/'+h+'.aseg'+SUBAPARC_AREA+'-'+SUBAPARC_MODE+'.annot',
+#                                         parc_area=int(SUBAPARC_AREA), 
+#                                         labels=ASEG_LIST_lh, hemi=None, ctx=None,
+#                                         mode=SUBAPARC_MODE, 
+#                                         cras_path=CRAS_PATH, 
+#                                         ref_vol_path=ref_vol_path, 
+#                                         consim_path=consim_path, 
+#                                         lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt'))
+#h='rh'
+#reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.aseg',
+#                                         LABEL+'/'+h+'.aseg.annot',
+#                                         SEGMENT+'/'+h+'.aseg-mask-idx.npy', 
+#                                         out_annot_path=LABEL+'/'+h+'.aseg'+SUBAPARC_AREA+'-'+SUBAPARC_MODE+'.annot',
+#                                         parc_area=int(SUBAPARC_AREA), 
+#                                         labels=ASEG_LIST_rh, hemi=None, ctx=None,
+#                                         mode=SUBAPARC_MODE, 
+#                                         mode=SUBAPARC_MODE, 
+#                                         cras_path=CRAS_PATH, 
+#                                         ref_vol_path=ref_vol_path, 
+#                                         consim_path=consim_path, 
+#                                         lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt'))

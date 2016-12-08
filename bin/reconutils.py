@@ -866,7 +866,7 @@ def subparc_files(hemi, parc_name, out_parc_name, trg_area):
             
       #d2t=None,       
 def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=None,
-                                  parc_area=100, labels=None, hemi=None, mode="con+geod+adj",
+                                  parc_area=100, labels=None, hemi=None, ctx=None, mode="con+geod+adj",
                                   cras_path=None,ref_vol_path=None, consim_path=None,  
                                   lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):                                      
     from scipy.spatial.distance import cdist
@@ -879,7 +879,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
     #...its annotation
     lab, ctab, names = fs.read_annot(annot_path)
     #...and get the correspoding labels:
-    labels_annot=annot_names_to_labels(names,hemi,lut_path=lut_path)
+    labels_annot=annot_names_to_labels(names,ctx,lut_path=lut_path)
     #Read the indexes of vertices neighboring tract ends voxels:
     con_verts_idx=np.load(con_verts_idx)
     #Set the target labels:
@@ -909,7 +909,7 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
     out_names=[]
     out_ctab=[]
     out_lab=np.array(lab)
-    nL=0
+    nL=-1
     #For every annotation name:
     for iL in range(len(names)):
         print str(iL)+". "+names[iL]
@@ -918,13 +918,10 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
         #...and their indexes
         iV,=np.where(iVmask)
         nV=len(iV)
-        #TODO: reconsider this point
-        if nV==0:
-            continue
         #Find the corresponding label:
         lbl=labels_annot[iL]
-        #If it is not one of the target labels:
-        if lbl not in labels:
+        #If there are no associated vertices or if it is not one of the target labels:
+        if nV==0 or (lbl not in labels):
             #Just add this label to the new annotation as it stands:
             out_names.append(names[iL])
             out_ctab.append(ctab[iL])
@@ -960,8 +957,8 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
             out_names.append(names[iL])
             out_ctab.append(ctab[iL])
             #and change the output indices
-            out_lab[iV]=nL+1
             nL+=1
+            out_lab[iV]=nL
             continue
         print "Compute geodesic distance matrix"
         geodist=shortest_path(dist.todense(), method='auto', directed=False, return_predecessors=False, unweighted=False, overwrite=False)

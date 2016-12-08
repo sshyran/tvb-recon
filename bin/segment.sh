@@ -276,7 +276,7 @@ fi
 
 for h in lh rh
 do
-    python -c "import reconutils; reconutils.connectivity_geodesic_subparc('$SURF/$h.white', '$LABEL/$h.aparc.annot', './$h.white-mask-idx.npy', out_annot_path='$LABEL/$h.aparc$SUBAPARC_AREA-$SUBAPARC_MODE.annot', parc_area=int('$SUBAPARC_AREA'), labels=None, hemi='$h', mode='$SUBAPARC_MODE', cras_path='$CRAS_PATH', ref_vol_path='$ref_vol_path', consim_path='$out_consim_path', lut_path=os.path.join('$FREESURFER_HOME','FreeSurferColorLUT.txt'))"
+    python -c "import reconutils; import os; reconutils.connectivity_geodesic_subparc('$SURF/$h.white', '$LABEL/$h.aparc.annot', './$h.white-mask-idx.npy', out_annot_path='$LABEL/$h.aparc$SUBAPARC_AREA-$SUBAPARC_MODE.annot', parc_area=int('$SUBAPARC_AREA'), labels=None, hemi='$h', ctx='$h', mode='$SUBAPARC_MODE', cras_path='$CRAS_PATH', ref_vol_path='$ref_vol_path', consim_path='$out_consim_path', lut_path='$FREESURFER_HOME/FreeSurferColorLUT.txt')"
 
     #Quality control snapshot
     python -m $SNAPSHOT --snapshot_name subaparc-aparc$SUBAPARC_AREA-$SUBAPARC_MODE-$h surf_annot $SURF/$h.inflated $LABEL/$h.aparc$SUBAPARC_AREA-$SUBAPARC_MODE.annot
@@ -285,7 +285,7 @@ done
 for h in lh rh
 do
     aseglist=ASEG_LIST_$h
-    python -c "import reconutils; reconutils.connectivity_geodesic_subparc('$SURF/$h.aseg', '$LABEL/$h.aseg.annot', './$aseg-mask-idx.npy', out_annot_path='$LABEL/$h.aseg$SUBAPARC_AREA-$SUBAPARC_MODE.annot', parc_area=int('$SUBAPARC_AREA'), labels='${!aseglist}', hemi=None, mode='$SUBAPARC_MODE', cras_path='$CRAS_PATH', ref_vol_path='$ref_vol_path', consim_path='$out_consim_path', lut_path=os.path.join('$FREESURFER_HOME','FreeSurferColorLUT.txt')"
+    python -c "import reconutils; import os; reconutils.connectivity_geodesic_subparc('$SURF/$h.aseg', '$LABEL/$h.aseg.annot', './$aseg-mask-idx.npy', out_annot_path='$LABEL/$h.aseg$SUBAPARC_AREA-$SUBAPARC_MODE.annot', parc_area=int('$SUBAPARC_AREA'), labels='${!aseglist}', hemi=None, ctx=None, mode='$SUBAPARC_MODE', cras_path='$CRAS_PATH', ref_vol_path='$ref_vol_path', consim_path='$out_consim_path', lut_path='$FREESURFER_HOME/FreeSurferColorLUT.txt')"
 
     #Quality control snapshot
     python -m $SNAPSHOT --snapshot_name subaparc-aseg$SUBAPARC_AREA-$SUBAPARC_MODE-$h surf_annot $SURF/$h.aseg $LABEL/$h.aseg$SUBAPARC_AREA-$SUBAPARC_MODE.annot
