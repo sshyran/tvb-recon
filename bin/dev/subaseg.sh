@@ -36,11 +36,11 @@ do
 done
 
 #Concatenate surfaces and create annotation:
-python -c "import reconutils; reconutils.aseg_surf_conc_annot('./aseg_filled','$ASEG_LIST','$FREESURFER_HOME/FreeSurferColorLUT.txt')"
-python -c "import reconutils; reconutils.aseg_surf_conc_annot('./aseg_filled-ras','$ASEG_LIST','$FREESURFER_HOME/FreeSurferColorLUT.txt')"
+python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.aseg_surf_conc_annot('./aseg_filled','$ASEG_LIST','$FREESURFER_HOME/FreeSurferColorLUT.txt')"
+python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.aseg_surf_conc_annot('./aseg_filled-ras','$ASEG_LIST','$FREESURFER_HOME/FreeSurferColorLUT.txt')"
 
 #Get the voxels that lie at the external surface of the aseg structures:
-python -c "import reconutils; reconutils.vol_to_ext_surf_vol('./aseg_filled.nii','$ASEG_LIST',out_vol_path='./aseg_filled_surf.nii',labels_surf='$ASEG_LIST',labels_inner='0')"
+python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.vol_to_ext_surf_vol('./aseg_filled.nii','$ASEG_LIST',out_vol_path='./aseg_filled_surf.nii',labels_surf='$ASEG_LIST',labels_inner='0')"
 
 
 if [ "$ASEG_SURF_METHOD" = "gwi" ]
@@ -98,7 +98,7 @@ then
     mv ./gwi_mask-reo.nii ./gwi_mask.nii
 
     #Get the interface of the aseg surface voxels with white matter
-    python -c "import reconutils; reconutils.mask_to_vol('../aseg_filled_surf.nii','./gwi_mask.nii','../aseg_filled_surf_con_gwi.nii','$ASEG_LIST',vol2maskTrnsfrmPath=None,vn=$ASEG_GWI_VN,th=1,labels_mask='$ASEG_LIST',labels_nomask='0')"
+    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.mask_to_vol('../aseg_filled_surf.nii','./gwi_mask.nii','../aseg_filled_surf_con_gwi.nii','$ASEG_LIST',vol2maskTrnsfrmPath=None,vn=$ASEG_GWI_VN,th=1,labels_mask='$ASEG_LIST',labels_nomask='0')"
 
     popd
 
@@ -121,7 +121,7 @@ then
     mri_binarize --i ./tdi.nii --min $ASEG_TDI_THR --o ./tdi_mask.nii
 
     #Get the interface of the aseg surface voxels with tracks' ends
-    python -c "import reconutils; reconutils.mask_to_vol('../aseg_filled_surf.nii','./tdi_mask.nii','../aseg_filled_surf_con_tdi.nii','$ASEG_LIST',vol2maskTrnsfrmPath='$DMR/t2d.mat',vn=$ASEG_TDI_VN,th=1,labels_mask='$ASEG_LIST',labels_nomask='0')"
+    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.mask_to_vol('../aseg_filled_surf.nii','./tdi_mask.nii','../aseg_filled_surf_con_tdi.nii','$ASEG_LIST',vol2maskTrnsfrmPath='$DMR/t2d.mat',vn=$ASEG_TDI_VN,th=1,labels_mask='$ASEG_LIST',labels_nomask='0')"
 
     popd
 fi
@@ -136,10 +136,10 @@ for aseg in $ASEG_CON
 do
     ASEG_CON_SURF=${aseg%.nii}
     echo $ASEG_CON_SURF
-    python -c "import reconutils; reconutils.sample_vol_on_surf('./aseg_filled','$aseg','$ASEG_CON_SURF','$ASEG_LIST', vn=$SURF_VN)"
+    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.sample_vol_on_surf('./aseg_filled','$aseg','$ASEG_CON_SURF','$ASEG_LIST', vn=$SURF_VN)"
 
     #Concatenate surfaces and create annotation:
-    python -c "import reconutils; reconutils.aseg_surf_conc_annot('$ASEG_CON_SURF','$ASEG_LIST','$FREESURFER_HOME/FreeSurferColorLUT.txt')"
+    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.aseg_surf_conc_annot('$ASEG_CON_SURF','$ASEG_LIST','$FREESURFER_HOME/FreeSurferColorLUT.txt')"
 done
 
 #Move individual aseg surfs files to get a more tidy directory

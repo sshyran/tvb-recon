@@ -6,13 +6,13 @@ T1_VOX2RASTKR_PATH, CRAS_PATH, VOX, STRMLNS_SIFT_NO) = [os.environ[key] for key 
     VOL_VN SURF LABEL MRI SUBAPARC_AREA SUBAPARC_MODE T1_VOX2RASTKR_PATH CRAS_PATH VOX STRMLNS_SIFT_NO'.split()]
 #ASEG_LIST="8 10 11 12 13 16 17 18 26 47 49 50 51 52 53 54 58"
 #ASEG_SURF="/Users/dionperd/CBR/VEP/JUNG/JUNG/aseg_surf"
-import reconutils
+import bnm.recon.algo.reconutils
 import nibabel
 import numpy as np
 
 
 #for h in ['lh', 'rh']:
-#    reconutils.sample_vol_on_surf(SURF+'/'+h+'.white',
+#    bnm.recon.algo.reconutils.sample_vol_on_surf(SURF+'/'+h+'.white',
 #                                  SEGMENT+'/aparc+aseg-mask.nii.gz',
 #                                  LABEL+'/'+h+'.aparc.annot',
 #                                  SEGMENT+'/'+h+'.white-mask',
@@ -20,7 +20,7 @@ import numpy as np
 #                                  vn=int(SURF_VN),add_lbl=[2,41])
 #
 #for h in ['lh', 'rh']:
-#    reconutils.sample_vol_on_surf(SURF+'/'+h+'.aseg',
+#    bnm.recon.algo.reconutils.sample_vol_on_surf(SURF+'/'+h+'.aseg',
 #                                  SEGMENT+'/aparc+aseg-mask.nii.gz',
 #                                  LABEL+'/'+h+'.aseg.annot',
 #                                  SEGMENT+'/'+h+'.aseg-mask',
@@ -36,7 +36,7 @@ labels=dict()
 labels['lh']="1001 1007 1008 1009 1015 1030"
 labels['rh']="2030"
 for h in ['lh', 'rh']:
-    reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.white',
+    bnm.recon.algo.reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.white',
                                              LABEL+'/'+h+'.aparc.annot',
                                              SEGMENT+'/'+h+'.white-mask-idx.npy', 
                                              out_annot_path=LABEL+'/'+h+'.aparc'+SUBAPARC_AREA+'-'+SUBAPARC_MODE+'.annot',
@@ -48,7 +48,7 @@ for h in ['lh', 'rh']:
                                              consim_path=consim_path, 
                                              lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt'))
 #h='lh'
-#reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.aseg',
+#bnm.recon.algo.reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.aseg',
 #                                         LABEL+'/'+h+'.aseg.annot',
 #                                         SEGMENT+'/'+h+'.aseg-mask-idx.npy', 
 #                                         out_annot_path=LABEL+'/'+h+'.aseg'+SUBAPARC_AREA+'-'+SUBAPARC_MODE+'.annot',
@@ -60,7 +60,7 @@ for h in ['lh', 'rh']:
 #                                         consim_path=consim_path, 
 #                                         lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt'))
 #h='rh'
-#reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.aseg',
+#bnm.recon.algo.reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.aseg',
 #                                         LABEL+'/'+h+'.aseg.annot',
 #                                         SEGMENT+'/'+h+'.aseg-mask-idx.npy', 
 #                                         out_annot_path=LABEL+'/'+h+'.aseg'+SUBAPARC_AREA+'-'+SUBAPARC_MODE+'.annot',

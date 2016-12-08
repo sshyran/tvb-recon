@@ -15,7 +15,7 @@ do
         #older command:
         #labelconfig ./$vol-in-d.nii.gz $FS_DEFAULT ./$vol_lbl.nii.gz -lut_freesurfer $FREESURFER_HOME/FreeSurferColorLUT.txt
     else
-        python -c "import reconutils; reconutils.simple_label_config('./$vol-in-d.nii.gz','./$vol_lbl.nii.gz')"
+        python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.simple_label_config('./$vol-in-d.nii.gz','./$vol_lbl.nii.gz')"
     fi
 
     #Generate track counts and mean track lengths for all parcellations

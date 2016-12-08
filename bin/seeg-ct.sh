@@ -142,7 +142,7 @@ python -m $SNAPSHOT --snapshot_name CT-mask-dilation-in-t1 3vols CT-in-t1.nii.gz
 
 # label dil mask and apply to mask
 # XXX reported number of electrodes should match implantation schema
-python -c "import reconutils; reconutils.label_with_dilation('CT-mask.nii.gz', 'CT-dil-mask.nii.gz', 'CT-lab-mask.nii.gz')"
+python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.label_with_dilation('CT-mask.nii.gz', 'CT-dil-mask.nii.gz', 'CT-lab-mask.nii.gz')"
 
 #Visual checks (screenshot)
 # XXX check that labels have different colors, in mrview if possible
@@ -153,7 +153,7 @@ python -m $SNAPSHOT --snapshot_name  CT-lab-mask-in-t1 2vols CT-in-t1.nii.gz CT-
 
 # find contact positions
 python<<EOF
-import nibabel, numpy as np, reconutils
+import nibabel, numpy as np, bnm.recon.algo.reconutils
 nii = nibabel.load('CT-lab-mask.nii.gz')
 lab_bin = nii.get_data()
 aff = nii.affine
@@ -162,7 +162,7 @@ ulab = ulab[ulab > 0]
 ul_to_pos = {}
 all_pos = []
 for ul in ulab[ulab > 0]:
-    xyz_pos = reconutils.periodic_xyz_for_object(lab_bin, ul, aff)
+    xyz_pos = bnm.recon.algo.reconutils.periodic_xyz_for_object(lab_bin, ul, aff)
     all_pos.append(xyz_pos)
 all_pos = np.concatenate(all_pos, axis=0)
 np.savetxt('seeg_xyz.txt', all_pos, fmt='%f')

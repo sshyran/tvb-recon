@@ -56,11 +56,11 @@ python -m $SNAPSHOT --center_surface --snapshot_name watershed_lowsurf_t1 vol_su
 # convert surfaces to BrainVisa format
 for surf in ./watershed/*_surface-low
 do
-    python -c "import reconutils; reconutils.convert_fs_to_brain_visa('$surf')"
+    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.convert_fs_to_brain_visa('$surf')"
 done
 
 # build head matrix
-python -c "import reconutils; reconutils.gen_head_model()"
+python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.gen_head_model()"
 
 om_assemble -HM ./head_model.geom ./head_model.cond ./head.mat # 2m32s
 om_minverser ./head.mat ./head-inv.mat # 3m30s

@@ -39,7 +39,7 @@ do
     for vn in 0 1 2 3 4 5
     do
         #Mask with gmwmi and save the resulting surface in a new file
-        python -c "import reconutils; reconutils.gmwmi_to_surf('./aseg_$lbl','./gmwmi-in-T1.nii.gz','./aseg_$lbl-gw-$vn',vn=$vn,th=$ASEG_GW_THR)"
+        python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.gmwmi_to_surf('./aseg_$lbl','./gmwmi-in-T1.nii.gz','./aseg_$lbl-gw-$vn',vn=$vn,th=$ASEG_GW_THR)"
 
     done
 done

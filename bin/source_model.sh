@@ -13,13 +13,13 @@ for h in rh lh;
 do
     # convert cortical surfaces format
     cp $SURF/$h.white.fsaverage5 ./cortical-$h
-    python -c "import reconutils; reconutils.convert_fs_to_brain_visa('cortical-$h')"
+    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.convert_fs_to_brain_visa('cortical-$h')"
     # source model for cortical hemispheres
     om_assemble -SurfSourceMat head_model.{geom,cond} cortical-$h.{tri,ssm}
 done
 
 # TODO: make source model for cortical dipoles
-python -c "import reconutils; reconutils.gen_cort_sources()"
+python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.gen_cort_sources()"
 #Cortical volume sources model
 for h in rh lh
 do
@@ -27,7 +27,7 @@ do
 done
 
 # TODO: make source model for subcortical
-python -c "import reconutils; reconutils.gen_subcort_sources()"
+python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.gen_subcort_sources()"
 #Subcortical volume sources model
 for h in rh lh
 do
