@@ -15,15 +15,17 @@ arg_3vols = "3vols"
 arg_surf_annot = "surf_annot"
 arg_vol_surf = "vol_surf"
 arg_vol_white_pial = "vol_white_pial"
+arg_connectivity_measure = "aseg_conn"
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate a BNM snapshot")
     subparsers = parser.add_subparsers(title='Sub Commands', dest='subcommand')
 
-    parser.add_argument("--snapshot_name", help="String to optionally substitute the default constant SNAPSHOT_NAME in the output filenames.",
-                    action="store", default=SNAPSHOT_NAME, required=False)
-    
+    parser.add_argument("--snapshot_name",
+                        help="String to optionally substitute the default constant SNAPSHOT_NAME in the output filenames.",
+                        action="store", default=SNAPSHOT_NAME, required=False)
+
     parser.add_argument("--ras_transform", help="This flag applies the RAS orientation on volumes.",
                         action="store_true")
     parser.add_argument("--center_surface",
@@ -44,6 +46,8 @@ def parse_arguments():
     subcommand_vol_2surf = subparsers.add_parser(arg_vol_white_pial,
                                                  help='Display white and pial freesurfer surfaces over a volume. '
                                                       'The flag --center_surface can be used with this sub-command.')
+    subcommand_conn_measure = subparsers.add_parser(arg_connectivity_measure,
+                                                    help='Display aseg volume with a connectivity measure (eg: epileptogenicity values)')
 
     subcommand_1_vol.add_argument("volume")
 
@@ -63,6 +67,13 @@ def parse_arguments():
     subcommand_vol_2surf.add_argument("background")
     subcommand_vol_2surf.add_argument("-resampled_surface_name", default='')
     subcommand_vol_2surf.add_argument("-gifti", help="Use gifti white and pial surfaces", action="store_true")
+
+    subcommand_conn_measure.add_argument("aseg_volume")
+    subcommand_conn_measure.add_argument("region_values")
+    subcommand_conn_measure.add_argument("-volume_mapping", default=VOLUME_MAPPING_PATH,
+                                         help='Specify a volume mapping file. File data/mapping_FS_88.txt is used by default.')
+    subcommand_conn_measure.add_argument("-background", default='', help='Specify a background volume')
+
     return parser.parse_args()
 
 
@@ -124,29 +135,44 @@ if __name__ == "__main__":
     elif args.subcommand == arg_2vols:
         background, overlay = imageTransformer.transform_2_volumes(os.path.expandvars(args.background),
                                                                    os.path.expandvars(args.overlay))
-        imageProcessor.overlap_2_volumes(os.path.expandvars(background), os.path.expandvars(overlay), snapshot_name=args.snapshot_name)
+        imageProcessor.overlap_2_volumes(os.path.expandvars(background), os.path.expandvars(overlay),
+                                         snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_3vols:
         background, overlay1, overlay2 = imageTransformer.transform_3_volumes(os.path.expandvars(args.background),
                                                                               os.path.expandvars(args.overlay1),
                                                                               os.path.expandvars(args.overlay2))
         imageProcessor.overlap_3_volumes(os.path.expandvars(background), os.path.expandvars(overlay1),
-                                         os.path.expandvars(overlay2),snapshot_name=args.snapshot_name)
+                                         os.path.expandvars(overlay2), snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_surf_annot:
-        imageProcessor.overlap_surface_annotation(os.path.expandvars(args.surface), os.path.expandvars(args.annotation), snapshot_name=args.snapshot_name)
+        imageProcessor.overlap_surface_annotation(os.path.expandvars(args.surface), os.path.expandvars(args.annotation),
+                                                  snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_vol_surf:
         background, surfaces_paths_list = imageTransformer.transform_volume_surfaces(
             os.path.expandvars(args.background), args.surfaces_list)
-        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), surfaces_paths_list, args.center_surface, snapshot_name=args.snapshot_name)
+        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), surfaces_paths_list, args.center_surface,
+                                               snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_vol_white_pial:
         surfaces_path = os.environ[SURFACES_DIRECTORY_ENVIRON_VAR]
         background, surfaces_paths_list = imageTransformer.transform_volume_white_pial(
             os.path.expandvars(args.background), os.path.expandvars(args.resampled_surface_name),
             os.path.expandvars(surfaces_path), args.gifti)
-        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths_list), args.center_surface, snapshot_name=args.snapshot_name)
+        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths_list),
+                                               args.center_surface, snapshot_name=args.snapshot_name)
+
+    elif args.subcommand == arg_connectivity_measure:
+        aseg_volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.aseg_volume))
+        background_volume_path = args.background
+        if background_volume_path != '':
+            background_volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.background))
+        imageProcessor.show_aseg_with_new_values(os.path.expandvars(aseg_volume_path),
+                                                 os.path.expandvars(args.region_values),
+                                                 os.path.expandvars(background_volume_path),
+                                                 os.path.expandvars(args.volume_mapping),
+                                                 snapshot_name=args.snapshot_name)
 
     try:
         for created_file in imageTransformer.created_files:

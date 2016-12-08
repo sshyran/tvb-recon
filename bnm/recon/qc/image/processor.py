@@ -1,12 +1,14 @@
 # -*- encoding: utf-8 -*-
 
 import os
+import numpy
 from bnm.recon.qc.image.writer import ImageWriter
 from bnm.recon.qc.parser.annotation import AnnotationParser
 from bnm.recon.qc.parser.generic import GenericParser
 from bnm.recon.qc.parser.surface import FreesurferParser, GiftiSurfaceParser
 from bnm.recon.qc.parser.volume import VolumeParser
-from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTENSION, T1_RAS_VOLUME, MRI_DIRECTORY
+from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTENSION, T1_RAS_VOLUME, MRI_DIRECTORY, \
+    VOLUME_MAPPING_PATH
 
 
 class ImageProcessor(object):
@@ -39,16 +41,17 @@ class ImageProcessor(object):
         parser = self.factory_surface_parser(surface_path)
         return parser.read(surface_path, use_center_surface)
 
-    def show_single_volume(self, volume_path,snapshot_name=SNAPSHOT_NAME):
+    def show_single_volume(self, volume_path, snapshot_name=SNAPSHOT_NAME):
 
         volume = self.parser_volume.parse(volume_path)
         ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
 
         for projection in PROJECTIONS:
             x_axis_coords, y_axis_coords, volume_matrix = volume.slice_volume(projection, ras)
-            self.writer.write_matrix(x_axis_coords, y_axis_coords, volume_matrix, self.generate_file_name(projection,snapshot_name))
+            self.writer.write_matrix(x_axis_coords, y_axis_coords, volume_matrix,
+                                     self.generate_file_name(projection, snapshot_name))
 
-    def overlap_2_volumes(self, background_path, overlay_path,snapshot_name=SNAPSHOT_NAME):
+    def overlap_2_volumes(self, background_path, overlay_path, snapshot_name=SNAPSHOT_NAME):
 
         background_volume = self.parser_volume.parse(background_path)
         overlay_volume = self.parser_volume.parse(overlay_path)
@@ -60,9 +63,9 @@ class ImageProcessor(object):
             x, y, background_matrix = background_volume.slice_volume(projection, ras)
             x1, y1, overlay_matrix = overlay_volume.slice_volume(projection, ras)
             self.writer.write_2_matrices(x, y, background_matrix, x1, y1, overlay_matrix,
-                                         self.generate_file_name(projection,snapshot_name))
+                                         self.generate_file_name(projection, snapshot_name))
 
-    def overlap_3_volumes(self, background_path, overlay_1_path, overlay_2_path,snapshot_name=SNAPSHOT_NAME):
+    def overlap_3_volumes(self, background_path, overlay_1_path, overlay_2_path, snapshot_name=SNAPSHOT_NAME):
 
         volume_background = self.parser_volume.parse(background_path)
         volume_overlay_1 = self.parser_volume.parse(overlay_1_path)
@@ -75,14 +78,16 @@ class ImageProcessor(object):
             x1, y1, overlay_1_matrix = volume_overlay_1.slice_volume(projection, ras)
             x2, y2, overlay_2_matrix = volume_overlay_2.slice_volume(projection, ras)
             self.writer.write_3_matrices(x, y, background_matrix, x1, y1, overlay_1_matrix, x2, y2, overlay_2_matrix,
-                                         self.generate_file_name(projection,snapshot_name))
+                                         self.generate_file_name(projection, snapshot_name))
 
-    def overlap_surface_annotation(self, surface_path, annotation,snapshot_name=SNAPSHOT_NAME):
+    def overlap_surface_annotation(self, surface_path, annotation, snapshot_name=SNAPSHOT_NAME):
         annotation = self.annotation_parser.parse(annotation)
         surface = self.read_surface(surface_path, False)
-        self.writer.write_surface_with_annotation(surface, annotation, self.generate_file_name('surface_annotation',snapshot_name))
+        self.writer.write_surface_with_annotation(surface, annotation,
+                                                  self.generate_file_name('surface_annotation', snapshot_name))
 
-    def overlap_volume_surfaces(self, volume_background, surfaces_path, use_center_surface,snapshot_name=SNAPSHOT_NAME):
+    def overlap_volume_surfaces(self, volume_background, surfaces_path, use_center_surface,
+                                snapshot_name=SNAPSHOT_NAME):
         volume = self.parser_volume.parse(volume_background)
         ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
         surfaces = [self.read_surface(os.path.expandvars(surface), use_center_surface) for surface in surfaces_path]
@@ -95,4 +100,46 @@ class ImageProcessor(object):
                 self.writer.write_matrix_and_surfaces(x, y, background_matrix, surf_x_array, surf_y_array,
                                                       surface_index, clear_flag)
                 clear_flag = False
-            self.writer.save_figure(self.generate_file_name(projection,snapshot_name))
+            self.writer.save_figure(self.generate_file_name(projection, snapshot_name))
+
+    def show_aseg_with_new_values(self, aseg_volume_path, region_values_path, background_volume_path,
+                                  volume_mapping_path=VOLUME_MAPPING_PATH, snapshot_name=SNAPSHOT_NAME):
+
+        aseg_volume = self.parser_volume.parse(aseg_volume_path)
+
+        volume_mapping = {}
+        with open(volume_mapping_path) as volume_mapping_file:
+            for line in volume_mapping_file:
+                (key, label, val) = line.split()
+                volume_mapping[float(key)] = float(val)
+
+        epi = numpy.zeros(len(volume_mapping))
+        id = 0
+        with open(region_values_path) as region_values_file:
+            for line in region_values_file:
+                epi[id] = float(line.strip())
+                id += 1
+
+        ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
+
+        if background_volume_path != '':
+            background_volume = self.parser_volume.parse(background_volume_path)
+
+        for projection in PROJECTIONS:
+            x_axis_coords, y_axis_coords, volume_matrix = aseg_volume.slice_volume(projection, ras)
+
+            for i in xrange(volume_matrix.shape[0]):
+                for j in xrange(volume_matrix.shape[1]):
+                    if volume_matrix[i][j] > 0:
+                        if volume_mapping.has_key(volume_matrix[i][j]):
+                            volume_matrix[i][j] = epi[volume_mapping.get(volume_matrix[i][j])]
+
+            if background_volume_path == '':
+                self.writer.write_matrix(x_axis_coords, y_axis_coords, volume_matrix,
+                                         self.generate_file_name(projection, snapshot_name), 'hot')
+            else:
+                bx_axis_coords, by_axis_coords, bvolume_matrix = background_volume.slice_volume(projection, ras)
+                self.writer.write_2_matrices(bx_axis_coords, by_axis_coords, bvolume_matrix, x_axis_coords,
+                                             y_axis_coords,
+                                             volume_matrix,
+                                             self.generate_file_name(projection, snapshot_name))

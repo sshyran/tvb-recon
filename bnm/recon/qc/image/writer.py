@@ -26,8 +26,8 @@ class ImageWriter(object):
     def get_path(self, result_name):
         return os.path.join(self.snapshots_directory, result_name + SNAPSHOT_EXTENSION)
 
-    def write_matrix(self, x, y, matrix, result_name):
-        pyplot.pcolormesh(x, y, matrix, cmap=self.volume_cmaps[0])
+    def write_matrix(self, x, y, matrix, result_name, cmap=volume_cmaps[0]):
+        pyplot.pcolormesh(x, y, matrix, cmap=cmap)
         pyplot.axes().set_aspect('equal', 'datalim')
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
