@@ -15,7 +15,7 @@ arg_3vols = "3vols"
 arg_surf_annot = "surf_annot"
 arg_vol_surf = "vol_surf"
 arg_vol_white_pial = "vol_white_pial"
-arg_connectivity_measure = "aseg_conn"
+arg_connectivity_measure = "aparc_aseg_conn"
 
 
 def parse_arguments():
@@ -68,10 +68,11 @@ def parse_arguments():
     subcommand_vol_2surf.add_argument("-resampled_surface_name", default='')
     subcommand_vol_2surf.add_argument("-gifti", help="Use gifti white and pial surfaces", action="store_true")
 
-    subcommand_conn_measure.add_argument("aseg_volume")
+    subcommand_conn_measure.add_argument("aparc_aseg_volume")
     subcommand_conn_measure.add_argument("region_values")
-    subcommand_conn_measure.add_argument("-volume_mapping", default=VOLUME_MAPPING_PATH,
-                                         help='Specify a volume mapping file. File data/mapping_FS_88.txt is used by default.')
+    subcommand_conn_measure.add_argument("-fs_to_conn_mapping", default=FS_TO_CONN_INDICES_MAPPING_PATH,
+                                         help='Specify a mapping file. File data/mapping_FS_88.txt is used by default. '
+                                              'This contains the mapping from Freesurfer labels to connectivity indices.')
     subcommand_conn_measure.add_argument("-background", default='', help='Specify a background volume')
 
     return parser.parse_args()
@@ -164,15 +165,15 @@ if __name__ == "__main__":
                                                args.center_surface, snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_connectivity_measure:
-        aseg_volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.aseg_volume))
+        aparc_aseg_volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.aparc_aseg_volume))
         background_volume_path = args.background
         if background_volume_path != '':
             background_volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.background))
-        imageProcessor.show_aseg_with_new_values(os.path.expandvars(aseg_volume_path),
-                                                 os.path.expandvars(args.region_values),
-                                                 os.path.expandvars(background_volume_path),
-                                                 os.path.expandvars(args.volume_mapping),
-                                                 snapshot_name=args.snapshot_name)
+        imageProcessor.show_aparc_aseg_with_new_values(os.path.expandvars(aparc_aseg_volume_path),
+                                                       os.path.expandvars(args.region_values),
+                                                       os.path.expandvars(background_volume_path),
+                                                       os.path.expandvars(args.fs_to_conn_mapping),
+                                                       snapshot_name=args.snapshot_name)
 
     try:
         for created_file in imageTransformer.created_files:

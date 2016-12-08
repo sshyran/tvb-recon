@@ -36,4 +36,4 @@ MRI_DIRECTORY = 'MRI'
 T1_RAS_VOLUME = 'T1_RAS'
 CC_POINT_FILE = "$SUBJ_DIR/scripts/ponscc.cut.log"
 
-VOLUME_MAPPING_PATH = "data/mapping_FS_88.txt"
+FS_TO_CONN_INDICES_MAPPING_PATH = "data/mapping_FS_88.txt"

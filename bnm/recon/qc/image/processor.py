@@ -8,7 +8,7 @@ from bnm.recon.qc.parser.generic import GenericParser
 from bnm.recon.qc.parser.surface import FreesurferParser, GiftiSurfaceParser
 from bnm.recon.qc.parser.volume import VolumeParser
 from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTENSION, T1_RAS_VOLUME, MRI_DIRECTORY, \
-    VOLUME_MAPPING_PATH
+    FS_TO_CONN_INDICES_MAPPING_PATH
 
 
 class ImageProcessor(object):
@@ -102,23 +102,23 @@ class ImageProcessor(object):
                 clear_flag = False
             self.writer.save_figure(self.generate_file_name(projection, snapshot_name))
 
-    def show_aseg_with_new_values(self, aseg_volume_path, region_values_path, background_volume_path,
-                                  volume_mapping_path=VOLUME_MAPPING_PATH, snapshot_name=SNAPSHOT_NAME):
+    def show_aparc_aseg_with_new_values(self, aparc_aseg_volume_path, region_values_path, background_volume_path,
+                                        fs_to_conn_indices_mapping_path=FS_TO_CONN_INDICES_MAPPING_PATH, snapshot_name=SNAPSHOT_NAME):
 
-        aseg_volume = self.parser_volume.parse(aseg_volume_path)
+        aparc_aseg_volume = self.parser_volume.parse(aparc_aseg_volume_path)
 
-        volume_mapping = {}
-        with open(volume_mapping_path) as volume_mapping_file:
-            for line in volume_mapping_file:
+        fs_to_conn_indices_mapping = {}
+        with open(fs_to_conn_indices_mapping_path) as fs_to_conn_indices_mapping_file:
+            for line in fs_to_conn_indices_mapping_file:
                 (key, label, val) = line.split()
-                volume_mapping[float(key)] = float(val)
+                fs_to_conn_indices_mapping[float(key)] = float(val)
 
-        epi = numpy.zeros(len(volume_mapping))
-        id = 0
+        conn_measure = numpy.zeros(len(fs_to_conn_indices_mapping))
+        idx = 0
         with open(region_values_path) as region_values_file:
             for line in region_values_file:
-                epi[id] = float(line.strip())
-                id += 1
+                conn_measure[idx] = float(line.strip())
+                idx += 1
 
         ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
 
@@ -126,20 +126,22 @@ class ImageProcessor(object):
             background_volume = self.parser_volume.parse(background_volume_path)
 
         for projection in PROJECTIONS:
-            x_axis_coords, y_axis_coords, volume_matrix = aseg_volume.slice_volume(projection, ras)
+            x_axis_coords, y_axis_coords, aparc_aseg_matrix = aparc_aseg_volume.slice_volume(projection, ras)
 
-            for i in xrange(volume_matrix.shape[0]):
-                for j in xrange(volume_matrix.shape[1]):
-                    if volume_matrix[i][j] > 0:
-                        if volume_mapping.has_key(volume_matrix[i][j]):
-                            volume_matrix[i][j] = epi[volume_mapping.get(volume_matrix[i][j])]
+            for i in xrange(aparc_aseg_matrix.shape[0]):
+                for j in xrange(aparc_aseg_matrix.shape[1]):
+                    if aparc_aseg_matrix[i][j] > 0:
+                        if fs_to_conn_indices_mapping.has_key(aparc_aseg_matrix[i][j]):
+                            aparc_aseg_matrix[i][j] = conn_measure[fs_to_conn_indices_mapping.get(aparc_aseg_matrix[i][j])]
+                        else:
+                            aparc_aseg_matrix[i][j] = -1
 
             if background_volume_path == '':
-                self.writer.write_matrix(x_axis_coords, y_axis_coords, volume_matrix,
+                self.writer.write_matrix(x_axis_coords, y_axis_coords, aparc_aseg_matrix,
                                          self.generate_file_name(projection, snapshot_name), 'hot')
             else:
                 bx_axis_coords, by_axis_coords, bvolume_matrix = background_volume.slice_volume(projection, ras)
                 self.writer.write_2_matrices(bx_axis_coords, by_axis_coords, bvolume_matrix, x_axis_coords,
                                              y_axis_coords,
-                                             volume_matrix,
+                                             aparc_aseg_matrix,
                                              self.generate_file_name(projection, snapshot_name))
