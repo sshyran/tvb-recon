@@ -2,8 +2,8 @@
 """Generate TVB surfaces and region mapping for FreeSurfer subjects.
 
 Usage:
-    fs-subj-to-tvb-surf.py [--subject=<name>]
-    fs-subj-to-tvb-surf.py (-h | --help)
+    fs_subj_to_tvb_surf.py [--subject=<name>]
+    fs_subj_to_tvb_surf.py (-h | --help)
 
 Options:
     -h --help   Show this documentation
