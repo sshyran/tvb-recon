@@ -56,7 +56,7 @@ python -m $SNAPSHOT --center_surface --snapshot_name watershed_lowsurf_t1 vol_su
 # convert surfaces to BrainVisa format
 for surf in ./watershed/*_surface-low
 do
-    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.convert_fs_to_brain_visa('$surf')"
+    python -c "import bnm.recon.io.surf; bnm.recon.io.surf.convert_fs_to_brain_visa('$surf')"
 done
 
 # build head matrix

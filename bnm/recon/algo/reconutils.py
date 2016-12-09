@@ -14,6 +14,7 @@ import nibabel.freesurfer.io as fsio
 import matplotlib
 matplotlib.use('Qt5Agg')
 import pylab as pl
+from bnm.recon.algo.geom import vertex_normals
 
 try:
     import gdist
@@ -22,76 +23,6 @@ except ImportError:
 
 
 SUBJECTS_DIR, SUBJECT, FREESURFER_HOME = [os.environ[key] for key in 'SUBJECTS_DIR SUBJECT FREESURFER_HOME'.split()]
-
-
-
-#------------------------------Electrode files---------------------------------
-
-def parse_asa_electrode_file(fname):
-    "Parse an ASA electrode format file."
-    contents = {'positions': [], 'labels': []}
-    with open(fname, 'r') as fd:
-        lines = (l for l in fd.readlines())
-        # parse header
-        for line in lines:
-            if line.startswith('#'):
-                continue
-            parts = line.strip().split()
-            if line.startswith('ReferenceLabel'):
-                contents['reference_label'] = parts[1]
-            elif line.startswith('UnitPosition'):
-                contents['unit_position'] = parts[1]
-            elif line.startswith('NumberPositions'):
-                contents['number_positions'] = int(parts[1])
-            elif line.startswith('Positions'):
-                break
-            else:
-                raise Exception('unknown header line: %r' % (line,))
-        # parse positions
-        for line, _ in zip(lines, range(contents['number_positions'])):
-            contents['positions'].append(
-                    [float(coord) for coord in line.strip().split()])
-        # parse labels
-        #assert next(lines).strip() == 'Labels'
-        [contents['labels'].append(line.strip()) for line in lines]
-    return contents
-
-
-def test_parse_asa_electrode_file():
-    contents = parse_asa_electrode_file('standard_1005.elc')
-    assert contents['reference_label'] == 'avg'
-    assert contents['unit_position'] == 'mm'
-    assert contents['number_positions'] == 346
-    assert len(contents['positions']) == 346
-    assert contents['positions'][0] == [-86.0761, -19.9897, -47.9860]
-    assert contents['positions'][-1] == [85.7939, -25.0093, -68.0310]
-    assert len(contents['labels']) == 346
-    assert contents['labels'][0] == 'LPA'
-    assert contents['labels'][-1] == 'A2'
-
-
-#-------------------------------Brain visa-------------------------------------
-def write_brain_visa_surf(fname, v, f):
-    vn = vertex_normals(v, f)
-    with open(fname, 'w') as fd:
-        fd.write('- %d\n' % len(vn))
-        for (vx, vy, vz), (nx, ny, nz) in zip(v, vn):
-            fd.write('%f %f %f %f %f %f\n' % (vx, vy, vz, nx, ny, nz))
-        fd.write('- %d %d %d\n' % ((len(f),)*3))
-        for i, j, k in f:
-            fd.write('%d %d %d\n' % (i, j, k))
-
-def convert_fs_to_brain_visa(fs_surf):
-    v, f = fs.read_geometry(fs_surf)
-    write_brain_visa_surf(fs_surf + '.tri', v, f)
-    
- 
-#-------------------------------------BEM--------------------------------------
- 
-def convert_bem_to_tri():
-    surfs_glob = '%s/%s/bem/watershed/*_surface-low' % (SUBJECTS_DIR, SUBJECT)
-    for surf_name in glob.glob(surfs_glob):
-        convert_fs_to_brain_visa(surf_name)
 
 
 def gen_head_model():
@@ -259,22 +190,7 @@ def tri_area(tri):
     i, j, k = np.transpose(tri, (1, 0, 2))
     ij = j - i
     ik = k - i
-    return np.sqrt(np.sum(np.cross(ij, ik)**2, axis=1)) / 2.0  
-    
-def vertex_normals(v, f):
-    vf = v[f]
-    fn = np.cross(vf[:,1] - vf[:, 0], vf[:, 2] - vf[:, 0])
-    vf = [set() for _ in range(len(v))]
-    for i, fi in enumerate(f):
-        for j in fi:
-            vf[j].add(i)
-    vn = np.zeros_like(v)
-    for i, fi in enumerate(vf):
-        fni = fn[list(fi)]
-        norm = fni.sum(axis=0)
-        norm /= np.sqrt((norm**2).sum())
-        vn[i] = norm
-    return vn
+    return np.sqrt(np.sum(np.cross(ij, ik)**2, axis=1)) / 2.0
 
 def compute_gdist_mat(surf_name='pial', max_distance=40.0):
     max_distance = float(max_distance) # in case passed from sys.argv
@@ -1104,7 +1020,7 @@ def gen_dipoles(pos, ori_or_face=None, out_fname=None):
         if ori_or_face.dtype in np.floattypes:
             ori = ori_or_face
         else:
-            ori = gen_vertex_normals(v=pos, f=ori_or_face)
+            ori = vertex_normals(v=pos, f=ori_or_face)
     np.savetxt(out_fname, np.c_[pos, ori], fmt='%f')
 
 
