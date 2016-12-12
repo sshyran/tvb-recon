@@ -131,7 +131,7 @@ class SurfaceService(object):
     # Allow optionally for vertices within a given voxel distance vn from the target voxels
     def sample_vol_on_surf(self, surf_path, vol_path, annot_path, out_surf_path, cras_path, ctx=None, vn=1, add_lbl=[],
                            lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
-        # Read the surfaces...
+        # Read the surface...
         (verts, faces, volume_info) = read_geometry(surf_path, read_metadata=True)
         # ...and its annotation:
         lab, ctab, names = read_annot(annot_path)
@@ -143,7 +143,7 @@ class SurfaceService(object):
         # ...and get its data
         vol = volume.get_data()
         vol_shape = vol.shape
-        # ...and invert its vox2ras-tkr transform
+        # ...and invert its vox2ras transform
         vox2ras = volume.affine
         xyz2ijk = numpy.linalg.inv(vox2ras)
         # Read the cras
@@ -161,7 +161,7 @@ class SurfaceService(object):
                 print 'ctx-' + ctx + '-' + names[iL]
             else:
                 print names[iL]
-            # Form the target labels by adding to the input label any additional labels, if any
+            # Form the target labels by adding to the input label list any additional labels, if any
             lbl = [labels[iL]] + add_lbl
             # Get the indexes of the vertices of this label:
             verts_lbl_inds, = numpy.where(lab[:] == iL)

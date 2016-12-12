@@ -27,6 +27,7 @@ class VolumeService(object):
                 labels_surf = numpy.repeat(labels_inner, nLbl).tolist()
             elif len(labels_surf) != nLbl:
                 print "Output labels for surface voxels are neither of length 1 nor of length equal to the one of target labels"
+                return
             else:
                 labels_surf = labels_surf.tolist()
         # Read the inner, non-surface labels
@@ -36,6 +37,7 @@ class VolumeService(object):
             labels_inner = numpy.repeat(labels_inner, nLbl).tolist()
         elif len(labels_inner) != nLbl:
             print "Output labels for inner voxels are neither of length 1 nor of length equal to the one of the target labels"
+            return
         else:
             labels_inner = labels_inner.tolist()
         # Read the input volume...
@@ -82,7 +84,7 @@ class VolumeService(object):
                     print "Error at voxel (" + str(i) + "," + str(j) + "," + str(k) + ") of label " + str(lbl) + ":"
                     print "It appears to have no common-face neighbors inside the image!"
                     return
-                    # Create the new volume and save it
+        # Create the new volume and save it
         out_volume = nibabel.Nifti1Image(out_vol, volume.affine, header=volume.header)
         if out_vol_path == None:
             # Overwrite volume
@@ -95,11 +97,11 @@ class VolumeService(object):
         numpy.save(filepath + "-idx.npy", out_ijk)
         numpy.savetxt(filepath + "-idx.txt", out_ijk, fmt='%d')
 
-    # Identify the voxels that our neighbors with a voxel distance vn, to a mask volume,
+    # Identify the voxels that are neighbors within a voxel distance vn, to a mask volume,
     # with a mask threshold of th
     # Default behavior: we assume a binarized mask and set th=0.999,
-    # no neigbhors search, only looking at the exact voxel position, i.e., vn=0.
-    # and mask voxels retain their label, no mask voxels get a label of 0
+    # no neighbors search, only looking at the exact voxel position, i.e., vn=0.
+    # and accepted voxels retain their label, whereas rejected ones get a label of 0
     def mask_to_vol(self, in_vol_path, mask_vol_path, out_vol_path=None, labels=None, hemi=None, vol2mask_path=None, vn=1,
                     th=0.999, labels_mask=None, labels_nomask='0'):
         # Set the target labels:
@@ -115,6 +117,7 @@ class VolumeService(object):
                 labels_mask = numpy.repeat(labels_mask, nLbl).tolist()
             elif len(labels_mask) != nLbl:
                 print "Output labels for selected voxels are neither of length 1 nor of length equal to the one of target labels"
+                return
             else:
                 labels_mask = labels_mask.tolist()
         # Read the excluded labels
@@ -124,6 +127,7 @@ class VolumeService(object):
             labels_nomask = numpy.repeat(labels_nomask, nLbl).tolist()
         elif len(labels_nomask) != nLbl:
             print "Output labels for excluded voxels are neither of length 1 nor of length equal to the one of the target labels"
+            return
         else:
             labels_nomask = labels_nomask.tolist()
         # Read the target volume...
@@ -147,7 +151,7 @@ class VolumeService(object):
             xyz2xyz = numpy.loadtxt(vol2mask_path)
             # ...and apply it to the inverse mask affine transform to get an ijk2ijk transform:
             ijk2ijk = volume.affine.dot(numpy.dot(xyz2xyz, numpy.linalg.inv(mask_vol.affine)))
-            # Construct a grid template of voxels +/- vn voxels around each ijk voxel,
+        # Construct a grid template of voxels +/- vn voxels around each ijk voxel,
         # sharing at least a corner
         grid = numpy.meshgrid(range(-vn, vn + 1, 1), range(-vn, vn + 1, 1), range(-vn, vn + 1, 1), indexing='ij')
         grid = numpy.c_[numpy.array(grid[0]).flatten(), numpy.array(grid[1]).flatten(), numpy.array(grid[2]).flatten()]
@@ -304,7 +308,7 @@ class VolumeService(object):
     # mode: "sim" or "dist" for similarity or distance output
     def node_connectivity_metric(self, con_mat_path, metric="cosine", mode='sim', out_consim_path=None):
         from scipy.spatial.distance import pdist, squareform
-        # Read iput file
+        # Read input file
         con = numpy.load(con_mat_path)
         # Calculate distance metric
         con = squareform(pdist(con, metric=metric))
