@@ -36,6 +36,10 @@ def parse_arguments():
                              "surfaces (not already centered ones) with an overlapping sub-command.",
                         action="store_true")
 
+    parser.add_argument("--use_cc_point",
+                        help="By specifying this argument, the Corpus Callosum point will be used when taking the snapshots.",
+                        action="store_true")
+
     subcommand_1_vol = subparsers.add_parser(arg_1vol, help='Display a single volume')
     subcommand_2_vols = subparsers.add_parser(arg_2vols, help='Display 2 volumes overlapped')
     subcommand_3_vols = subparsers.add_parser(arg_3vols, help='Display 3 volumes overlapped')
@@ -124,19 +128,20 @@ if __name__ == "__main__":
     imageTransformer.use_ras_transform = args.ras_transform
     imageTransformer.use_center_surface = args.center_surface
 
-    if args.subcommand != arg_surf_annot:
+    if args.use_cc_point:
         check_files_for_cc_exist()
 
     imageProcessor = ImageProcessor(snapshots_directory=snapshots_directory, snapshot_count=snapshot_count)
 
     if args.subcommand == arg_1vol:
         volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.volume))
-        imageProcessor.show_single_volume(os.path.expandvars(volume_path), snapshot_name=args.snapshot_name)
+        imageProcessor.show_single_volume(os.path.expandvars(volume_path), args.use_cc_point,
+                                          snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_2vols:
         background, overlay = imageTransformer.transform_2_volumes(os.path.expandvars(args.background),
                                                                    os.path.expandvars(args.overlay))
-        imageProcessor.overlap_2_volumes(os.path.expandvars(background), os.path.expandvars(overlay),
+        imageProcessor.overlap_2_volumes(os.path.expandvars(background), os.path.expandvars(overlay), args.use_cc_point,
                                          snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_3vols:
@@ -144,7 +149,8 @@ if __name__ == "__main__":
                                                                               os.path.expandvars(args.overlay1),
                                                                               os.path.expandvars(args.overlay2))
         imageProcessor.overlap_3_volumes(os.path.expandvars(background), os.path.expandvars(overlay1),
-                                         os.path.expandvars(overlay2), snapshot_name=args.snapshot_name)
+                                         os.path.expandvars(overlay2), args.use_cc_point,
+                                         snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_surf_annot:
         imageProcessor.overlap_surface_annotation(os.path.expandvars(args.surface), os.path.expandvars(args.annotation),
@@ -154,7 +160,7 @@ if __name__ == "__main__":
         background, surfaces_paths_list = imageTransformer.transform_volume_surfaces(
             os.path.expandvars(args.background), args.surfaces_list)
         imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), surfaces_paths_list, args.center_surface,
-                                               snapshot_name=args.snapshot_name)
+                                               args.use_cc_point, snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_vol_white_pial:
         surfaces_path = os.environ[SURFACES_DIRECTORY_ENVIRON_VAR]
@@ -162,7 +168,7 @@ if __name__ == "__main__":
             os.path.expandvars(args.background), os.path.expandvars(args.resampled_surface_name),
             os.path.expandvars(surfaces_path), args.gifti)
         imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths_list),
-                                               args.center_surface, snapshot_name=args.snapshot_name)
+                                               args.center_surface, args.use_cc_point, snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_connectivity_measure:
         aparc_aseg_volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.aparc_aseg_volume))
@@ -172,7 +178,7 @@ if __name__ == "__main__":
         imageProcessor.show_aparc_aseg_with_new_values(os.path.expandvars(aparc_aseg_volume_path),
                                                        os.path.expandvars(args.region_values),
                                                        os.path.expandvars(background_volume_path),
-                                                       os.path.expandvars(args.fs_to_conn_mapping),
+                                                       os.path.expandvars(args.fs_to_conn_mapping), args.use_cc_point,
                                                        snapshot_name=args.snapshot_name)
 
     try:
