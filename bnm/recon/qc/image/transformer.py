@@ -23,7 +23,7 @@ class ImageTransformer(object):
     def apply_transform(self, volume_path):
         if not self.use_ras_transform:
             return volume_path
-        # TODO Test if file is created by mri_convert on fedora
+
         output_volume_path = os.path.join(self.converted_files_directory_path, 'ras' + basename(volume_path))
 
         try:
@@ -66,7 +66,7 @@ class ImageTransformer(object):
 
     def transform_volume_white_pial(self, background_path, resampled_surface, surfaces_path, use_gifti):
         if resampled_surface is not "":
-            resampled_surface = "." + resampled_surface
+            resampled_surface = "-" + resampled_surface
 
         gii = ""
         if use_gifti:

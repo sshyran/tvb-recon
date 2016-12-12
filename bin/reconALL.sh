@@ -38,12 +38,14 @@ mri_convert $MRI/T1.mgz $MRI/T1-in-surf.nii.gz
 python -m $SNAPSHOT --snapshot_name t1_white_pial --center_surface vol_white_pial $MRI/T1-in-surf.nii.gz
 
 #and for aparc+aseg:
-for h in lh rh
+for parc in aparc.a2009s aparc.DKTatlas aparc
 do
-    #freeview -f $SURF/$h.inflated:annot=aparc \
-    #    -viewport 3D -ss $FIGS/aparc-$h-annot.png
-    python -m $SNAPSHOT --snapshot_name aparc_annot_$h surf_annot $SURF/$h.inflated $LABEL/$h.aparc.annot
+    for h in lh rh
+    do
+        #freeview -f $SURF/$h.inflated:annot=aparc \
+        #    -viewport 3D -ss $FIGS/aparc-$h-annot.png
+        python -m $SNAPSHOT --snapshot_name $parc-annot-$h surf_annot $SURF/$h.inflated $LABEL/$h.$parc.annot
 
+    done
 done
-
 

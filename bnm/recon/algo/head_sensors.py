@@ -7,6 +7,7 @@ import os
 import os.path
 import numpy as np
 from nibabel.freesurfer import read_geometry
+from bnm.recon.algo.geom import vertex_normals
 
 
 def mask_mesh(v, f, mask):
@@ -76,22 +77,6 @@ def xyz2rgb(vl):
     nvl = (vl - vl.min(axis=0))/vl.ptp(axis=0)
     vcrgb = np.c_[nvl, np.ones((nv, 1))]
     return vcrgb
-
-
-def vertex_normals(v, f):
-    vf = v[f]
-    fn = np.cross(vf[:,1] - vf[:, 0], vf[:, 2] - vf[:, 0])
-    vf = [set() for _ in range(len(v))]
-    for i, fi in enumerate(f):
-        for j in fi:
-            vf[j].add(i)
-    vn = np.zeros_like(v)
-    for i, fi in enumerate(vf):
-        fni = fn[list(fi)]
-        norm = fni.sum(axis=0)
-        norm /= np.sqrt((norm**2).sum())
-        vn[i] = norm
-    return vn
 
 
 def sens_xyz_ori(v, f, l):

@@ -3,7 +3,6 @@
 import os
 import pytest
 from bnm.recon.qc.image.processor import ImageProcessor
-from bnm.recon.qc.image.writer import ImageWriter
 from bnm.recon.qc.model.constants import SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME, SNAPSHOT_EXTENSION, AXIAL
 from bnm.tests.base import get_data_file
 
@@ -16,6 +15,7 @@ TEST_ANNOT_FOLDER = "label"
 TEST_T1 = "T1.nii.gz"
 TEST_BRAIN = "brain.nii.gz"
 TEST_SURF = "lh.pial"
+TEST_GIFTI_SURF = "lh.pial.gii"
 TEST_ANNOT = "lh.aparc.annot"
 
 
@@ -34,7 +34,7 @@ def teardown_module():
 def test_show_single_volume():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
-    processor.show_single_volume(volume_path)
+    processor.show_single_volume(volume_path, False)
     resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
     assert os.path.exists(processor.writer.get_path(resulted_file_name))
 
@@ -43,7 +43,7 @@ def test_overlap_2_volumes():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     background_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
     overlay_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_BRAIN)
-    processor.overlap_2_volumes(background_path, overlay_path)
+    processor.overlap_2_volumes(background_path, overlay_path, False)
     resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
     assert os.path.exists(processor.writer.get_path(resulted_file_name))
 
@@ -53,7 +53,7 @@ def test_overlap_3_volumes():
     background_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
     overlay1_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_BRAIN)
     overlay2_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_BRAIN)
-    processor.overlap_3_volumes(background_path, overlay1_path, overlay2_path)
+    processor.overlap_3_volumes(background_path, overlay1_path, overlay2_path, False)
     resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
     assert os.path.exists(processor.writer.get_path(resulted_file_name))
 
@@ -72,7 +72,7 @@ def test_overlap_volume_surface():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
     surface_path = get_data_file(TEST_SUBJECT, TEST_SURF_FOLDER, TEST_SURF)
-    processor.overlap_volume_surfaces(volume_path, [surface_path], False)
+    processor.overlap_volume_surfaces(volume_path, [surface_path], False, False)
     resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
     assert os.path.exists(processor.writer.get_path(resulted_file_name))
 
@@ -81,6 +81,14 @@ def test_overlap_volume_centered_surface():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
     surface_path = get_data_file(TEST_SUBJECT, TEST_SURF_FOLDER, TEST_SURF)
-    processor.overlap_volume_surfaces(volume_path, [surface_path], True)
+    processor.overlap_volume_surfaces(volume_path, [surface_path], True, False)
+    resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
+    assert os.path.exists(processor.writer.get_path(resulted_file_name))
+
+def test_overlap_volume_gifti_surface():
+    processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
+    volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
+    surface_path = get_data_file(TEST_SUBJECT_MODIF, TEST_SURF_FOLDER, TEST_GIFTI_SURF)
+    processor.overlap_volume_surfaces(volume_path, [surface_path], False, False)
     resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
     assert os.path.exists(processor.writer.get_path(resulted_file_name))

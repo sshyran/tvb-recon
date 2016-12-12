@@ -14,8 +14,9 @@ mrview ./5ttvis.mif
 #-mode 2 is the view
 mrview ./b0.nii.gz -overlay.load ./5ttvis.mif -overlay.opacity 0.3 -mode 2 &
 mrconvert ./5ttvis.mif ./5ttvis.nii.gz -force
+#ERROR!: freesurfer cannot read ./5ttvis.nii.gz
 #source snapshot.sh use_freeview 2vols ./b0.nii.gz ./5tt2vis.nii.gz
-python -m $SNAPSHOT --snapshot_name b0_5tt --ras_transform 2vols ./b0.nii.gz ./5tt2vis.nii.gz
+#python -m $SNAPSHOT --snapshot_name b0_5tt --ras_transform 2vols ./b0.nii.gz ./5tt2vis.nii.gz
 
 mrview ./t1-in-d.nii.gz -overlay.load ./gmwmi.mif -overlay.opacity 0.3 -mode 2 &
 mrconvert ./gmwmi.mif ./gmwmi.nii.gz -force

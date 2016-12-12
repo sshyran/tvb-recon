@@ -25,6 +25,7 @@ do
     time mris_decimate -d 0.1 ${surf} ${surf}-low
 done
 
+#Quality control:
 python<<EOF
 import os
 subj = os.environ['SUBJECT']
@@ -46,22 +47,20 @@ plotsurf('../surf/lh.pial.fsaverage5', color='r')
 app.exec_()
 EOF
 
-# inspect
-
+# Interactive
 freeview -v ../mri/T1.mgz -f watershed/*-low -viewport coronal
 
 # convert them to BrainVisa format
 for surf in *_surface-low
 do
     python<<EOF
-import utils
-utils.convert_fs_to_brain_visa("$surf")
+import bnm.recon.io.surf
+bnm.recon.io.surf.convert_fs_to_brain_visa("$surf")
 EOF
 done
 
 # build head matrix
-
-python -c "import utils; utils.gen_head_model()"
+python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.gen_head_model()"
 
 #pushd ${SUBJECTS_DIR}/${SUBJECT}/bem
 om_assemble -HM head_model.geom head_model.cond head.mat # 2m32s
@@ -71,11 +70,11 @@ om_minverser head.mat head-inv.mat # 3m30s
 # convert cortical surfaces format
 for h in rh lh; do
     cp ../surf/$h.pial.fsaverage5 ./cortical-$h
-    python -c "import utils; utils.convert_fs_to_brain_visa('cortical-$h')"
+    python -c "import bnm.recon.io.surf; bnm.recon.io.surf.convert_fs_to_brain_visa('cortical-$h')"
 done
 
 # make source model for subcortical NOT DONE YET
-python -c "import utils; utils.gen_subcort_sources()"
+python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.gen_subcort_sources()"
 om_assemble -DipSourceMat head_model.{geom,cond} $subcortical.{dip,dsm}
 # XXX consider using fiber orientation as proxy for source orientation
 
@@ -100,6 +99,7 @@ do
         seeg.h2ipm seeg-$h.ds2ipm seeg-$h.gain.mat
 done
 
+#Quality control, snapshot
 # plot gain matrix
 python<<EOF
 import h5py, pylab as pl, numpy as np
@@ -122,7 +122,7 @@ done
 
 
 #          ctx-lh   ctx-rh   subcort
-#           
+#
 #  SEEG
 #  EEG
 #  MEG

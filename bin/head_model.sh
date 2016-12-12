@@ -29,6 +29,7 @@ done
 python<<EOF
 import os
 subj = os.environ['SUBJECT']
+TRGSUBJECT = os.environ['TRGSUBJECT']
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import nibabel.freesurfer
@@ -43,23 +44,23 @@ def plotsurf(fname, **kwds):
 bem_templ = './watershed/{subj}_{surf}_surface-low'
 for surf in 'brain inner_skull outer_skull outer_skin'.split():
     plotsurf(bem_templ.format(subj=subj, surf=surf))
-plotsurf('../surf/lh.pial.fsaverage5', color='r')
+plotsurf('../surf/lh.pial-'+TRGSUBJECT, color='r')
 app.exec_()
 EOF
 
 # Visual check
 #freeview -v $MRI/T1.mgz -f ./watershed/*_surface-low -viewport coronal -screenshot $FIGS/bem_surfs_low.png
-source snapshot.sh use_freeview vol_surf $MRI/T1.nii.gz ./watershed/*_surface-low.gii
+python -m $SNAPSHOT --center_surface --snapshot_name watershed_lowsurf_t1 vol_surf $MRI/T1.nii.gz ./watershed/*_surface-low
 
 
 # convert surfaces to BrainVisa format
 for surf in ./watershed/*_surface-low
 do
-    python -c "import reconutils; reconutils.convert_fs_to_brain_visa('$surf')"
+    python -c "import bnm.recon.io.surf; bnm.recon.io.surf.convert_fs_to_brain_visa('$surf')"
 done
 
 # build head matrix
-python -c "import reconutils; reconutils.gen_head_model()"
+python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.gen_head_model()"
 
 om_assemble -HM ./head_model.geom ./head_model.cond ./head.mat # 2m32s
 om_minverser ./head.mat ./head-inv.mat # 3m30s

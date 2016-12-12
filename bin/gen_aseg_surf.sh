@@ -37,11 +37,12 @@ done
 for h in lh rh
 do
     aseglist=ASEG_LIST_$h
-    python -c "import reconutils; reconutils.aseg_surf_conc_annot('$ASEG_SURFS/aseg','$SURF/$h.aseg','$LABEL/$h.aseg.annot','${!aseglist}',lut_path='$FREESURFER_HOME/FreeSurferColorLUT.txt')"
+    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.aseg_surf_conc_annot('$ASEG_SURFS/aseg','$SURF/$h.aseg','$LABEL/$h.aseg.annot','${!aseglist}',lut_path='$FREESURFER_HOME/FreeSurferColorLUT.txt')"
 done
 
 
 #Snapshot for aseg surfs and annot:
+python -m $SNAPSHOT --center_surface --snapshot_name aseg_t1_$TRGSUBJECT vol_surf $MRI/T1.nii.gz $SURF/{lh,rh}.aseg
 for h in lh rh
 do
     #freeview -f $SURF/$h.aseg:annot=aseg \

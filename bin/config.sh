@@ -167,19 +167,6 @@ DEFAULT_APARC="aparc"
 export DEFAULT_APARC
 echo DEFAULT_APARC=$DEFAULT_APARC
 
-#Sub-parcellation area in mm2
-SUBAPARC_AREA=100
-export SUBAPARC_AREA
-echo SUBAPARC_AREA=$SUBAPARC_AREA
-
-#Sub-parcellations
-for area in $SUBAPARC_AREA
-do
-    SUBPARCS="aparc$area"
-done
-export SUBPARCS
-echo SUBPARCS=$SUBPARCS
-
 
 #TRANSFORMS:
 
@@ -209,6 +196,19 @@ export T1_VOX2RASTKR_PATH
 echo T1_VOX2RASTKR_PATH=$T1_VOX2RASTKR_PATH
 
 #SEGMENTATION:
+
+#Sub-parcellation area in mm2
+SUBAPARC_AREA=100
+export SUBAPARC_AREA
+echo SUBAPARC_AREA=$SUBAPARC_AREA
+
+#Sub-parcellations
+for area in $SUBAPARC_AREA
+do
+SUBPARCS="aparc$area"
+done
+export SUBPARCS
+echo SUBPARCS=$SUBPARCS
 
 #Sub-segmentations
 VOLS="aparc+aseg"
@@ -259,6 +259,11 @@ then
     echo GWI_THR=$GWI_THR
 fi
 
+#Set yes for sampling of the border/surface voxels of the regions only.
+APARC_SURF=no
+export APARC_SURF
+echo APARC_SURF=$APARC_SURF
+
 #number of tdi voxel neighbors to be considered during masking
 VOL_VN=1
 export VOL_VN
@@ -291,11 +296,17 @@ echo SUBAPARC_MODE=$SUBAPARC_MODE
 
 #DOWNSAMPLING:
 
+#Decimating factor:
+DECIM_FACTOR=0.1
+export DECIM_FACTOR
+echo DECIM_FACTOR=$DECIM_FACTOR
+
 #Target subject for surface downsampling:
 TRGSUBJECT=fsaverage5
+#Custom, using mris_decimate:
+#TRGSUBJECT=$SUBJECT-RESAMP_$DECIM_FACTOR
 export TRGSUBJECT
 echo TRGSUBJECT=$TRGSUBJECT
-
 
 #TRACTOGRAPHY:
 
@@ -364,8 +375,8 @@ export VOX
 echo VOX=$VOX
 
 #fs_default.txt location
-#FS_DEFAULT=/Users/dionperd/VirtualVEP/software/mrtrix3/src/connectome/tables/fs_default.txt
-FS_DEFAULT=/Users/dionperd/CBR/software/git/mrtrix3/src/connectome/tables/fs_default.txt
+FS_DEFAULT=/Users/dionperd/VirtualVEP/software/mrtrix3/src/connectome/tables/fs_default.txt
+#FS_DEFAULT=/Users/dionperd/CBR/software/git/mrtrix3/src/connectome/tables/fs_default.txt
 export FS_DEFAULT
 echo FS_DEFAULT=$FS_DEFAULT
 
