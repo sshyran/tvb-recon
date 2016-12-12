@@ -15,12 +15,12 @@ class SurfaceService(object):
     def __init__(self):
         self.annotationService = AnnotationService()
 
-    def read_surf(hemi, name):
+    def read_surf(self,hemi, name):
         surf_fname = '%s.%s' % (hemi, name)
         surf_path = os.path.join(os.environ['SUBJECTS_DIR'], os.environ['SUBJECT'], 'surf', surf_fname)
         return read_geometry(surf_path)
 
-    def tri_area(tri):
+    def tri_area(self,tri):
         i, j, k = numpy.transpose(tri, (1, 0, 2))
         ij = j - i
         ik = k - i

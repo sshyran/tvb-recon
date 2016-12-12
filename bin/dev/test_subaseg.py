@@ -27,21 +27,22 @@ import numpy as np
 #                                  CRAS_PATH,ctx=None,
 #                                  vn=int(SURF_VN),add_lbl=[])
 
-#SUBAPARC_MODE="con+adj"
-SUBAPARC_MODE="geod"
+SUBAPARC_MODE="con+adj"
+#SUBAPARC_MODE="geod"
 
 ref_vol_path=SEGMENT+'/tdi_lbl-v'+VOX+'-in-t1.nii.gz'
 consim_path=SEGMENT+'/consim-vol-counts'+STRMLNS_SIFT_NO+'-v'+VOX+'.npy'
-labels=dict()
-labels['lh']="1001 1007 1008 1009 1015 1030"
-labels['rh']="2030"
+#labels=dict()
+#labels['lh']="1001 1007 1008 1009 1015 1030"
+#labels['rh']="2030"
 for h in ['lh', 'rh']:
+#h='lh'
     bnm.recon.algo.reconutils.connectivity_geodesic_subparc(SURF+'/'+h+'.white',
                                              LABEL+'/'+h+'.aparc.annot',
                                              SEGMENT+'/'+h+'.white-mask-idx.npy', 
                                              out_annot_path=LABEL+'/'+h+'.aparc'+SUBAPARC_AREA+'-'+SUBAPARC_MODE+'.annot',
                                              parc_area=int(SUBAPARC_AREA), 
-                                             labels=labels[h], hemi=None, ctx=h, 
+                                             labels=None, hemi=h, ctx=h,  #labels=labels[h], hemi=None, ctx=h, 
                                              mode=SUBAPARC_MODE, 
                                              cras_path=CRAS_PATH, 
                                              ref_vol_path=ref_vol_path, 

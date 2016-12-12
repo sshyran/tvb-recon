@@ -60,7 +60,7 @@ class AnnotationService(object):
         return (labels, names, colors)
 
     # TODO where to put this
-    def rgb_to_fs_magic_number(rgb):
+    def rgb_to_fs_magic_number(self,rgb):
         return rgb[0] + 256 * rgb[1] + 256 * 256 * rgb[2]
 
     def annot_to_lut(self, hemi, annot_name, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
