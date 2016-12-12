@@ -18,6 +18,13 @@ class Volume(object):
         self.dimensions = data.shape  # array with the length of each data dimension
         self.affine_matrix = affine_matrix  # matrix containing voxel to ras transformation
 
+    def get_center_point(self):
+        a = numpy.array(self.affine_matrix)
+        b = numpy.array(list(numpy.divide(self.dimensions, 2)) + [1])
+        ras_vector = a.dot(b)
+
+        return ras_vector[:3]
+
     def slice_volume(self, projection=SAGITTAL, ras=ORIGIN):
         """
         This determines slice colors and axes coordinates for the slice.
