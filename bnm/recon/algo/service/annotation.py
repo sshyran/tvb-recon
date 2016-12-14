@@ -17,9 +17,6 @@ class AnnotationService(object):
         annot_path = os.path.join(os.environ['SUBJECTS_DIR'], os.environ['SUBJECT'], 'label', annot_fname)
         return annot_path
 
-    def write_annot(self, hemi, annot_name, labels, ctab, names):
-        return write_annot(self.annot_path(hemi, annot_name), labels, ctab, names)
-
     def read_lut(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt'), key_mode='label'):
         f = open(lut_path, "r")
         l = list(f)
