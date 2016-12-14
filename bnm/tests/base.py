@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import os
+import glob
 
 
 temporary_folder = 'data/temp'
-created_test_files = []
 
 def get_data_file(*args):
     file_path = os.path.join('data', *args)
@@ -19,11 +19,10 @@ def get_temporary_files_path(*args):
         os.makedirs(temporary_folder)
 
     file_path = os.path.join(temporary_folder, *args)
-    created_test_files.append(file_path)
-
     return file_path
 
 def remove_temporary_test_files():
-    for created_test_file in created_test_files:
-        os.remove(created_test_file)
+    files = glob.glob('data/temp/*')
+    for f in files:
+        os.remove(f)
     os.rmdir(temporary_folder)
