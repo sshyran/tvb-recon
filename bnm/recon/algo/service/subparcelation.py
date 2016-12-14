@@ -4,8 +4,9 @@ import os
 import numpy
 import nibabel
 import scipy
-from scipy.spatial.distance import cdist
-from sklearn.cluster import AgglomerativeClustering
+from scipy.spatial.distance import cdist, squareform
+#from sklearn.cluster import AgglomerativeClustering
+from scipy.cluster import hierarchy
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse.csgraph import shortest_path
 from nibabel.freesurfer.io import read_geometry, read_annot, write_annot
@@ -101,7 +102,7 @@ class SubparcellationService(object):
         (labels, nLbl) = self.annotationService.read_input_labels(labels=labels, hemi=hemi)
         if "con" in mode:
             # Load voxel connectivity similarity matrix:
-            con = numpy.load(consim_path)
+            con = numpy.load(consim_path).astype('single')
             # Read the cras:
             cras = numpy.loadtxt(cras_path)
             # Read the DTI to T1 transform:
@@ -147,7 +148,7 @@ class SubparcellationService(object):
                 # Get the vertices and faces of this label !in tk ras coordinates!:
             (verts_lbl, faces_lbl) = self.surfaceService.extract_subsurf(verts, faces, iVmask)
             # Compute distances among directly connected vertices
-            dist = self.surfaceService.vertex_connectivity(verts_lbl, faces_lbl, mode="sparse", metric='euclidean')
+            dist = self.surfaceService.vertex_connectivity(verts_lbl, faces_lbl, mode="sparse", metric='euclidean').astype('single')
             if "con" in mode:
                 # Mask of label vertices that are neighbors of tract end voxels ("con"):
                 iV_con = numpy.in1d(iV, con_verts_idx)
@@ -177,10 +178,10 @@ class SubparcellationService(object):
                 continue
             print "Compute geodesic distance matrix"
             geodist = shortest_path(dist.todense(), method='auto', directed=False, return_predecessors=False,
-                                    unweighted=False, overwrite=False)
+                                    unweighted=False, overwrite=False).astype('single')
             print "Compute structural connectivity constraint matrix"
-            connectivity = dist[iV_con, :][:, iV_con]
-            connectivity.data = numpy.ones(connectivity.data.shape)
+            connectivity = dist[iV_con, :][:, iV_con].astype('single')
+            connectivity.data = numpy.ones(connectivity.data.shape).astype('single')
             # Check how many connected components there are, and remove all of those with less than 1% of the vertices,
             # by moving them to the noncon group
             (n_components, concomp_labels) = connected_components(connectivity, directed=False, connection='weak',
@@ -197,7 +198,8 @@ class SubparcellationService(object):
                 nVcon = numpy.sum(iV_con)
                 # Update connectivity matrix after correction if needed:
                 # if "adj" in mode:
-                connectivity = dist[iV_con, :][:, iV_con]
+                connectivity = dist[iV_con, :][:, iV_con].astype('single')
+                connectivity.data = numpy.ones(connectivity.data.shape).astype('single')
                 (n_components, concomp_labels) = connected_components(connectivity, directed=False, connection='weak',
                                                                       return_labels=True)
                 h, _ = numpy.histogram(concomp_labels, numpy.array(range(n_components + 1)) - 0.5)
@@ -222,11 +224,14 @@ class SubparcellationService(object):
                 v2n = vox[v2n]
                 print "...whereby vertices correspond to " + str(numpy.size(numpy.unique(v2n))) + " distinct voxel nodes"
                 # ... convert connectivity similarity to a distance matrix
-                affinity = 1 - con[v2n - 1, :][:, v2n - 1]
+                #affinity = 1 - con[v2n - 1, :][:, v2n - 1]
+                affinity = numpy.arccos(con[v2n - 1, :][:, v2n - 1])
+                #Normalize:
+                affinity /=numpy.max(affinity).astype('single')
                 del v2n
             else:
                 # Initialize affinity matrix with zeros
-                affinity = numpy.zeros((nVcon, nVcon))
+                affinity = numpy.zeros((nVcon, nVcon)).astype('single')
                 # Treat the indexes of non-"con" vertices:
             iV_noncon = ~iV_con
             iV_con, = numpy.where(iV_con)
@@ -248,24 +253,37 @@ class SubparcellationService(object):
                 print "Computing geodesic similarity affinity matrix"
                 geodist = geodist[iV_con, :][:, iV_con]
                 # Find the maximum non infite geodesic distance:
-                temp_ind = numpy.isfinite(geodist)
-                max_gdist = numpy.max(geodist[temp_ind], axis=None)
-                # Set inf values to maximum distance
-                geodist[~temp_ind] = max_gdist
+                max_gdist = numpy.max(geodist, axis=None)
+                if ~numpy.isfinite(max_gdist):
+                    print "Non-finite geodesic distance detected. Evidence for non-connected surface."
+                    return
                 # Convert them to normalized distances
                 geodist = geodist / max_gdist
                 # ...and add them to the affinity metric
                 affinity += geodist
-                del geodist, temp_ind
+            del geodist   
             print "Run clustering"
-            model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed", connectivity=connectivity,
-                                            linkage='average')
-            model.fit(affinity)
-            h, _ = numpy.histogram(model.labels_, numpy.array(range(nParcs + 1)) - 0.5)
+            #scikit learn algorithm:
+            #model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed", 
+            #                                connectivity=connectivity, linkage='average')
+            #model.fit(affinity)
+            #clusters=model.labels_
+            #scipy algorithm:
+            numpy.fill_diagonal(affinity,0.0)
+            affinity=squareform(affinity).astype('single')
+            #affinity[affinity==0.0]=0.001
+            Z=hierarchy.ward(affinity)
+            try:
+                clusters=hierarchy.fcluster(Z,nParcs,criterion='maxclust')-1
+            except:
+                print "Shit!"
+                return
+            clusters_labels=numpy.unique(clusters)
+            h, _ = numpy.histogram(clusters, numpy.array(clusters_labels) - 0.5)
             print str(nParcs) + ' parcels with ' + str(h) + ' "connectome" vertices each'
             print "Generate new annotations"
             # Create the new annotation for these sub-labels:
-            resLbl = [names[iL] + "-" + str(item).zfill(2) for item in numpy.unique(model.labels_)]
+            resLbl = [names[iL] + "-" + str(item).zfill(2) for item in clusters_labels]
             # Add the new label names
             out_names.append(resLbl)
             # Initialize ctab for these labels
@@ -285,14 +303,15 @@ class SubparcellationService(object):
             out_ctab.append(ctab_lbl)
             # Finally change the output indices
             # of the "con" vertices...
-            out_lab[iV[iV_con]] = nL + model.labels_
+            out_lab[iV[iV_con]] = nL + clusters
             # and of the "non-con" vertices that follow their nearest con neighbor
             if numpy.any(iV_noncon):
                 out_lab[iV[iV_noncon]] = out_lab[noncon2con]
             temp_lbls = numpy.unique(out_lab[iV[iV_con]])
             h, hc = numpy.histogram(out_lab[iV[iV_con]], numpy.array(numpy.r_[temp_lbls, temp_lbls[-1] + 1]) - 0.5)
+            #+ str(int(hc[iP] + 0.5))             
             for iP in range(nParcs):
-                print 'parcel ' + str(int(hc[iP] + 0.5)) + 'with ' + str(h[iP]) + ' total vertices'
+                print 'parcel '+resLbl[iP]+ 'with ' + str(h[iP]) + ' total vertices'
             nL += nParcs
         print "Write output annotation file"
         # Stack everything together
