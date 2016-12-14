@@ -17,10 +17,6 @@ class AnnotationService(object):
         annot_path = os.path.join(os.environ['SUBJECTS_DIR'], os.environ['SUBJECT'], 'label', annot_fname)
         return annot_path
 
-    #TODO use this from qc.parser?
-    def read_annot(self, hemi, annot_name):
-        return read_annot(self.annot_path(hemi, annot_name))
-
     def write_annot(self, hemi, annot_name, labels, ctab, names):
         return write_annot(self.annot_path(hemi, annot_name), labels, ctab, names)
 
@@ -59,12 +55,11 @@ class AnnotationService(object):
                     pass
         return (labels, names, colors)
 
-    # TODO where to put this
     def rgb_to_fs_magic_number(self,rgb):
         return rgb[0] + 256 * rgb[1] + 256 * 256 * rgb[2]
 
-    def annot_to_lut(self, hemi, annot_name, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
-        _, ctab, names = self.read_annot(hemi, annot_name)
+    def annot_to_lut(self, annot_path, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
+        _, ctab, names = read_annot(annot_path)
         with open(lut_path, 'w') as fd:
             for name, (r, g, b, a, id) in zip(names, ctab):
                 fd.write('%d\t%s\t%d %d %d %d\n' % (id, name, r, g, b, a))
@@ -99,7 +94,7 @@ class AnnotationService(object):
         return labels
 
     def annot_to_conn_conf(self, hemi, annot_name, conn_conf_path):
-        _, _, names = self.read_annot(hemi, annot_name)
+        _, _, names = read_annot(self.annot_path(hemi, annot_name))
         with open(conn_conf_path, 'w') as fd:
             for id, name in enumerate(names):
                 fd.write('%d\t%s\n' % (id, name))
