@@ -81,7 +81,7 @@ class SubparcellationService(object):
         v, f = self.surfaceService.read_surf(hemi, 'sphere')
         lab, ctab, names = read_annot(hemi, parc_name)
         new_lab, new_ctab, new_names = self.make_subparc(v, f, lab, names, ctab, trg_area=trg_area)
-        write_annot(hemi, out_parc_name, new_lab, new_ctab, new_names)
+        write_annot(self.annotationService.annot_path(hemi, out_parc_name), new_lab, new_ctab, new_names)
 
         # d2t=None,
     def connectivity_geodesic_subparc(self, surf_path, annot_path, con_verts_idx, out_annot_path=None,
