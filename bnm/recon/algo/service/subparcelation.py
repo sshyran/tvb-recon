@@ -274,6 +274,17 @@ class SubparcellationService(object):
                                                 connectivity=connectivity, linkage='average')
                 model.fit(affinity)
                 clusters=model.labels_
+                	
+                 #You can also do 
+                 #children to get an (nVcon,2) array of all nodes with their children
+                 #or
+                 #tree=dict(enumerate(model.children_, model.n_leaves_)), 
+                 #which will give you a dictionary where the each key is the 
+                 #ID of a node and the value is the pair of IDs of its children.
+                 #or to get a list:
+                 #import itertools
+                 #ii = itertools.count(nVcon)
+                 #tree=[{'node_id': next(ii), 'left': x[0], 'right':x[1]} for x in model.children_]
             else:
                 #scipy algorithm:
                 numpy.fill_diagonal(affinity,0.0)
