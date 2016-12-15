@@ -3,7 +3,6 @@
 import os
 import numpy
 from collections import OrderedDict
-from nibabel.freesurfer import read_annot, write_annot
 from bnm.recon.qc.parser.annotation import AnnotationParser
 
 
@@ -56,9 +55,9 @@ class AnnotationService(object):
         return rgb[0] + 256 * rgb[1] + 256 * 256 * rgb[2]
 
     def annot_to_lut(self, annot_path, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
-        _, ctab, names = read_annot(annot_path)
+        annotation = self.annotationParser.parse(annot_path)
         with open(lut_path, 'w') as fd:
-            for name, (r, g, b, a, id) in zip(names, ctab):
+            for name, (r, g, b, a, id) in zip(annotation.region_names, annotation.regions_color_table):
                 fd.write('%d\t%s\t%d %d %d %d\n' % (id, name, r, g, b, a))
 
     def lut_to_annot_names_ctab(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt'), labels=None):
@@ -90,10 +89,10 @@ class AnnotationService(object):
             labels.append(labels_dict[ctx + name])
         return labels
 
-    def annot_to_conn_conf(self, hemi, annot_name, conn_conf_path):
-        _, _, names = read_annot(self.annot_path(hemi, annot_name))
+    def annot_to_conn_conf(self, annot_path, conn_conf_path):
+        annotation = self.annotationParser.parse(annot_path)
         with open(conn_conf_path, 'w') as fd:
-            for id, name in enumerate(names):
+            for id, name in enumerate(annotation.region_names):
                 fd.write('%d\t%s\n' % (id, name))
 
     def read_input_labels(self, labels=None, hemi=None):
