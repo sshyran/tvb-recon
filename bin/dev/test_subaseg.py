@@ -27,7 +27,7 @@ import numpy as np
 #                                  CRAS_PATH,ctx=None,
 #                                  vn=int(SURF_VN),add_lbl=[])
 
-SUBAPARC_MODE="con+geod"
+SUBAPARC_MODE="con+geod+adj"
 #SUBAPARC_MODE="geod"
 
 ref_vol_path=SEGMENT+'/tdi_lbl-v'+VOX+'-in-t1.nii.gz'

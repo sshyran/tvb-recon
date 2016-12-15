@@ -5,7 +5,7 @@ import numpy
 import nibabel
 import scipy
 from scipy.spatial.distance import cdist, squareform
-#from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import AgglomerativeClustering
 from scipy.cluster import hierarchy
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse.csgraph import shortest_path
@@ -263,21 +263,28 @@ class SubparcellationService(object):
                 affinity += geodist
             del geodist   
             print "Run clustering"
+            algo="scikit" #or "scipy"
+            #TODO: probably we either need or own classification algorithm, or
+            #an algorithm for going through the tree returned by scikit and, 
+            #re-mering/splitting until we creat clusters within some min-max limits of
+            #either number of vertices or total surface area...
+            if algo == "scikit":
             #scikit learn algorithm:
-            #model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed", 
-            #                                connectivity=connectivity, linkage='average')
-            #model.fit(affinity)
-            #clusters=model.labels_
-            #scipy algorithm:
-            numpy.fill_diagonal(affinity,0.0)
-            affinity=squareform(affinity).astype('single')
-            #affinity[affinity==0.0]=0.001
-            Z=hierarchy.ward(affinity)
-            try:
-                clusters=hierarchy.fcluster(Z,nParcs,criterion='maxclust')-1
-            except:
-                print "Shit!"
-                return
+                model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed", 
+                                                connectivity=connectivity, linkage='average')
+                model.fit(affinity)
+                clusters=model.labels_
+            else:
+                #scipy algorithm:
+                numpy.fill_diagonal(affinity,0.0)
+                affinity=squareform(affinity).astype('single')
+                #affinity[affinity==0.0]=0.001
+                Z=hierarchy.ward(affinity)
+                try:
+                    clusters=hierarchy.fcluster(Z,nParcs,criterion='maxclust')-1
+                except:
+                    print "Shit!"
+                    return
             clusters_labels=numpy.unique(clusters)
             h, _ = numpy.histogram(clusters, numpy.array(clusters_labels) - 0.5)
             print str(nParcs) + ' parcels with ' + str(h) + ' "connectome" vertices each'
