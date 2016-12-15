@@ -20,7 +20,7 @@ class SurfaceService(object):
         surf_path = os.path.join(os.environ['SUBJECTS_DIR'], os.environ['SUBJECT'], 'surf', surf_fname)
         return read_geometry(surf_path)
 
-    def tri_area(self,tri):
+    def tri_area(self, tri):
         i, j, k = numpy.transpose(tri, (1, 0, 2))
         ij = j - i
         ik = k - i
@@ -50,58 +50,44 @@ class SurfaceService(object):
                 faces_out[iF, iV], = numpy.where(faces_out[iF, iV] == verts_out_inds)
         return (verts_out, faces_out)
 
-    def extract_mri_vol2subsurf(self, surf_path, annot_path, vol2surf_path, out_surf_path=None, out_annot_path=None,
-                                ctx=None, labels=None,
-                                lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
-        (verts, faces, volume_info) = read_geometry(surf_path, read_metadata=True)
-        vol2surf = nibabel.load(vol2surf_path)
-        vol2surf = numpy.round(numpy.squeeze(vol2surf.get_data())).astype('i')
-        lab, ctab, names = read_annot(annot_path)
-        if labels is None:
-            labels = numpy.array(self.annotationService.annot_names_to_labels(names, ctx=ctx, lut_path=lut_path))
-        else:
-            labels = numpy.array(labels.split()).astype('i')
-        verts_mask = (v2s in labels for v2s in vol2surf)
-        (verts_out, faces_out) = self.extract_subsurf(verts, faces, verts_mask)
-        if os.path.exists(str(out_surf_path)):
-            read_geometry(out_surf_path, verts_out, faces_out, volume_info=volume_info)
-        if os.path.exists(str(out_annot_path)):
-            lab = lab[verts_mask]
-            write_annot(out_annot_path, lab, ctab, names)
-        return (verts_out, faces_out)
-
     # Concatenate surfaces of specific labels to create a single annotated surface
-    def aseg_surf_conc_annot(self, surf_path, out_surf_path, annot_path, labels,
+    def aseg_surf_conc_annot(self, surf_path, out_surf_path, annot_path, label_indices,
                              lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
-        names, ctab = self.annotationService.lut_to_annot_names_ctab(lut_path=lut_path, labels=labels)
-        labels = numpy.array(labels.split()).astype('i')
+
+        label_names, color_table = self.annotationService.lut_to_annot_names_ctab(lut_path=lut_path, labels=label_indices)
+        label_indices = numpy.array(label_indices.split()).astype('i')
+
         out_verts = []
         out_faces = []
-        lab = []
-        iL = -1
-        nVerts = 0
-        names_out = []
-        ctab_out = []
-        for lbl in labels:
+        out_labels = []
+        out_names = []
+        out_color_table = []
+        label_index = -1
+        verts_number = 0
+
+        for lbl in label_indices:
             l = int(lbl)
             this_surf_path = (surf_path + "-%06d" % (l))
+
             if os.path.exists(this_surf_path):
-                indL, = numpy.where(labels == lbl)
-                names_out.append(names[indL])
-                ctab_out.append(ctab[indL, :])
-                iL += 1
+                indL, = numpy.where(label_indices == lbl)
+                out_names.append(label_names[indL])
+                out_color_table.append(color_table[indL, :])
+                label_index += 1
                 (verts, faces, volume_info) = read_geometry(this_surf_path, read_metadata=True)
-                faces = faces + nVerts  # Update vertices indexes
-                nVerts += verts.shape[0]
+                faces = faces + verts_number  # Update vertices indexes
+                verts_number += verts.shape[0]
                 out_verts.append(verts)
                 out_faces.append(faces)
-                lab.append(iL * numpy.ones((verts.shape[0],), dtype='int64'))
-        ctab_out = numpy.squeeze(numpy.array(ctab_out).astype('i'))
+                out_labels.append(label_index * numpy.ones((verts.shape[0],), dtype='int64'))
+
+        out_color_table = numpy.squeeze(numpy.array(out_color_table).astype('i'))
         out_verts = numpy.vstack(out_verts)
         out_faces = numpy.vstack(out_faces)
-        lab = numpy.hstack(lab)
+        out_labels = numpy.hstack(out_labels)
+
         write_geometry(out_surf_path, out_verts, out_faces, create_stamp=None, volume_info=volume_info)
-        write_annot(annot_path, lab, ctab_out, names_out)
+        write_annot(annot_path, out_labels, out_color_table, out_names)
 
     # It returns a sparse matrix of the connectivity among the vertices of a surface
     # mode: "sparse" (default) or "2D"
