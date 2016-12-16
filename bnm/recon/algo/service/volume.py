@@ -3,11 +3,16 @@
 import os
 import nibabel
 import numpy
+import scipy.ndimage
+from scipy.spatial.distance import pdist, squareform
 from bnm.recon.algo.service.annotation import AnnotationService
+from bnm.recon.qc.parser.volume import VolumeIO
+
 
 class VolumeService(object):
     def __init__(self):
         self.annotationservice = AnnotationService()
+        self.volumeParser = VolumeIO()
 
     # Separate the voxels of the outer surface of a structure, from the inner ones
     # Default behavior: surface voxels retain their label, inner voxels get the label 0,
@@ -40,16 +45,15 @@ class VolumeService(object):
             return
         else:
             labels_inner = labels_inner.tolist()
+
         # Read the input volume...
-        volume = nibabel.load(in_vol_path)
-        # ...and get its data
-        vol = volume.get_data()
-        vol_shape = vol.shape
+        volume = self.volumeParser.read(in_vol_path)
+
         # Neigbors' grid sharing a face
         borderGrid = numpy.c_[numpy.identity(3), -numpy.identity(3)].T.astype('i')
         nBorder = 6
         # Initialize output volume array
-        out_vol = numpy.array(vol)
+        out_vol = numpy.array(volume.data)
         # Initialize output indexes
         out_ijk = []
         # For each target label:
@@ -57,7 +61,7 @@ class VolumeService(object):
             # this label
             lbl = labels[iL]
             # Get the indexes of all voxels of this label:
-            ii, jj, kk = numpy.where(vol == lbl)
+            ii, jj, kk = numpy.where(volume.data == lbl)
             # and for each voxel
             for iV in range(ii.size):
                 # indexes of this voxel:
@@ -65,14 +69,14 @@ class VolumeService(object):
                 # Create the neighbors' grid sharing a face
                 ijk_grid = borderGrid + numpy.tile(numpy.array([i, j, k]), (nBorder, 1))
                 # Remove voxels outside the image
-                inds_inside_image = numpy.all([(ijk_grid[:, 0] >= 0), (ijk_grid[:, 0] < vol_shape[0]),
-                                               (ijk_grid[:, 1] >= 0), (ijk_grid[:, 1] < vol_shape[1]),
-                                               (ijk_grid[:, 2] >= 0), (ijk_grid[:, 2] < vol_shape[2])],
+                inds_inside_image = numpy.all([(ijk_grid[:, 0] >= 0), (ijk_grid[:, 0] < volume.dimensions[0]),
+                                               (ijk_grid[:, 1] >= 0), (ijk_grid[:, 1] < volume.dimensions[1]),
+                                               (ijk_grid[:, 2] >= 0), (ijk_grid[:, 2] < volume.dimensions[2])],
                                               axis=0)
                 ijk_grid = ijk_grid[inds_inside_image, :]
                 try:
                     # If all face neighbors are of the same label...
-                    if numpy.all(vol[ijk_grid[:, 0], ijk_grid[:, 1], ijk_grid[:, 2]] == numpy.tile(vol[i, j, k],
+                    if numpy.all(volume.data[ijk_grid[:, 0], ijk_grid[:, 1], ijk_grid[:, 2]] == numpy.tile(volume.data[i, j, k],
                                                                                                    (nBorder, 1))):
                         # ...set this voxel to the corresponding inner target label
                         out_vol[i, j, k] = labels_inner[iL]
@@ -131,18 +135,13 @@ class VolumeService(object):
         else:
             labels_nomask = labels_nomask.tolist()
         # Read the target volume...
-        volume = nibabel.load(in_vol_path)
-        # ...and get its data
-        vol = volume.get_data()
-        # ...and its affine transform
-        # ijk2xyz_vol = volume.affine
+        volume = self.volumeParser.read(in_vol_path)
+
         # Read the mask volume...
-        mask_vol = nibabel.load(mask_vol_path)
-        # ...and get its data
-        mask = mask_vol.get_data()
-        mask_shape = mask.shape
+        mask_vol = self.volumeParser.read(mask_vol_path)
         # ...and invert its affine transform
-        # xyz2ijk_mask = numpy.linalg.inv(mask_vol.affine)
+        # xyz2ijk_mask = numpy.linalg.inv(mask_vol.affine_matrix)
+
         # Finally compute the transform from vol ijk to mask ijk:
         ijk2ijk = numpy.identity(4)
         # If vol and mask are not in the same space:
@@ -150,21 +149,21 @@ class VolumeService(object):
             # read the xyz2xyz transform...
             xyz2xyz = numpy.loadtxt(vol2mask_path)
             # ...and apply it to the inverse mask affine transform to get an ijk2ijk transform:
-            ijk2ijk = volume.affine.dot(numpy.dot(xyz2xyz, numpy.linalg.inv(mask_vol.affine)))
+            ijk2ijk = volume.affine_matrix.dot(numpy.dot(xyz2xyz, numpy.linalg.inv(mask_vol.affine)))
         # Construct a grid template of voxels +/- vn voxels around each ijk voxel,
         # sharing at least a corner
         grid = numpy.meshgrid(range(-vn, vn + 1, 1), range(-vn, vn + 1, 1), range(-vn, vn + 1, 1), indexing='ij')
         grid = numpy.c_[numpy.array(grid[0]).flatten(), numpy.array(grid[1]).flatten(), numpy.array(grid[2]).flatten()]
         nGrid = grid.shape[0]
         # Initialize the output volume
-        out_vol = numpy.array(vol)
+        out_vol = numpy.array(volume.data)
         # Initialize output indexes
         out_ijk = []
         # For each target label:
         for iL in range(nLbl):
             lbl = labels[iL]
             # Get the indexes of all voxels of this label:
-            ii, jj, kk = numpy.where(vol == lbl)
+            ii, jj, kk = numpy.where(volume.data == lbl)
             # and for each voxel
             for iV in range(ii.size):
                 # indexes of this voxel:
@@ -181,10 +180,10 @@ class VolumeService(object):
                 for cc in range(3):
                     if ijk[cc] < 0:
                         ijk[cc] = 0
-                    elif ijk[cc] >= mask_shape[cc]:
-                        ijk[cc] = mask_shape[cc] - 1
+                    elif ijk[cc] >= mask_vol.dimensions[cc]:
+                        ijk[cc] = mask_vol.dimensions[cc] - 1
                 # If this is a voxel to keep, set it so...
-                if (mask[ijk[0], ijk[1], ijk[2]] >= th):
+                if (mask_vol.data[ijk[0], ijk[1], ijk[2]] >= th):
                     out_vol[i, j, k] = labels_mask[iL]
                     out_ijk.append([i, j, k])
                 elif vn > 0:
@@ -193,14 +192,14 @@ class VolumeService(object):
                     # Generate the specific grid centered at the vertex ijk
                     ijk_grid = grid + numpy.tile(ijk, (nGrid, 1))
                     # Remove voxels outside the mask volume
-                    indexes_within_limits = numpy.all([(ijk_grid[:, 0] >= 0), (ijk_grid[:, 0] < mask_shape[0]),
-                                                       (ijk_grid[:, 1] >= 0), (ijk_grid[:, 1] < mask_shape[1]),
-                                                       (ijk_grid[:, 2] >= 0), (ijk_grid[:, 2] < mask_shape[2])],
+                    indexes_within_limits = numpy.all([(ijk_grid[:, 0] >= 0), (ijk_grid[:, 0] < mask_vol.dimensions[0]),
+                                                       (ijk_grid[:, 1] >= 0), (ijk_grid[:, 1] < mask_vol.dimensions[1]),
+                                                       (ijk_grid[:, 2] >= 0), (ijk_grid[:, 2] < mask_vol.dimensions[2])],
                                                       axis=0)
                     ijk_grid = ijk_grid[indexes_within_limits, :]
                     try:
                         # If none of these points is a mask point:
-                        if (mask[ijk_grid[:, 0], ijk_grid[:, 1], ijk_grid[:, 2]] < th).all():
+                        if (mask_vol.data[ijk_grid[:, 0], ijk_grid[:, 1], ijk_grid[:, 2]] < th).all():
                             out_vol[i, j, k] = labels_nomask[iL]
                         else:  # if any of them is a mask point:
                             out_vol[i, j, k] = labels_mask[iL]
@@ -212,7 +211,7 @@ class VolumeService(object):
                 else:
                     out_vol[i, j, k] = labels_nomask[iL]
         # Create the new volume and save it
-        out_volume = nibabel.Nifti1Image(out_vol, volume.affine, header=volume.header)
+        out_volume = nibabel.Nifti1Image(out_vol, volume.affine_matrix, header=volume.header)
         if out_vol_path == None:
             # Overwrite volume
             out_vol_path = in_vol_path
@@ -226,20 +225,19 @@ class VolumeService(object):
     def label_with_dilation(self, to_label_nii_fname, dilated_nii_fname, out_nii_fname):
         "Label one nifti with its dilation, cf seeg-ct.sh"
         # TODO could make dilation with ndimage also.
-        import scipy.ndimage
-        mask = nibabel.load(to_label_nii_fname)
-        dil_mask = nibabel.load(dilated_nii_fname)
-        lab, n = scipy.ndimage.label(dil_mask.get_data())
+        mask = self.volumeParser.read(to_label_nii_fname)
+        dil_mask = self.volumeParser.read(dilated_nii_fname)
+        lab, n = scipy.ndimage.label(dil_mask.data)
         print('[label_with_dilation] %d objects found.' % (n,))
-        lab_mask_nii = nibabel.nifti1.Nifti1Image(lab * mask.get_data(), mask.affine)
+        lab_mask_nii = nibabel.nifti1.Nifti1Image(lab * mask.data, mask.affine_matrix)
         nibabel.save(lab_mask_nii, out_nii_fname)
 
     def label_vol_from_tdi(self, tdi_nii_fname, out_fname, lo=0.5):
         "Make label volume from tckmap output."
         # Load tdi_ends volume:
-        nii = nibabel.load(tdi_nii_fname)
+        nii = self.volumeParser.read(tdi_nii_fname)
         # Copy its data...
-        tdi = nii.get_data().copy()
+        tdi = nii.data.copy()
         # and mask them to get the voxels of tract ends
         mask = tdi > lo
         # (all other voxels ->0)
@@ -247,7 +245,7 @@ class VolumeService(object):
         # Assign them with integer labels starting from 1
         tdi[mask] = numpy.r_[1:mask.sum() + 1]
         # Write tdi_lbl to file
-        out_nii = nibabel.nifti1.Nifti1Image(tdi, nii.affine)
+        out_nii = nibabel.nifti1.Nifti1Image(tdi, nii.affine_matrix)
         nibabel.save(out_nii, out_fname)
 
     # It removes network nodes with zero connectivity, and returns a symmetric connectivity matrix
@@ -307,7 +305,6 @@ class VolumeService(object):
     # metric: default "cosine"
     # mode: "sim" or "dist" for similarity or distance output
     def node_connectivity_metric(self, con_mat_path, metric="cosine", mode='sim', out_consim_path=None):
-        from scipy.spatial.distance import pdist, squareform
         # Read input file
         con = numpy.load(con_mat_path)
         # Calculate distance metric
@@ -322,11 +319,10 @@ class VolumeService(object):
 
     def simple_label_config(self, aparc_fname, out_fname):
         "Rewrite label volume to have contiguous values like mrtrix' labelconfig."
-        aparc = nibabel.load(aparc_fname)
-        vol = aparc.get_data()
-        uval = numpy.unique(vol)
+        aparc = self.volumeParser.read(aparc_fname)
+        uval = numpy.unique(aparc.data)
         uval_map = numpy.r_[:uval.max() + 1]
         uval_map[uval] = numpy.r_[:uval.size]
-        uvol = uval_map[vol]
-        uparc = nibabel.nifti1.Nifti1Image(uvol, aparc.affine)
+        uvol = uval_map[aparc.data]
+        uparc = nibabel.nifti1.Nifti1Image(uvol, aparc.affine_matrix)
         nibabel.save(uparc, out_fname)
