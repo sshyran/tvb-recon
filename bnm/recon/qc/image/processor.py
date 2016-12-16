@@ -6,7 +6,7 @@ from bnm.recon.logger import get_logger
 from bnm.recon.qc.image.writer import ImageWriter
 from bnm.recon.qc.parser.annotation import AnnotationIO
 from bnm.recon.qc.parser.generic import GenericParser
-from bnm.recon.qc.parser.surface import FreesurferParser, GiftiSurfaceParser
+from bnm.recon.qc.parser.surface import FreesurferIO, GiftiSurfaceIO
 from bnm.recon.qc.parser.volume import VolumeParser
 from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTENSION, T1_RAS_VOLUME, MRI_DIRECTORY, \
     FS_TO_CONN_INDICES_MAPPING_PATH
@@ -26,7 +26,7 @@ class ImageProcessor(object):
         return file_name
 
     def read_t1_affine_matrix(self):
-        t1_volume = self.parser_volume.parse(os.path.join(os.environ[MRI_DIRECTORY], os.environ[T1_RAS_VOLUME]))
+        t1_volume = self.parser_volume.read(os.path.join(os.environ[MRI_DIRECTORY], os.environ[T1_RAS_VOLUME]))
         return t1_volume.affine_matrix
 
     @staticmethod
@@ -34,9 +34,9 @@ class ImageProcessor(object):
         filename, extension = os.path.splitext(surface_path)
 
         if extension == GIFTI_EXTENSION:
-            return GiftiSurfaceParser()
+            return GiftiSurfaceIO()
         else:
-            return FreesurferParser()
+            return FreesurferIO()
 
     def read_surface(self, surface_path, use_center_surface):
 
@@ -45,7 +45,7 @@ class ImageProcessor(object):
 
     def show_single_volume(self, volume_path, use_cc_point, snapshot_name=SNAPSHOT_NAME):
 
-        volume = self.parser_volume.parse(volume_path)
+        volume = self.parser_volume.read(volume_path)
 
         if use_cc_point:
             ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
@@ -66,8 +66,8 @@ class ImageProcessor(object):
 
     def overlap_2_volumes(self, background_path, overlay_path, use_cc_point, snapshot_name=SNAPSHOT_NAME):
 
-        background_volume = self.parser_volume.parse(background_path)
-        overlay_volume = self.parser_volume.parse(overlay_path)
+        background_volume = self.parser_volume.read(background_path)
+        overlay_volume = self.parser_volume.read(overlay_path)
 
         if use_cc_point:
             ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
@@ -91,9 +91,9 @@ class ImageProcessor(object):
     def overlap_3_volumes(self, background_path, overlay_1_path, overlay_2_path, use_cc_point,
                           snapshot_name=SNAPSHOT_NAME):
 
-        volume_background = self.parser_volume.parse(background_path)
-        volume_overlay_1 = self.parser_volume.parse(overlay_1_path)
-        volume_overlay_2 = self.parser_volume.parse(overlay_2_path)
+        volume_background = self.parser_volume.read(background_path)
+        volume_overlay_1 = self.parser_volume.read(overlay_1_path)
+        volume_overlay_2 = self.parser_volume.read(overlay_2_path)
 
         if use_cc_point:
             ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
@@ -124,7 +124,7 @@ class ImageProcessor(object):
 
     def overlap_volume_surfaces(self, volume_background, surfaces_path, use_center_surface, use_cc_point,
                                 snapshot_name=SNAPSHOT_NAME):
-        volume = self.parser_volume.parse(volume_background)
+        volume = self.parser_volume.read(volume_background)
 
         if use_cc_point:
             ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
@@ -154,7 +154,7 @@ class ImageProcessor(object):
                                         use_cc_point, fs_to_conn_indices_mapping_path=FS_TO_CONN_INDICES_MAPPING_PATH,
                                         snapshot_name=SNAPSHOT_NAME):
 
-        aparc_aseg_volume = self.parser_volume.parse(aparc_aseg_volume_path)
+        aparc_aseg_volume = self.parser_volume.read(aparc_aseg_volume_path)
 
         fs_to_conn_indices_mapping = {}
         with open(fs_to_conn_indices_mapping_path) as fs_to_conn_indices_mapping_file:
@@ -175,7 +175,7 @@ class ImageProcessor(object):
             ras = aparc_aseg_volume.get_center_point()
 
         if background_volume_path != '':
-            background_volume = self.parser_volume.parse(background_volume_path)
+            background_volume = self.parser_volume.read(background_volume_path)
 
         for projection in PROJECTIONS:
             try:

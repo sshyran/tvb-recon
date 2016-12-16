@@ -12,7 +12,7 @@ from bnm.recon.logger import get_logger
 from bnm.recon.qc.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
 
 
-class ABCSurfaceParser(object):
+class ABCSurfaceIO(object):
     """
     This will define the behaviour needed for a surface parser.
     """
@@ -35,7 +35,7 @@ TRANSFORM_MATRIX_GIFTI_KEYS = [['VolGeomX_R', 'VolGeomY_R', 'VolGeomZ_R', CENTER
                                ['VolGeomX_S', 'VolGeomY_S', 'VolGeomZ_S', CENTER_RAS_GIFTI_SURF[2]]]
 
 
-class GiftiSurfaceParser(ABCSurfaceParser):
+class GiftiSurfaceIO(ABCSurfaceIO):
     """
     This class reads content of GIFTI surface files
     """
@@ -115,7 +115,7 @@ class GiftiSurfaceParser(ABCSurfaceParser):
 TRANSFORM_MATRIX_FS_KEYS = ['xras', 'yras', 'zras', CENTER_RAS_FS_SURF]
 
 
-class FreesurferParser(ABCSurfaceParser):
+class FreesurferIO(ABCSurfaceIO):
     logger = get_logger(__name__)
 
     def read(self, surface_path, use_center_surface):
