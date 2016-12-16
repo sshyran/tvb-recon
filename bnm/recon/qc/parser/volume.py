@@ -12,10 +12,11 @@ class VolumeParser(object):
 
     logger = get_logger(__name__)
 
-    def parse(self, data_file):
+    def read(self, data_file):
         image = nibabel.load(data_file)
+        header = image.header
         data = image.get_data()
         affine_matrix = image.affine
         self.logger.info("The affine matrix extracted from volume %s is %s" % (data_file, affine_matrix))
 
-        return Volume(data, affine_matrix)
+        return Volume(data, affine_matrix, header)
