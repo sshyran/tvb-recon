@@ -8,6 +8,7 @@ from scipy.spatial.distance import cdist, squareform
 from sklearn.cluster import AgglomerativeClustering
 from scipy.cluster import hierarchy
 from scipy.sparse.csgraph import connected_components
+from anytree import Node, 
 from scipy.sparse.csgraph import shortest_path
 from nibabel.freesurfer.io import read_geometry, read_annot, write_annot
 from bnm.recon.algo.service.annotation import AnnotationService
@@ -269,22 +270,26 @@ class SubparcellationService(object):
             #re-mering/splitting until we creat clusters within some min-max limits of
             #either number of vertices or total surface area...
             if algo == "scikit":
-            #scikit learn algorithm:
+                #scikit learn algorithm:
                 model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed", 
                                                 connectivity=connectivity, linkage='average')
                 model.fit(affinity)
                 clusters=model.labels_
                 	
                  #You can also do 
-                 #children to get an (nVcon,2) array of all nodes with their children
+                 #children=model.children_
+                 #to get an (nVcon,2) array of all nodes with their children
                  #or
-                 #tree=dict(enumerate(model.children_, model.n_leaves_)), 
+                 dict_tree=dict(enumerate(model.children_, model.n_leaves_)) 
                  #which will give you a dictionary where the each key is the 
                  #ID of a node and the value is the pair of IDs of its children.
                  #or to get a list:
-                 #import itertools
-                 #ii = itertools.count(nVcon)
-                 #tree=[{'node_id': next(ii), 'left': x[0], 'right':x[1]} for x in model.children_]
+#                 import itertools
+#                 ii = itertools.count(nVcon)
+#                 tree=[{'node_id': next(ii), 'left': x[0], 'right':x[1]} for x in model.children_]
+                 #Now make a tree out of it:
+                 (tree,root)=make_tree(dict_tree)
+                 del dict_tree
             else:
                 #scipy algorithm:
                 numpy.fill_diagonal(affinity,0.0)
@@ -340,3 +345,25 @@ class SubparcellationService(object):
             out_annot_path = os.path.splitext(annot_path)[0] + str(parc_area) + ".annot"
         print out_annot_path
         write_annot(out_annot_path, out_lab, out_ctab, out_names)
+        
+    
+    def make_tree(dict_tree):
+        tree=dict()
+        nodes=numpy.sort(dict_tree.keys())
+        nodes=nodes[::-1]
+        root=nodes[0]
+        tree[str(root)]=Node(str(root))
+        for parent in nodes[1:]:
+            children=dict_tree[parent]
+            for child in children:
+                tree[str(child)]=Node(str(child),parent=tree[str(parent)]) 
+        return (tree,root)
+        
+        
+    def return_tree_node_leafs_verts(node):
+        leafs=[]
+        for nod in node.descendants:
+            if nod.isleaf:
+                leafs.append(int(nod.name)
+        return leafs
+        
