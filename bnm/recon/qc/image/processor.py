@@ -4,7 +4,7 @@ import os
 import numpy
 from bnm.recon.logger import get_logger
 from bnm.recon.qc.image.writer import ImageWriter
-from bnm.recon.qc.parser.annotation import AnnotationParser
+from bnm.recon.qc.parser.annotation import AnnotationIO
 from bnm.recon.qc.parser.generic import GenericParser
 from bnm.recon.qc.parser.surface import FreesurferParser, GiftiSurfaceParser
 from bnm.recon.qc.parser.volume import VolumeParser
@@ -16,7 +16,7 @@ class ImageProcessor(object):
     def __init__(self, snapshots_directory, snapshot_count=0):
         self.parser_volume = VolumeParser()
         self.generic_parser = GenericParser()
-        self.annotation_parser = AnnotationParser()
+        self.annotation_parser = AnnotationIO()
         self.writer = ImageWriter(snapshots_directory)
         self.snapshot_count = snapshot_count
         self.logger = get_logger(__name__)
@@ -117,7 +117,7 @@ class ImageProcessor(object):
                                          self.generate_file_name(projection, snapshot_name))
 
     def overlap_surface_annotation(self, surface_path, annotation, snapshot_name=SNAPSHOT_NAME):
-        annotation = self.annotation_parser.parse(annotation)
+        annotation = self.annotation_parser.read(annotation)
         surface = self.read_surface(surface_path, False)
         self.writer.write_surface_with_annotation(surface, annotation,
                                                   self.generate_file_name('surface_annotation', snapshot_name))

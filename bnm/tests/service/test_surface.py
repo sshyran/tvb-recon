@@ -5,7 +5,7 @@ import numpy
 import pytest
 from bnm.tests.base import get_data_file, get_temporary_files_path, remove_temporary_test_files
 from bnm.recon.qc.parser.surface import FreesurferParser
-from bnm.recon.qc.parser.annotation import AnnotationParser
+from bnm.recon.qc.parser.annotation import AnnotationIO
 from bnm.recon.algo.service.surface import SurfaceService
 
 
@@ -16,13 +16,13 @@ def teardown_module():
 def test_extract_subsurf():
     service = SurfaceService()
     surface_parser = FreesurferParser()
-    annot_parser = AnnotationParser()
+    annot_parser = AnnotationIO()
     surface_file = get_data_file("freesurfer_fsaverage", "surf", "lh.pial")
     annot_file = get_data_file("freesurfer_fsaverage", "label", "lh.aparc.annot")
     surface = surface_parser.read(surface_file, False)
     verts = surface.vertices
     faces = surface.triangles
-    annot = annot_parser.parse(annot_file)
+    annot = annot_parser.read(annot_file)
     labels = annot.region_mapping
     verts_mask = labels == 7
     subsurf_verts, subsurf_faces = service.extract_subsurf(verts, faces, verts_mask)
