@@ -12,11 +12,15 @@ class VolumeIO(object):
 
     logger = get_logger(__name__)
 
-    def read(self, data_file):
-        image = nibabel.load(data_file)
+    def read(self, volume_path):
+        image = nibabel.load(volume_path)
         header = image.header
         data = image.get_data()
         affine_matrix = image.affine
-        self.logger.info("The affine matrix extracted from volume %s is %s" % (data_file, affine_matrix))
+        self.logger.info("The affine matrix extracted from volume %s is %s" % (volume_path, affine_matrix))
 
         return Volume(data, affine_matrix, header)
+
+    def write(self, out_volume_path, volume_data, affine_matrix, header=None):
+        image = nibabel.Nifti1Image(volume_data, affine_matrix, header)
+        nibabel.save(image, out_volume_path)
