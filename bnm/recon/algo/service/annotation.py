@@ -10,12 +10,6 @@ class AnnotationService(object):
     def __init__(self):
         self.annotationIO = AnnotationIO()
 
-    #TODO do we need this?
-    def annot_path(self, hemi, annot_name):
-        annot_fname = '%s.%s.annot' % (hemi, annot_name)
-        annot_path = os.path.join(os.environ['SUBJECTS_DIR'], os.environ['SUBJECT'], 'label', annot_fname)
-        return annot_path
-
     def read_lut(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt'),
                  key_mode='label'):
         f = open(lut_path, "r")

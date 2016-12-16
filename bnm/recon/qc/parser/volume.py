@@ -5,7 +5,7 @@ from bnm.recon.logger import get_logger
 from bnm.recon.qc.model.volume import Volume
 
 
-class VolumeParser(object):
+class VolumeIO(object):
     """
     This class reads content of a NIFTI file and returns a Volume Object
     """

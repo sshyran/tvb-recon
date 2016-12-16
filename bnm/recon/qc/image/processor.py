@@ -7,14 +7,14 @@ from bnm.recon.qc.image.writer import ImageWriter
 from bnm.recon.qc.parser.annotation import AnnotationIO
 from bnm.recon.qc.parser.generic import GenericParser
 from bnm.recon.qc.parser.surface import FreesurferIO, GiftiSurfaceIO
-from bnm.recon.qc.parser.volume import VolumeParser
+from bnm.recon.qc.parser.volume import VolumeIO
 from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTENSION, T1_RAS_VOLUME, MRI_DIRECTORY, \
     FS_TO_CONN_INDICES_MAPPING_PATH
 
 
 class ImageProcessor(object):
     def __init__(self, snapshots_directory, snapshot_count=0):
-        self.parser_volume = VolumeParser()
+        self.parser_volume = VolumeIO()
         self.generic_parser = GenericParser()
         self.annotation_parser = AnnotationIO()
         self.writer = ImageWriter(snapshots_directory)

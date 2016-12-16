@@ -8,7 +8,7 @@ from nibabel.freesurfer.io import write_geometry
 from sklearn.metrics.pairwise import paired_distances
 from scipy.sparse import csr_matrix
 from bnm.recon.algo.service.annotation import AnnotationService
-from bnm.recon.qc.parser.volume import VolumeParser
+from bnm.recon.qc.parser.volume import VolumeIO
 from bnm.recon.qc.parser.surface import FreesurferIO
 
 
@@ -16,12 +16,6 @@ class SurfaceService(object):
     def __init__(self):
         self.annotation_service = AnnotationService()
         self.surface_parser = FreesurferIO()
-
-    def read_surf(self,hemi, name):
-        surf_fname = '%s.%s' % (hemi, name)
-        surf_path = os.path.join(os.environ['SUBJECTS_DIR'], os.environ['SUBJECT'], 'surf', surf_fname)
-        surface = self.surface_parser.read(surf_path,  False)
-        return surface.vertices, surface.triangles
 
     def tri_area(self, tri):
         i, j, k = numpy.transpose(tri, (1, 0, 2))
@@ -143,7 +137,7 @@ class SurfaceService(object):
         annotation = self.annotation_service.annotationIO.read(annot_path)
         labels = self.annotation_service.annot_names_to_labels(annotation.region_names, ctx, lut_path)
 
-        volume_parser = VolumeParser()
+        volume_parser = VolumeIO()
         volume = volume_parser.read(vol_path)
         ras2vox_affine_matrix = numpy.linalg.inv(volume.affine_matrix)
 
