@@ -4,9 +4,9 @@ import os
 import numpy
 import nibabel
 import scipy
-from scipy.spatial.distance import cdist, squareform
+from scipy.spatial.distance import cdist  #, squareform
 from sklearn.cluster import AgglomerativeClustering
-from scipy.cluster import hierarchy
+#from scipy.cluster import hierarchy
 from scipy.sparse.csgraph import connected_components
 import bnm.recon.algo.tree as tree
 from scipy.sparse.csgraph import shortest_path
@@ -94,42 +94,45 @@ class SubparcellationService(object):
         voxijk, = numpy.where(vox.flatten() > 0)
         voxijk = numpy.unravel_index(voxijk, voxdim)
         vox = vox[voxijk[0], voxijk[1], voxijk[2]]
-        # ...and their coordinates in surface ras xyz space
-        vox2ras = vollbl.affine
-        voxxzy = vox2ras.dot(numpy.c_[voxijk[0], voxijk[1], voxijk[2], numpy.ones(vox.shape[0])].T)[:3].T
+        # ...and their coordinates in freesurfer surface tk-ras xyz space
+        voxxzy =  vollbl.affine.dot(numpy.c_[voxijk[0], voxijk[1], voxijk[2], numpy.ones(vox.shape[0])].T)[:3].T
         return (vox,voxxzy)
 
-    def connected_surface_components(self,connectivity,dist,iV_con,nVcon,nParcs,th=0.1):
-        (nComponents, components) = connected_components(connectivity, directed=False, connection='weak',
-                                                                  return_labels=True)
-        h, _ = numpy.histogram(components, numpy.array(range(nComponents + 1)) - 0.5)
-        print 'Before correction: ' + str(nComponents) + ' connected components with ' + str(h) + ' vertices each'
+    def connected_surface_components(self,verts,faces,connectivity,iVmask,parc_area,th=0.1):
+        (nComponents_orig, components) = connected_components(connectivity, directed=False, return_labels=True)
+        print 'Before correction: ' + str(nComponents_orig) + ' connected components'
         # Correction: removal of too small connected components
-        # Too small = less than 10% of the expeected average parcel size
-        nMinVertsPerComp = int(numpy.round(th * nVcon / nParcs))
-        if numpy.any(h < nMinVertsPerComp):
-            for iC in range(nComponents):
-                if h[iC] < nMinVertsPerComp:
-                    #Remove this componenet from the "con" vertices...
-                    iV_con[components == iC] = False
-                    #...and as a component in general...
-                    filter(lambda x: x != iC, components)
-            nVcon = numpy.sum(iV_con)
-            #Update components' list and number:
-            nComponents=0
-            component_labels=numpy.unique(components)
-            for iC in range(len(component_labels)):
-                if component_labels[iC]!=nComponents:
-                    component_labels[component_labels==iC]=nComponents
+        # Too small = less than 10% of the expected average parcel size
+        minParcArea = th * parc_area
+        #The list of components'areas:
+        comp_areas=[]
+        correction=False
+        nComponents=0
+        #Indices of each components' vertices
+        components_inds=dict()
+        #Indices of the vertices of the original mask
+        iV,=numpy.where(iVmask)
+        for iC in range(nComponents_orig):
+            comp_mask=components == iC
+            (verts_comp, faces_comp) = self.surfaceService.extract_subsurf(verts, faces, comp_mask)
+            comp_areas.append(numpy.sum(self.surfaceService.tri_area(verts_comp[faces_comp])))
+            print "Component "+str(iC)+"area: "+comp_areas[-1]+" mm2"
+            if comp_areas[-1] < minParcArea:
+                    correction=True
+                    print "Removing component "+str(iC)+" ..."
+                    #Remove this component from the vertices mask...
+                    iVmask[iV[comp_mask]] = False
+                    #...and from the components'areas list:
+                    del comp_areas[-1]
+            else:
+                #Add the component
+                components_inds[nComponents],=numpy.where(iVmask[iV[comp_mask]])
                 nComponents+=1
-#            # Update connectivity matrix after correction if needed:
-#            connectivity = dist[iV_con, :][:, iV_con].astype('single')
-#            connectivity.data = numpy.ones(connectivity.data.shape).astype('single')
-            (n_components, concomp_labels) = connected_components(connectivity, directed=False, connection='weak',
-                                                                      return_labels=True)
-            h, _ = numpy.histogram(concomp_labels, numpy.array(range(nComponents + 1)) - 0.5)
-            print 'After correction: ' + str(n_components) + ' connected components with ' + str(h) + ' vertices each'
-        return (nComponents, components, iV_con)
+        if correction:
+            print 'After correction: ' + str(nComponents) + ' connected components with areas' + str(comp_areas)
+        else:
+            print 'All components were connected. No correction required.'
+        return (nComponents, components_inds, comp_areas, iVmask)
         
     def calc_consim_affinity(self,verts,vox,voxxzy,con,cras=None):
         # Add the cras to take them to scanner ras coordinates:
@@ -229,11 +232,11 @@ class SubparcellationService(object):
 
         # Read the surface...
         (verts, faces, volume_info) = read_geometry(surf_path, read_metadata=True)
-        # ...its annotation
+        # ...and its annotation
         lab, ctab, names = read_annot(annot_path)
         # ...and get the correspoding labels:
         labels_annot = self.annotationService.annot_names_to_labels(names, ctx, lut_path=lut_path)
-        # Read the indexes of vertices neighboring tract ends voxels:
+        # Read the indexes of vertices neighboring tracts' ends voxels:
         con_verts_idx = numpy.load(con_verts_idx)
         # Set the target labels:
         (labels, nLbl) = self.annotationService.read_input_labels(labels=labels, hemi=hemi)
@@ -269,11 +272,11 @@ class SubparcellationService(object):
                 nL += 1
                 out_lab[iV] = nL
                 continue
-            # Get the vertices and faces of this label in tk ras coordinates:
+            # Get the vertices and faces of this label:
             (verts_lbl, faces_lbl) = self.surfaceService.extract_subsurf(verts, faces, iVmask)
             # Compute distances among directly connected vertices
             dist = self.surfaceService.vertex_connectivity(verts_lbl, faces_lbl, mode="sparse", metric='euclidean').astype('single')
-            #Clustering should work only on the vertices that fall close to tracts' ends, 
+            #Clustering should operate only among the vertices that fall close to tracts' ends, 
             #i.e., the so-called "con" vertices
  #           if "con" in mode:
             # Mask of label vertices that are neighbors of tract end voxels ("con"):
@@ -309,8 +312,8 @@ class SubparcellationService(object):
             connectivity = dist[iV_con, :][:, iV_con].astype('single')
             connectivity.data = numpy.ones(connectivity.data.shape).astype('single')
             # Check how many connected components there are, and remove all of those with less than 1% of the vertices,
-            # by moving them to the noncon group.
-            (nComponents, components, iV_con)=self.connected_surface_components(connectivity,dist,iV_con,nVcon,nParcs,th=0.1)
+            # by moving them to the noncon group. Also, update connectivity if necessary
+            (nComponents, components, iV_con)=self.connected_surface_components(connectivity,iV_con,parc_area,th=0.1)
             if "adj" not in mode:
                 connectivity = None
             del dist
