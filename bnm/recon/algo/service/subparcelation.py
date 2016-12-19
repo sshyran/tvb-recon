@@ -12,6 +12,7 @@ from scipy.sparse.csgraph import shortest_path
 from bnm.recon.algo.service.annotation import AnnotationService
 from bnm.recon.algo.service.surface import SurfaceService
 from bnm.recon.algo.service.volume import VolumeService
+from bnm.recon.qc.model.annotation import Annotation
 
 class SubparcellationService(object):
     def __init__(self):
@@ -19,34 +20,34 @@ class SubparcellationService(object):
         self.surfaceService = SurfaceService()
         self.volumeService = VolumeService()
 
-    def make_subparc(self, v, f, annot, roi_names, ctab, trg_area=100.0):
+    def make_subparc(self, surface, annotation, trg_area=100.0):
         # TODO subcort subparc with geodesic on bounding gmwmi
         # TODO normalize fiber counts by relevant gmwmi area
 
-        # build vertex -> face list map
-        vfm = [set([]) for _ in v]
-        for i, face in enumerate(f):
+        vertex_face_mapping = [set([]) for _ in surface.vertices]
+        for i, face in enumerate(surface.triangles):
             for j in face:
-                vfm[j].add(i)
-        vfm = numpy.array(vfm)
+                vertex_face_mapping[j].add(i)
+        vertex_face_mapping = numpy.array(vertex_face_mapping)
 
-        # make new annotation
-        new_annot = annot.copy()
-        new_names = []  # such that new_names[new_annot[i]] is correct name for i'th vertex
+        # Make new annotation
+        new_annotation = Annotation([], [], [])
+        new_annotation.region_mapping = annotation.region_mapping.copy()
+
         next_aval = 1
-        for i in numpy.unique(annot):
-            name = roi_names[i]
-            mask = annot == i
+        for region_names_index in numpy.unique(annotation.region_mapping):
+            name = annotation.region_names[region_names_index]
+            mask = annotation.region_mapping == region_names_index
 
             # "unknown", just skip
-            if i == -1:
-                new_annot[mask] = 0
-                new_names.append(name)
+            if region_names_index == -1:
+                new_annotation.region_mapping[mask] = 0
+                new_annotation.region_names.append(name)
                 continue
 
             # indices of faces in ROI
             rfi = set([])
-            for face_set in vfm[mask]:
+            for face_set in vertex_face_mapping[mask]:
                 rfi.update(face_set)
             rfi = numpy.array(list(rfi))
 
@@ -55,37 +56,35 @@ class SubparcellationService(object):
                 continue
 
             # compute area of faces in roi
-            roi_area = numpy.sum(self.surfaceService.tri_area(v[f[rfi]]))
+            roi_area = numpy.sum(self.surfaceService.tri_area(surface.vertices[surface.triangles[rfi]]))
 
             # choose k for desired roi area
             k = int(roi_area / trg_area) + 1
             assert k >= 1
 
             # cluster centered vertices
-            v_roi = v[mask]
+            v_roi = surface.vertices[mask]
             _, i_lab = scipy.cluster.vq.kmeans2(v_roi - v_roi.mean(axis=0), k)
 
             # update annot
-            new_annot[mask] = next_aval + i_lab
+            new_annotation.region_mapping[mask] = next_aval + i_lab
             next_aval += k
-            new_names += ['%s-%d' % (name.decode('ascii'), j) for j in range(k)]
+            new_annotation.region_names += ['%s-%d' % (name.decode('ascii'), j) for j in range(k)]
 
         # create random colored ctab
-        new_ctab = numpy.random.randint(255, size=(len(new_names), 5))
-        r, g, b, _, _ = new_ctab.T
-        new_ctab[:, 3] = 0
-        new_ctab[:, 4] = r + 256 * g + 256 * 256 * b  # fs magic values
+        new_annotation.regions_color_table = numpy.random.randint(255, size=(len(new_annotation.region_names), 5))
+        r, g, b, _, _ = new_annotation.regions_color_table.T
+        new_annotation.regions_color_table[:, 3] = 0
+        new_annotation.regions_color_table[:, 4] = self.annotationService.rgb_to_fs_magic_number([r, g, b])
 
-        return new_annot, new_ctab, new_names
+        return new_annotation
 
     def subparc_files(self, surf_path, annot_path, out_annot_parc_name, trg_area):
         trg_area = float(trg_area)
         surface = self.surfaceService.surface_io.read(surf_path, False)
         annotation = self.annotationService.annotationIO.read(annot_path)
-        new_lab, new_ctab, new_names = self.make_subparc(surface.vertices, surface.triangles, annotation.region_mapping,
-                                                         annotation.region_names, annotation.regions_color_table,
-                                                         trg_area=trg_area)
-        self.annotationService.annotationIO.write(out_annot_parc_name, new_lab, new_ctab, new_names)
+        new_annotation = self.make_subparc(surface, annotation, trg_area=trg_area)
+        self.annotationService.annotationIO.write(out_annot_parc_name, new_annotation)
 
     def con_vox_in_ras(self,ref_vol_path):
         # Read the reference tdi_lbl volume:
