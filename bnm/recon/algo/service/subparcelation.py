@@ -85,6 +85,11 @@ class SubparcellationService(object):
         new_lab, new_ctab, new_names = self.make_subparc(v, f, lab, names, ctab, trg_area=trg_area)
         write_annot(self.annotationService.annot_path(hemi, out_parc_name), new_lab, new_ctab, new_names)
 
+    def compute_surface_area(self,v,f,mask=None):
+        if mask is not None:
+            (v, f) = self.surfaceService.extract_subsurf(v, f, mask)
+        return numpy.sum(self.surfaceService.tri_area(v[f]))
+
     def con_vox_in_ras(self,ref_vol_path):
         # Read the reference tdi_lbl volume:
         vollbl = nibabel.load(ref_vol_path)
@@ -99,39 +104,21 @@ class SubparcellationService(object):
         voxxzy = vox2ras.dot(numpy.c_[voxijk[0], voxijk[1], voxijk[2], numpy.ones(vox.shape[0])].T)[:3].T
         return (vox,voxxzy)
 
-    def connected_surface_components(self,connectivity,dist,iV_con,nVcon,nParcs,th=0.1):
-        (nComponents, components) = connected_components(connectivity, directed=False, connection='weak',
-                                                                  return_labels=True)
-        h, _ = numpy.histogram(components, numpy.array(range(nComponents + 1)) - 0.5)
-        print 'Before correction: ' + str(nComponents) + ' connected components with ' + str(h) + ' vertices each'
-        # Correction: removal of too small connected components
-        # Too small = less than 10% of the expeected average parcel size
-        nMinVertsPerComp = int(numpy.round(th * nVcon / nParcs))
-        if numpy.any(h < nMinVertsPerComp):
-            for iC in range(nComponents):
-                if h[iC] < nMinVertsPerComp:
-                    #Remove this componenet from the "con" vertices...
-                    iV_con[components == iC] = False
-                    #...and as a component in general...
-                    filter(lambda x: x != iC, components)
-            nVcon = numpy.sum(iV_con)
-            #Update components' list and number:
-            nComponents=0
-            component_labels=numpy.unique(components)
-            for iC in range(len(component_labels)):
-                if component_labels[iC]!=nComponents:
-                    component_labels[component_labels==iC]=nComponents
-                nComponents+=1
-#            # Update connectivity matrix after correction if needed:
-#            connectivity = dist[iV_con, :][:, iV_con].astype('single')
-#            connectivity.data = numpy.ones(connectivity.data.shape).astype('single')
-            (n_components, concomp_labels) = connected_components(connectivity, directed=False, connection='weak',
-                                                                      return_labels=True)
-            h, _ = numpy.histogram(concomp_labels, numpy.array(range(nComponents + 1)) - 0.5)
-            print 'After correction: ' + str(n_components) + ' connected components with ' + str(h) + ' vertices each'
-        return (nComponents, components, iV_con)
+    def connected_surface_components(self,v,f,connectivity, mask=None):
+        #Find all connected components of this surface
+        (nComponents, components) = connected_components(connectivity, directed=False, connection='weak', return_labels=True)
+        #Check out if there is a mask for the vertices to be included in the area calculation
+        if mask is None:
+            mask = numpy.ones(components.shape,dtype=bool)
+        comp_area = []
+        #For each component...
+        for iC in range(nComponents):
+            iCompVerts=components==iC
+            #...compute the surface area, after applying any specified mask
+            comp_area.append(self.compute_surface_area(v,f,mask=numpy.logical_and(iCompVerts,mask[iCompVerts])))
+        return nComponents, components, comp_area
         
-    def calc_consim_affinity(self,verts,vox,voxxzy,con,cras=None):
+    def compute_consim_affinity(self,verts,vox,voxxzy,con,cras=None):
         # Add the cras to take them to scanner ras coordinates:
         if cras is not None:
             verts += numpy.repeat(numpy.expand_dims(cras, 1).T, verts.shape[0], axis=0)
@@ -150,7 +137,16 @@ class SubparcellationService(object):
         #Normalize:
         affinity /=numpy.max(affinity).astype('single') 
         return affinity  
-            
+
+    def compute_geodesic_dist_affinity(self,dist):
+        geodist = shortest_path(dist, method='auto', directed=False,
+                                return_predecessors=False, unweighted=False, overwrite=False).astype('single')
+        # Find the maximum non infite geodesic distance:
+        max_gdist = numpy.max(geodist, axis=None)
+        assert numpy.isfinite(max_gdist)
+        # Convert them to normalized distances and return them
+        return geodist/max_gdist
+
     def map_noncon_to_con_verts(self,iV,iV_con,iV_noncon,geodist): #verts,
          iV_noncon, = numpy.where(iV_noncon)
          nVnoncon = len(iV_noncon)
@@ -201,29 +197,30 @@ class SubparcellationService(object):
 #                return    
         return clusters
         
-    def gen_new_cluster_annots(self,clusters_labels,base_name,base_ctab):            
+    def gen_new_parcel_annots(self,parcel_labels,base_name,base_ctab):
         # Create the new annotation for these sub-labels:
-        nClusters=len(clusters_labels)
+        nParcels=len(parcel_labels)
         #Names:
-        names_lbl = [base_name+ "-" + str(item).zfill(2) for item in clusters_labels]
+        names_lbl = [base_name+ "-" + str(item).zfill(2) for item in parcel_labels]
         # Initialize ctab for these labels
-        ctab_lbl = numpy.repeat(base_ctab, nClusters, axis=0)
+        ctab_lbl = numpy.repeat(base_ctab, nParcels, axis=0)
         # For the RGB coordinate with the bigger distance to 255 or 0
         # distribute that distance  to nParcs values:
         iC = numpy.argsort(base_ctab[0, :3])
         x = 255 - base_ctab[0, iC[0]] >= base_ctab[0, iC[2]]
         dist = numpy.where(x, 255 - base_ctab[0, iC[0]], -base_ctab[0, iC[2]])
         iC = numpy.where(x, iC[0], iC[2])
-        step = dist / (nClusters - 1)
-        dist = step * nClusters
+        step = dist / (nParcels - 1)
+        dist = step * nParcels
         ctab_lbl[:, iC] = numpy.array(range(base_ctab[0, iC], base_ctab[0, iC] + dist, step), dtype='int')
         ctab_lbl[:, :3][ctab_lbl[:, :3] < 0] = 0
         ctab_lbl[:, :3][ctab_lbl[:, :3] > 255] = 255
-        ctab_lbl[:, 4] = numpy.array([self.annotationService.rgb_to_fs_magic_number(base_ctab[iCl, :3]) for iCl in range(nClusters)])
+        ctab_lbl[:, 4] = numpy.array([self.annotationService.rgb_to_fs_magic_number(base_ctab[iCl, :3]) for iCl in range(nParcels)])
         return (names_lbl,ctab_lbl)
     
     def connectivity_geodesic_subparc(self, surf_path, annot_path, con_verts_idx, out_annot_path=None,
-                                      parc_area=100, labels=None, hemi=None, ctx=None, mode="con+geod+adj",
+                                      labels=None, hemi=None, ctx=None,
+                                      parc_area=100, con_sim_aff=1.0, geod_dist_aff=1.0, structural_connectivity_constraint=True,
                                       cras_path=None, ref_vol_path=None, consim_path=None,
                                       lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
 
@@ -237,7 +234,7 @@ class SubparcellationService(object):
         con_verts_idx = numpy.load(con_verts_idx)
         # Set the target labels:
         (labels, nLbl) = self.annotationService.read_input_labels(labels=labels, hemi=hemi)
-        if "con" in mode:
+        if con_sim_aff>0:
             # Load voxel connectivity similarity matrix:
             con = numpy.load(consim_path).astype('single')
             # Read the cras:
@@ -249,7 +246,7 @@ class SubparcellationService(object):
         out_names = []
         out_ctab = []
         out_lab = numpy.array(lab)
-        nL = -1
+        nL = 0
         # For every annotation name:
         for iL in range(len(names)):
             print str(iL) + ". " + names[iL]
@@ -266,108 +263,102 @@ class SubparcellationService(object):
                 out_names.append(names[iL])
                 out_ctab.append(ctab[iL])
                 # and change the output indices
-                nL += 1
                 out_lab[iV] = nL
+                nL += 1
+                print "Added "+names[iL]+" as it stands..."
                 continue
             # Get the vertices and faces of this label in tk ras coordinates:
             (verts_lbl, faces_lbl) = self.surfaceService.extract_subsurf(verts, faces, iVmask)
             # Compute distances among directly connected vertices
             dist = self.surfaceService.vertex_connectivity(verts_lbl, faces_lbl, mode="sparse", metric='euclidean').astype('single')
-            #Clustering should work only on the vertices that fall close to tracts' ends, 
-            #i.e., the so-called "con" vertices
- #           if "con" in mode:
             # Mask of label vertices that are neighbors of tract end voxels ("con"):
             iV_con = numpy.in1d(iV, con_verts_idx)
-            nVcon = numpy.sum(iV_con)
-            # Get only the connectome neighboring vertices and faces of this label:
-            (verts_lbl_con, faces_lbl_con) = self.surfaceService.extract_subsurf(verts_lbl, faces_lbl, iV_con)
-#            else:
-#                # We work with iV_con from now on even if it is identical to iV
-#                nVcon = len(iV)
-#                iV_con = numpy.ones(nVcon, dtype='bool')
-#                verts_lbl_con = verts_lbl
-#                faces_lbl_con = faces_lbl
-            # Calculate total area:
-            roi_area = numpy.sum(self.surfaceService.tri_area(verts_lbl_con[faces_lbl_con]))
-            print "Total ROI area = " + str(roi_area) + " mm2"
-            # Calculate number of parcels:
-            nParcs = int(numpy.round(roi_area / parc_area))
-            print "Number of parcels for clustering: nParcs=" + str(nParcs)
+            # Calculate total area only of "con" surface:
+            lbl_area = self.compute_surface_area(verts_lbl, faces_lbl, iV_con)
+            print names[iL]+" total area = " + str(lbl_area) + " mm2"
             # If no further parcellation is needed
-            if nParcs < 2:
+            if lbl_area < 1.5*parc_area:
                 # Just add this label to the new annotation as it stands:
                 out_names.append(names[iL])
                 out_ctab.append(ctab[iL])
                 # and change the output indices
-                nL += 1
                 out_lab[iV] = nL
+                nL += 1
+                print "Added " + names[iL] + " as it stands because its connectivity area is less than 1.5 times the target average parcel area"
                 continue
-            print "Compute geodesic distance matrix"
-            geodist = shortest_path(dist.todense(), method='auto', directed=False, return_predecessors=False,
-                                    unweighted=False, overwrite=False).astype('single')
-            print "Compute structural connectivity constraint matrix"
-            connectivity = dist[iV_con, :][:, iV_con].astype('single')
-            connectivity.data = numpy.ones(connectivity.data.shape).astype('single')
-            # Check how many connected components there are, and remove all of those with less than 1% of the vertices,
-            # by moving them to the noncon group.
-            (nComponents, components, iV_con)=self.connected_surface_components(connectivity,dist,iV_con,nVcon,nParcs,th=0.1)
-            if "adj" not in mode:
-                connectivity = None
-            del dist
-            if "con" in mode:
-                # Get again after correction the connectome neighboring vertices and faces of this label:
-                (verts_lbl_con, faces_lbl_con) = self.surfaceService.extract_subsurf(verts_lbl, faces_lbl, iV_con)
-                affinity=self.calc_consim_affinity(verts_lbl_con,vox,voxxzy,con,cras)
-            else:
-                # Initialize affinity matrix with zeros
-                affinity = numpy.zeros((nVcon, nVcon)).astype('single')
-                # Treat the indexes of non-"con" vertices:
-            iV_noncon = ~iV_con
-            iV_con, = numpy.where(iV_con)
-            if numpy.any(iV_noncon):
-                noncon2con=self.map_noncon_to_con_verts(iV,iV_con,iV_noncon,geodist) #verts_lbl,
-            if "geod" in mode:
-                print "Computing geodesic similarity affinity matrix"
-                geodist = geodist[iV_con, :][:, iV_con]
-                # Find the maximum non infite geodesic distance:
-                max_gdist = numpy.max(geodist, axis=None)
-                if ~numpy.isfinite(max_gdist):
-                    print "Non-finite geodesic distance detected. Evidence for non-connected surface."
-                    return
-                # Convert them to normalized distances
-                geodist = geodist / max_gdist
-                # ...and add them to the affinity metric
-                affinity += geodist
-            del geodist   
-            print "Run clustering"
-            #algo="scikit" #or "scipy"
-            #TODO: probably we either need or own classification algorithm, or
-            #an algorithm for going through the tree returned by scikit and, 
-            #re-mering/splitting until we creat clusters within some min-max limits of
-            #either number of vertices or total surface area...
-            clusters=self.run_clustering(affinity,nParcs=nParcs,connectivity=connectivity)
-            clusters_labels=numpy.unique(clusters)
-            h, _ = numpy.histogram(clusters, numpy.array(clusters_labels) - 0.5)
-            print str(nParcs) + ' parcels with ' + str(h) + ' "connectome" vertices each'
-            print "Generate new annotations"
+            # Get all different (dis)connected components
+            nComponents, components, comp_area = self.connected_surface_components(verts_lbl,faces_lbl, dist,mask=iV_con)
+            nComponents=len(comp_area)
+            print str(nComponents)+" connected components in total of "+comp_area+"mm2 area, respectively"
+            nParcels=0
+            parcels=-numpy.ones(components.shape,dtype='i')
+            too_small_parcels=dict()
+            for iC in range(nComponents):
+                iCompVerts = components == iC
+                nCompVerts=numpy.sum(iCompVerts)
+                print "Treating connected surface component "+str(iC)+" of area "+str(comp_area[iC])+"mm2"
+                if comp_area[iC]<=1.5*parc_area:
+                    if comp_area[iC]>=0.1*[parc_area]:
+                        nParcels+=1
+                        parcels[iCompVerts]=nParcels-1
+                        print "Directly assigned to parcel "+str(nParcels-1)+","
+                        print "because its area is within the limits of [0.1, 1.5] times the target average parcel area"
+                    else:
+                        print "Too small surface component, i.e., less than 0.1 times the target average parcel area."
+                        print "It will inherit the identity of the closest parcel in terms of euclidean distance."
+                        too_small_parcels[iC]=iCompVerts
+                else:
+                    print "Clustering will run for this surface component"
+                    if structural_connectivity_constraint:
+                        print "Compute structural connectivity constraint matrix for this component"
+                        connectivity = dist[iCompVerts, :][:, iCompVerts].astype('single')
+                        connectivity[connectivity>0.0] = 1.0
+                    else:
+                        connectivity = None
+                    # Initialize affinity matrix with zeros
+                    affinity = numpy.zeros((nCompVerts, nCompVerts)).astype('single')
+                    if con_sim_aff>0:
+                        #Calculate the connectivity similarity affinity for this component,
+                        #first normalized in [0,1] and then weighted by con_sim_aff:
+                        affinity+=con_sim_aff*self.compute_consim_affinity(verts_lbl[iCompVerts,:],vox,voxxzy,con,cras).astype('single')
+                    if geod_dist_aff>0:
+                        print "Computing geodesic distance affinity matrix"
+                        # ...normalized in [0,1], and add it to the affinity metric with the correct weight
+                        affinity += geod_dist_aff*self.compute_geodesic_dist_affinity(dist[iCompVerts, :][:, iCompVerts].todense()).astype('single')
+                    print "Run clustering"
+                    clusters=self.run_clustering(affinity,connectivity=connectivity)
+                    clusters_labels=numpy.unique(clusters)
+                    nClusters=len(clusters_labels)
+                    parcels[iCompVerts] = clusters_labels+nParcels
+                    nParcels+=nClusters
+                    print str(nClusters) + ' parcels created for this component'
+            parcel_labels=range(nParcels)
+            print "Dealing now with too small surface components"
+            for (iC,comp) in too_small_parcels.items():
+                iCompVerts = too_small_parcels[iC]
+                comp_to_parcel_mindist=1000.0 #this is 1 meter long!
+                assign_to_parcel=-1
+                for iP in parcel_labels:
+                    temp_dist=numpy.min(cdist(verts_lbl[iCompVerts, :], verts_lbl[parcels==iP, :], 'euclidean'),axis=None)
+                    if temp_dist<comp_to_parcel_mindist:
+                        comp_to_parcel_mindist=temp_dist
+                        assign_to_parcel=iP
+                parcels[iCompVerts]=assign_to_parcel
+                print "Component "+str(iC)+" assigned to parcel "+str(assign_to_parcel)+" with a minimum euclidean distance of "+ str(comp_to_parcel_mindist)+"mm"
             # Create the new annotation for these sub-labels:
-            (names_lbl,ctab_lbl)=self.gen_new_cluster_annots(clusters_labels,names[iL],ctab[iL, numpy.newaxis])
+            (names_lbl,ctab_lbl)=self.gen_new_parcel_annots(parcel_labels,names[iL],ctab[iL, numpy.newaxis])
             # Add the new label names
             out_names.append(names_lbl)
             #...and the new ctabs
             out_ctab.append(ctab_lbl)
             # Finally change the output indices
             # of the "con" vertices...
-            out_lab[iV[iV_con]] = nL + clusters
-            # and of the "non-con" vertices that follow their nearest con neighbor
-            if numpy.any(iV_noncon):
-                out_lab[iV[iV_noncon]] = out_lab[noncon2con]
-            temp_lbls = numpy.unique(out_lab[iV[iV_con]])
-            h, hc = numpy.histogram(out_lab[iV[iV_con]], numpy.array(numpy.r_[temp_lbls, temp_lbls[-1] + 1]) - 0.5)
-            #+ str(int(hc[iP] + 0.5))             
-            for iP in range(nParcs):
-                print 'parcel '+names_lbl[iP]+ 'with ' + str(h[iP]) + ' total vertices'
-            nL += nParcs
+            out_lab[iV] = nL + parcels
+            for iP in range(nParcels):
+                iParcVerts=parcels==iP
+                print 'parcel '+names_lbl[iP]+ 'of a connectivity area ' + self.compute_surface_area(verts_lbl,faces_lbl,mask=numpy.logical_and(iParcVerts,iV_con)) + 'mm2'
+                print "and of total area "+ self.compute_surface_area(verts_lbl,faces_lbl,mask=iParcVerts) + 'mm2'
+            nL += nParcels
         print "Write output annotation file"
         # Stack everything together
         out_ctab = numpy.vstack(out_ctab)
