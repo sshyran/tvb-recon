@@ -25,6 +25,6 @@ class VolumeIO(object):
         image = nibabel.Nifti1Image(volume_data, affine_matrix, header)
         nibabel.save(image, out_volume_path)
 
-    def write(self, out_volume_path, volume):
+    def write_vol(self, out_volume_path, volume):
         image = nibabel.Nifti1Image(volume.data, volume.affine_matrix, volume.header)
         nibabel.save(image, out_volume_path)
