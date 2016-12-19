@@ -4,7 +4,7 @@ import os
 import numpy
 import sys
 from bnm.recon.logger import get_logger
-from bnm.recon.qc.parser.generic import GenericParser
+from bnm.recon.qc.io.generic import GenericParser
 from bnm.recon.qc.model.constants import SNAPSHOT_NAME, SNAPSHOT_EXTENSION, SNAPSHOTS_DIRECTORY_ENVIRON_VAR, \
     SNAPSHOT_NUMBER_ENVIRON_VAR
 

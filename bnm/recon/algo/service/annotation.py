@@ -3,7 +3,7 @@
 import os
 import numpy
 from collections import OrderedDict
-from bnm.recon.qc.parser.annotation import AnnotationIO
+from bnm.recon.qc.io.annotation import AnnotationIO
 
 
 class AnnotationService(object):

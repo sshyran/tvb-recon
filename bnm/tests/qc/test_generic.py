@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from bnm.recon.qc.parser.generic import GenericParser
+from bnm.recon.qc.io.generic import GenericParser
 from bnm.tests.base import get_data_file
 
 

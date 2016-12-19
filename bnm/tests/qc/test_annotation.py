@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from bnm.recon.qc.parser.annotation import AnnotationIO
+from bnm.recon.qc.io.annotation import AnnotationIO
 from bnm.tests.base import get_data_file
 
 TEST_SUBJECT = 'freesurfer_fsaverage'

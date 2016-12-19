@@ -8,8 +8,8 @@ from nibabel.freesurfer.io import write_geometry
 from sklearn.metrics.pairwise import paired_distances
 from scipy.sparse import csr_matrix
 from bnm.recon.algo.service.annotation import AnnotationService
-from bnm.recon.qc.parser.volume import VolumeIO
-from bnm.recon.qc.parser.surface import FreesurferIO
+from bnm.recon.qc.io.volume import VolumeIO
+from bnm.recon.qc.io.surface import FreesurferIO
 
 
 class SurfaceService(object):

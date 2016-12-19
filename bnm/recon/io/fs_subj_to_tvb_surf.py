@@ -16,8 +16,8 @@ import numpy as np
 
 from bnm.recon.io import tvb
 from bnm.recon.algo.geom import merge_lh_rh
-from bnm.recon.qc.parser.annotation import AnnotationIO
-from bnm.recon.qc.parser.surface import FreesurferIO
+from bnm.recon.qc.io.annotation import AnnotationIO
+from bnm.recon.qc.io.surface import FreesurferIO
 
 if __name__ == '__main__':
     args = docopt.docopt(__doc__)
