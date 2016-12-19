@@ -80,7 +80,7 @@ class SubparcellationService(object):
 
     def subparc_files(self, surf_path, annot_path, out_annot_parc_name, trg_area):
         trg_area = float(trg_area)
-        surface = self.surfaceService.surface_io.read(surf_path)
+        surface = self.surfaceService.surface_io.read(surf_path, False)
         annotation = self.annotationService.annotationIO.read(annot_path)
         new_lab, new_ctab, new_names = self.make_subparc(surface.vertices, surface.triangles, annotation.region_mapping,
                                                          annotation.region_names, annotation.regions_color_table,
@@ -232,7 +232,7 @@ class SubparcellationService(object):
                                       lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
 
         # Read the surface...
-        surface = self.surfaceService.surface_io.read(surf_path)
+        surface = self.surfaceService.surface_io.read(surf_path, False)
         # ...and its annotation
         annotation = self.annotationService.annotationIO.read(annot_path)
         # ...and get the correspoding labels:
