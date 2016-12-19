@@ -15,7 +15,7 @@ from bnm.recon.qc.io.surface import FreesurferIO
 class SurfaceService(object):
     def __init__(self):
         self.annotation_service = AnnotationService()
-        self.surface_parser = FreesurferIO()
+        self.surface_io = FreesurferIO()
 
     def tri_area(self, tri):
         i, j, k = numpy.transpose(tri, (1, 0, 2))
@@ -29,7 +29,7 @@ class SurfaceService(object):
             subjects_dir = os.environ['SUBJECTS_DIR']
             subject = os.environ['SUBJECT']
             surf_path = '%s/%s/surf/%sh.%s' % (subjects_dir, subject, h, surf_name)
-            surface = self.surface_parser.read(surf_path, False)
+            surface = self.surface_io.read(surf_path, False)
             mat_path = '%s/%s/surf/%sh.%s.gdist.mat' % (subjects_dir, subject, h, surf_name)
             mat = gdist.local_gdist_matrix(surface.vertices, surface.triangles.astype('<i4'), max_distance=max_distance)
             scipy.io.savemat(mat_path, {'gdist': mat})
@@ -74,7 +74,7 @@ class SurfaceService(object):
                 out_names.append(label_names[ind_l])
                 out_color_table.append(color_table[ind_l, :])
                 label_index += 1
-                surface = self.surface_parser.read(this_surf_path, False)
+                surface = self.surface_io.read(this_surf_path, False)
                 faces = surface.triangles
                 volume_info = surface.get_main_metadata()
                 faces = faces + verts_number  # Update vertices indexes
@@ -132,7 +132,7 @@ class SurfaceService(object):
                            vertex_neighbourhood=1, add_lbl=[],
                            lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
         # Read the inputs
-        surface = self.surface_parser.read(surf_path, False)
+        surface = self.surface_io.read(surf_path, False)
 
         annotation = self.annotation_service.annotationIO.read(annot_path)
         labels = self.annotation_service.annot_names_to_labels(annotation.region_names, ctx, lut_path)

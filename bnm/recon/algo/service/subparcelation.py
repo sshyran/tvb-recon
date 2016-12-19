@@ -2,7 +2,6 @@
 
 import os
 import numpy
-import nibabel
 import scipy
 from scipy.spatial.distance import cdist  #, squareform
 from sklearn.cluster import AgglomerativeClustering
@@ -10,14 +9,15 @@ from sklearn.cluster import AgglomerativeClustering
 from scipy.sparse.csgraph import connected_components
 import bnm.recon.algo.tree as tree
 from scipy.sparse.csgraph import shortest_path
-from nibabel.freesurfer.io import read_geometry, read_annot, write_annot
 from bnm.recon.algo.service.annotation import AnnotationService
 from bnm.recon.algo.service.surface import SurfaceService
+from bnm.recon.algo.service.volume import VolumeService
 
 class SubparcellationService(object):
     def __init__(self):
         self.annotationService = AnnotationService()
         self.surfaceService = SurfaceService()
+        self.volumeService = VolumeService()
 
     def make_subparc(self, v, f, annot, roi_names, ctab, trg_area=100.0):
         # TODO subcort subparc with geodesic on bounding gmwmi
@@ -80,23 +80,23 @@ class SubparcellationService(object):
 
     def subparc_files(self, hemi, parc_name, out_parc_name, trg_area):
         trg_area = float(trg_area)
-        v, f = self.surfaceService.read_surf(hemi, 'sphere')
-        lab, ctab, names = read_annot(hemi, parc_name)
-        new_lab, new_ctab, new_names = self.make_subparc(v, f, lab, names, ctab, trg_area=trg_area)
-        write_annot(self.annotationService.annot_path(hemi, out_parc_name), new_lab, new_ctab, new_names)
+        v, f = self.surfaceService.surface_io.read('%s.%s', hemi, 'sphere')
+        annotation = self.annotationService.annotationIO.read('%s.%s.annot', hemi, parc_name)
+        new_lab, new_ctab, new_names = self.make_subparc(v, f, annotation.region_mapping, annotation.region_names,
+                                                         annotation.regions_color_table, trg_area=trg_area)
+        self.annotationService.annotationIO.write(self.annotationService.annot_path(hemi, out_parc_name), new_lab, new_ctab, new_names)
 
     def con_vox_in_ras(self,ref_vol_path):
         # Read the reference tdi_lbl volume:
-        vollbl = nibabel.load(ref_vol_path)
-        vox = vollbl.get_data().astype('i')
-        voxdim = vox.shape
+        vollbl = self.volumeService.volume_io.read(ref_vol_path)
+        vox = vollbl.data.astype('i')
         # Get only the voxels that correspond to connectome nodes:
         voxijk, = numpy.where(vox.flatten() > 0)
-        voxijk = numpy.unravel_index(voxijk, voxdim)
+        voxijk = numpy.unravel_index(voxijk, vollbl.dimensions)
         vox = vox[voxijk[0], voxijk[1], voxijk[2]]
         # ...and their coordinates in freesurfer surface tk-ras xyz space
-        voxxzy =  vollbl.affine.dot(numpy.c_[voxijk[0], voxijk[1], voxijk[2], numpy.ones(vox.shape[0])].T)[:3].T
-        return (vox,voxxzy)
+        voxxzy = vollbl.affine_matrix.dot(numpy.c_[voxijk[0], voxijk[1], voxijk[2], numpy.ones(vox.shape[0])].T)[:3].T
+        return vox, voxxzy
 
     def connected_surface_components(self,verts,faces,connectivity,iVmask,parc_area,th=0.1):
         (nComponents_orig, components) = connected_components(connectivity, directed=False, return_labels=True)
@@ -231,15 +231,15 @@ class SubparcellationService(object):
                                       lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
 
         # Read the surface...
-        (verts, faces, volume_info) = read_geometry(surf_path, read_metadata=True)
+        surface = self.surfaceService.surface_io.read(surf_path)
         # ...and its annotation
-        lab, ctab, names = read_annot(annot_path)
+        annotation = self.annotationService.annotationIO.read(annot_path)
         # ...and get the correspoding labels:
-        labels_annot = self.annotationService.annot_names_to_labels(names, ctx, lut_path=lut_path)
+        labels_annot = self.annotationService.annot_names_to_labels(annotation.region_names, ctx, lut_path=lut_path)
         # Read the indexes of vertices neighboring tracts' ends voxels:
         con_verts_idx = numpy.load(con_verts_idx)
         # Set the target labels:
-        (labels, nLbl) = self.annotationService.read_input_labels(labels=labels, hemi=hemi)
+        labels, nLbl = self.annotationService.read_input_labels(labels=labels, hemi=hemi)
         if "con" in mode:
             # Load voxel connectivity similarity matrix:
             con = numpy.load(consim_path).astype('single')
@@ -247,17 +247,17 @@ class SubparcellationService(object):
             cras = numpy.loadtxt(cras_path)
             # Get only the reference tdi_lbl volume's voxels that correspond to connectome nodes
             # and their surface ras xyz coordinates:
-            (vox,voxxzy)=self.con_vox_in_ras(ref_vol_path)
+            vox, voxxzy = self.con_vox_in_ras(ref_vol_path)
         # Initialize the output:
         out_names = []
         out_ctab = []
-        out_lab = numpy.array(lab)
+        out_lab = numpy.array(annotation.region_mapping)
         nL = -1
         # For every annotation name:
-        for iL in range(len(names)):
-            print str(iL) + ". " + names[iL]
+        for iL in range(len(annotation.region_names)):
+            print str(iL) + ". " + annotation.region_names[iL]
             # Get the mask of the respective vertices
-            iVmask = lab == iL
+            iVmask = annotation.region_mapping == iL
             # ...and their indexes
             iV, = numpy.where(iVmask)
             nV = len(iV)
@@ -266,14 +266,14 @@ class SubparcellationService(object):
             # If there are no associated vertices or if it is not one of the target labels:
             if nV == 0 or (lbl not in labels):
                 # Just add this label to the new annotation as it stands:
-                out_names.append(names[iL])
-                out_ctab.append(ctab[iL])
+                out_names.append(annotation.region_names[iL])
+                out_ctab.append(annotation.regions_color_table[iL])
                 # and change the output indices
                 nL += 1
                 out_lab[iV] = nL
                 continue
             # Get the vertices and faces of this label:
-            (verts_lbl, faces_lbl) = self.surfaceService.extract_subsurf(verts, faces, iVmask)
+            (verts_lbl, faces_lbl) = self.surfaceService.extract_subsurf(surface.vertices, surface.triangles, iVmask)
             # Compute distances among directly connected vertices
             dist = self.surfaceService.vertex_connectivity(verts_lbl, faces_lbl, mode="sparse", metric='euclidean').astype('single')
             #Clustering should operate only among the vertices that fall close to tracts' ends, 
@@ -299,8 +299,8 @@ class SubparcellationService(object):
             # If no further parcellation is needed
             if nParcs < 2:
                 # Just add this label to the new annotation as it stands:
-                out_names.append(names[iL])
-                out_ctab.append(ctab[iL])
+                out_names.append(annotation.region_names[iL])
+                out_ctab.append(annotation.regions_color_table[iL])
                 # and change the output indices
                 nL += 1
                 out_lab[iV] = nL
@@ -354,7 +354,7 @@ class SubparcellationService(object):
             print str(nParcs) + ' parcels with ' + str(h) + ' "connectome" vertices each'
             print "Generate new annotations"
             # Create the new annotation for these sub-labels:
-            (names_lbl,ctab_lbl)=self.gen_new_cluster_annots(clusters_labels,names[iL],ctab[iL, numpy.newaxis])
+            (names_lbl,ctab_lbl)=self.gen_new_cluster_annots(clusters_labels,annotation.region_names[iL],annotation.regions_color_table[iL, numpy.newaxis])
             # Add the new label names
             out_names.append(names_lbl)
             #...and the new ctabs
@@ -379,7 +379,7 @@ class SubparcellationService(object):
         if out_annot_path is None:
             out_annot_path = os.path.splitext(annot_path)[0] + str(parc_area) + ".annot"
         print out_annot_path
-        write_annot(out_annot_path, out_lab, out_ctab, out_names)
+        self.annotationService.annotationIO.write(out_annot_path, out_lab, out_ctab, out_names)
         
     
         
