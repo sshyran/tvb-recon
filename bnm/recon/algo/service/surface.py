@@ -4,9 +4,10 @@ import os
 import numpy
 import scipy
 import gdist
-from nibabel.freesurfer.io import write_geometry
 from sklearn.metrics.pairwise import paired_distances
 from scipy.sparse import csr_matrix
+from bnm.recon.qc.model.surface import Surface
+from bnm.recon.qc.model.annotation import Annotation
 from bnm.recon.algo.service.annotation import AnnotationService
 from bnm.recon.qc.io.volume import VolumeIO
 from bnm.recon.qc.io.surface import FreesurferIO
@@ -56,40 +57,34 @@ class SurfaceService(object):
                                                                                    labels=label_indices)
         label_indices = numpy.array(label_indices.split()).astype('i')
 
-        out_verts = []
-        out_faces = []
-        out_labels = []
-        out_names = []
-        out_color_table = []
-        label_index = -1
+        out_surface = Surface([], [], [], None)
+        out_annotation = Annotation([], [], [])
+        label_number = -1
         verts_number = 0
-        volume_info = None
 
-        for lbl in label_indices:
-            l = int(lbl)
-            this_surf_path = surf_path + "-%06d" % l
+        for label_index in label_indices:
+            this_surf_path = surf_path + "-%06d" % int(label_index)
 
             if os.path.exists(this_surf_path):
-                ind_l, = numpy.where(label_indices == lbl)
-                out_names.append(label_names[ind_l])
-                out_color_table.append(color_table[ind_l, :])
-                label_index += 1
+                ind_l, = numpy.where(label_indices == label_index)
+                out_annotation.region_names.append(label_names[ind_l])
+                out_annotation.regions_color_table.append(color_table[ind_l, :])
+                label_number += 1
                 surface = self.surface_io.read(this_surf_path, False)
-                faces = surface.triangles
-                volume_info = surface.get_main_metadata()
-                faces = faces + verts_number  # Update vertices indexes
+                out_surface.generic_metadata = surface.get_main_metadata()
+                faces = surface.triangles + verts_number  # Update vertices indexes
                 verts_number += surface.vertices.shape[0]
-                out_verts.append(surface.vertices)
-                out_faces.append(faces)
-                out_labels.append(label_index * numpy.ones((surface.vertices.shape[0],), dtype='int64'))
+                out_surface.vertices.append(surface.vertices)
+                out_surface.triangles.append(faces)
+                out_annotation.region_mapping.append(label_number * numpy.ones((surface.vertices.shape[0],), dtype='int64'))
 
-        out_color_table = numpy.squeeze(numpy.array(out_color_table).astype('i'))
-        out_verts = numpy.vstack(out_verts)
-        out_faces = numpy.vstack(out_faces)
-        out_labels = numpy.hstack(out_labels)
+        out_annotation.regions_color_table = numpy.squeeze(numpy.array(out_annotation.regions_color_table).astype('i'))
+        out_surface.vertices = numpy.vstack(out_surface.vertices)
+        out_surface.triangles = numpy.vstack(out_surface.triangles)
+        out_annotation.region_mapping = numpy.hstack(out_annotation.region_mapping)
 
-        write_geometry(out_surf_path, out_verts, out_faces, volume_info=volume_info)
-        self.annotation_service.annotationIO.write(annot_path, out_labels, out_color_table, out_names)
+        self.surface_io.write(out_surface, out_surf_path)
+        self.annotation_service.annotationIO.write(annot_path, out_annotation)
 
     # It returns a sparse matrix of the connectivity among the vertices of a surface
     # mode: "sparse" (default) or "2D"
@@ -216,11 +211,14 @@ class SurfaceService(object):
                 for vertex_index in range(3):
                     faces_out[iF, vertex_index], = numpy.where(faces_out[iF, vertex_index] == verts_out_indices)
 
-            # Write the output surfaces and annotations to files. Also write files with the indexes of vertices to keep.
-            write_geometry(out_surf_path, verts_out, faces_out, create_stamp=None, volume_info=surface.generic_metadata)
+            surface.vertices = verts_out
+            surface.triangles = faces_out
 
-            lab_out = annotation.region_mapping[verts_out_indices]
-            self.annotation_service.annotationIO.write(out_surf_path + ".annot", lab_out, annotation.regions_color_table, annotation.region_names)
+            # Write the output surfaces and annotations to files. Also write files with the indexes of vertices to keep.
+            self.surface_io.write(surface, out_surf_path)
+
+            annotation.region_mapping = annotation.region_mapping[verts_out_indices]
+            self.annotation_service.annotationIO.write(out_surf_path + ".annot", annotation)
 
             numpy.save(out_surf_path + "-idx.npy", verts_out_indices)
             numpy.savetxt(out_surf_path + "-idx.txt", verts_out_indices, fmt='%d')

@@ -57,7 +57,7 @@ class AnnotationService(object):
 
     def lut_to_annot_names_ctab(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt'),
                                 labels=None):
-        (_, names_dict, colors) = self.read_lut(lut_path=lut_path)
+        _, names_dict, colors = self.read_lut(lut_path=lut_path)
         if labels is None:
             labels = names_dict.keys()
         elif isinstance(labels, basestring):
@@ -72,11 +72,11 @@ class AnnotationService(object):
             magic_number = self.rgb_to_fs_magic_number(rgb) * numpy.ones((1,), dtype='int64')
             ctab.append(numpy.concatenate([rgb, numpy.zeros((1,), dtype='int64'), magic_number]))
         ctab = numpy.asarray(ctab).astype('int64')
-        return (names, ctab)
+        return names, ctab
 
     def annot_names_to_labels(self, names, ctx=None,
                               lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
-        (labels_dict, _, _) = self.read_lut(lut_path=lut_path, key_mode='name')
+        labels_dict, _, _ = self.read_lut(lut_path=lut_path, key_mode='name')
         labels = []
         if ctx == 'lh' or ctx == 'rh':
             ctx = 'ctx-' + ctx + '-'
@@ -106,5 +106,5 @@ class AnnotationService(object):
                     labels = labels + range(1000, 1036)
                 elif h == 'rh':
                     labels = labels + range(2000, 2036)
-        nLbl = len(labels)
-        return (labels, nLbl)
+
+        return labels, len(labels)
