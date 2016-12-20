@@ -84,7 +84,7 @@ class SurfaceService(object):
         out_annotation.region_mapping = numpy.hstack(out_annotation.region_mapping)
 
         self.surface_io.write(out_surface, out_surf_path)
-        self.annotation_service.annotationIO.write(annot_path, out_annotation)
+        self.annotation_service.annotation_io.write(annot_path, out_annotation)
 
     # It returns a sparse matrix of the connectivity among the vertices of a surface
     # mode: "sparse" (default) or "2D"
@@ -129,7 +129,7 @@ class SurfaceService(object):
         # Read the inputs
         surface = self.surface_io.read(surf_path, False)
 
-        annotation = self.annotation_service.annotationIO.read(annot_path)
+        annotation = self.annotation_service.annotation_io.read(annot_path)
         labels = self.annotation_service.annot_names_to_labels(annotation.region_names, ctx, lut_path)
 
         volume_parser = VolumeIO()
@@ -218,7 +218,7 @@ class SurfaceService(object):
             self.surface_io.write(surface, out_surf_path)
 
             annotation.region_mapping = annotation.region_mapping[verts_out_indices]
-            self.annotation_service.annotationIO.write(out_surf_path + ".annot", annotation)
+            self.annotation_service.annotation_io.write(out_surf_path + ".annot", annotation)
 
             numpy.save(out_surf_path + "-idx.npy", verts_out_indices)
             numpy.savetxt(out_surf_path + "-idx.txt", verts_out_indices, fmt='%d')

@@ -82,9 +82,9 @@ class SubparcellationService(object):
     def subparc_files(self, surf_path, annot_path, out_annot_parc_name, trg_area):
         trg_area = float(trg_area)
         surface = self.surfaceService.surface_io.read(surf_path, False)
-        annotation = self.annotationService.annotationIO.read(annot_path)
+        annotation = self.annotationService.annotation_io.read(annot_path)
         new_annotation = self.make_subparc(surface, annotation, trg_area=trg_area)
-        self.annotationService.annotationIO.write(out_annot_parc_name, new_annotation)
+        self.annotationService.annotation_io.write(out_annot_parc_name, new_annotation)
 
     def con_vox_in_ras(self,ref_vol_path):
         # Read the reference tdi_lbl volume:
@@ -233,7 +233,7 @@ class SubparcellationService(object):
         # Read the surface...
         surface = self.surfaceService.surface_io.read(surf_path, False)
         # ...and its annotation
-        annotation = self.annotationService.annotationIO.read(annot_path)
+        annotation = self.annotationService.annotation_io.read(annot_path)
         # ...and get the correspoding labels:
         labels_annot = self.annotationService.annot_names_to_labels(annotation.region_names, ctx, lut_path=lut_path)
         # Read the indexes of vertices neighboring tracts' ends voxels:
@@ -379,7 +379,7 @@ class SubparcellationService(object):
         if out_annot_path is None:
             out_annot_path = os.path.splitext(annot_path)[0] + str(parc_area) + ".annot"
         print out_annot_path
-        self.annotationService.annotationIO.write(out_annot_path, out_lab, out_ctab, out_names)
+        self.annotationService.annotation_io.write(out_annot_path, out_lab, out_ctab, out_names)
         
 
         
