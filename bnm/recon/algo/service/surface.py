@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import glob
 import os
 import numpy
 import scipy
 import gdist
+from bnm.recon.io.tvb import TVBWriter
+from bnm.recon.qc.io.annotation import AnnotationIO
 from sklearn.metrics.pairwise import paired_distances
 from scipy.sparse import csr_matrix
+from bnm.recon.algo.geom import merge_lh_rh
 from bnm.recon.qc.model.surface import Surface
 from bnm.recon.qc.model.annotation import Annotation
 from bnm.recon.algo.service.annotation import AnnotationService
@@ -17,12 +21,47 @@ class SurfaceService(object):
     def __init__(self):
         self.annotation_service = AnnotationService()
         self.surface_io = FreesurferIO()
+        self.annotation_io = AnnotationIO()
 
     def tri_area(self, tri):
         i, j, k = numpy.transpose(tri, (1, 0, 2))
         ij = j - i
         ik = k - i
         return numpy.sqrt(numpy.sum(numpy.cross(ij, ik) ** 2, axis=1)) / 2.0
+
+    def convert_fs_to_brain_visa(self, in_surf_path):
+        surface = self.surface_io.read(in_surf_path, False)
+        self.surface_io.write_brain_visa_surf(in_surf_path + '.tri', surface)
+
+    def convert_bem_to_tri(self):
+        subjects_dir = os.environ['SUBJECTS_DIR']
+        subject = os.environ['SUBJECT']
+        surfs_glob = '%s/%s/bem/watershed/*_surface-low' % (subjects_dir, subject)
+        for surf_name in glob.glob(surfs_glob):
+            self.convert_fs_to_brain_visa(surf_name)
+
+    # Merge surfaces and roi maps. Write out in TVB format.
+    def convert_fs_subj_to_tvb_surf(self, subject=None):
+        subjects_dir = os.environ['SUBJECTS_DIR']
+
+        if subject is None:
+            subject = os.environ['SUBJECT']
+
+        lh_surf_path = os.path.join(subjects_dir, subject, 'surf', 'lh.pial')
+        rh_surf_path = os.path.join(subjects_dir, subject, 'surf', 'rh.pial')
+        lh_annot_path = os.path.join(subjects_dir, subject, 'label', 'lh.aparc.annot')
+        rh_annot_path = os.path.join(subjects_dir, subject, 'label', 'rh.aparc.annot')
+
+        lh_surface = self.surface_io.read(lh_surf_path, False)
+        rh_surface = self.surface_io.read(rh_surf_path, False)
+
+        lh_annot = self.annotation_io.read(lh_annot_path)
+        rh_annot = self.annotation_io.read(rh_annot_path)
+
+        surface, region_mapping = merge_lh_rh(lh_surface, rh_surface, lh_annot.region_mapping, rh_annot.region_mapping)
+
+        numpy.savetxt('%s_ctx_roi_map.txt' % (subject,), region_mapping.flat[:], '%i')
+        TVBWriter().write_surface_zip('%s_pial_surf.zip' % (subject,), surface)
 
     def compute_gdist_mat(self, surf_name='pial', max_distance=40.0):
         max_distance = float(max_distance)  # in case passed from sys.argv
@@ -76,7 +115,8 @@ class SurfaceService(object):
                 verts_number += surface.vertices.shape[0]
                 out_surface.vertices.append(surface.vertices)
                 out_surface.triangles.append(faces)
-                out_annotation.region_mapping.append(label_number * numpy.ones((surface.vertices.shape[0],), dtype='int64'))
+                out_annotation.region_mapping.append(
+                    label_number * numpy.ones((surface.vertices.shape[0],), dtype='int64'))
 
         out_annotation.regions_color_table = numpy.squeeze(numpy.array(out_annotation.regions_color_table).astype('i'))
         out_surface.vertices = numpy.vstack(out_surface.vertices)
@@ -84,7 +124,7 @@ class SurfaceService(object):
         out_annotation.region_mapping = numpy.hstack(out_annotation.region_mapping)
 
         self.surface_io.write(out_surface, out_surf_path)
-        self.annotation_service.annotation_io.write(annot_path, out_annotation)
+        self.annotation_io.write(annot_path, out_annotation)
 
     # It returns a sparse matrix of the connectivity among the vertices of a surface
     # mode: "sparse" (default) or "2D"
@@ -129,7 +169,7 @@ class SurfaceService(object):
         # Read the inputs
         surface = self.surface_io.read(surf_path, False)
 
-        annotation = self.annotation_service.annotation_io.read(annot_path)
+        annotation = self.annotation_io.read(annot_path)
         labels = self.annotation_service.annot_names_to_labels(annotation.region_names, ctx, lut_path)
 
         volume_parser = VolumeIO()
@@ -164,7 +204,7 @@ class SurfaceService(object):
 
             # Compute the nearest voxel coordinates using the affine transform
             ijk = numpy.round(
-                ras2vox_affine_matrix.dot(numpy.c_[verts_of_label, numpy.ones(verts_indices_of_label_size)].T)[:3].T)\
+                ras2vox_affine_matrix.dot(numpy.c_[verts_of_label, numpy.ones(verts_indices_of_label_size)].T)[:3].T) \
                 .astype('i')
 
             # Get the labels of these voxels:
@@ -218,7 +258,7 @@ class SurfaceService(object):
             self.surface_io.write(surface, out_surf_path)
 
             annotation.region_mapping = annotation.region_mapping[verts_out_indices]
-            self.annotation_service.annotation_io.write(out_surf_path + ".annot", annotation)
+            self.annotation_io.write(out_surf_path + ".annot", annotation)
 
             numpy.save(out_surf_path + "-idx.npy", verts_out_indices)
             numpy.savetxt(out_surf_path + "-idx.txt", verts_out_indices, fmt='%d')

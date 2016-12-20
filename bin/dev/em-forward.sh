@@ -54,8 +54,8 @@ freeview -v ../mri/T1.mgz -f watershed/*-low -viewport coronal
 for surf in *_surface-low
 do
     python<<EOF
-import bnm.recon.io.surf
-bnm.recon.io.surf.convert_fs_to_brain_visa("$surf")
+import bnm.recon.algo.reconutils
+bnm.recon.algo.reconutils.convert_fs_to_brain_visa("$surf")
 EOF
 done
 
@@ -70,7 +70,7 @@ om_minverser head.mat head-inv.mat # 3m30s
 # convert cortical surfaces format
 for h in rh lh; do
     cp ../surf/$h.pial.fsaverage5 ./cortical-$h
-    python -c "import bnm.recon.io.surf; bnm.recon.io.surf.convert_fs_to_brain_visa('cortical-$h')"
+    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.convert_fs_to_brain_visa('cortical-$h')"
 done
 
 # make source model for subcortical NOT DONE YET

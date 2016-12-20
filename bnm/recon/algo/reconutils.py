@@ -25,6 +25,9 @@ def gen_head_model():
 
 #-----------------------------Freesurfer surfaces------------------------------
 
+def convert_fs_to_brain_visa(fs_surf):
+    surfaceService.convert_fs_to_brain_visa(fs_surf)
+
 def compute_gdist_mat(surf_name='pial', max_distance=40.0):
     surfaceService.compute_gdist_mat(surf_name, max_distance)
 

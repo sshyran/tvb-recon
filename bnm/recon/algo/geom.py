@@ -1,4 +1,5 @@
 import numpy
+from bnm.recon.qc.model.surface import Surface
 
 
 # TODO test by generating points on unit sphere: vtx pos should equal normal
@@ -18,9 +19,10 @@ def vertex_normals(v, f):
     return vn
 
 
-def merge_lh_rh(lv, lf, rv, rf, lrm, rrm):
-    "Merge left and right hemisphere surfaces, and their region maps."
-    v = numpy.r_[lv, rv]
-    f = numpy.r_[lf, rf + lf.max()]
-    rm = numpy.r_[lrm, rrm + lf.max()]
-    return v, f, rm
+# Merge left and right hemisphere surfaces, and their region maps.
+def merge_lh_rh(lh_surface, rh_surface, left_region_mapping, right_region_mapping):
+    out_surface = Surface([], [], [], None)
+    out_surface.vertices = numpy.r_[lh_surface.vertices, rh_surface.vertices]
+    out_surface.triangles = numpy.r_[lh_surface.triangles, rh_surface.triangles + lh_surface.vertices.max()]
+    out_region_mapping = numpy.r_[left_region_mapping, right_region_mapping + lh_surface.triangles.max()]
+    return out_surface, out_region_mapping

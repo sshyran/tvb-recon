@@ -2,6 +2,7 @@
 
 import nibabel
 import numpy
+from bnm.recon.algo.geom import vertex_normals
 from nibabel.gifti import GiftiDataArray
 from nibabel.gifti import GiftiImage
 from nibabel.gifti import GiftiMetaData
@@ -164,3 +165,13 @@ class FreesurferIO(ABCSurfaceIO):
                            [0.0, 0.0, 0.0]]
         for i, fs_key in enumerate(TRANSFORM_MATRIX_FS_KEYS):
             image_metadata[fs_key] = identity_matrix[i]
+
+    def write_brain_visa_surf(self, file_path, surface):
+        vn = vertex_normals(surface.vertices, surface.triangles)
+        with open(file_path, 'w') as fd:
+            fd.write('- %d\n' % len(vn))
+            for (vx, vy, vz), (nx, ny, nz) in zip(surface.vertices, vn):
+                fd.write('%f %f %f %f %f %f\n' % (vx, vy, vz, nx, ny, nz))
+            fd.write('- %d %d %d\n' % ((len(surface.triangles),) * 3))
+            for i, j, k in surface.triangles:
+                fd.write('%d %d %d\n' % (i, j, k))
