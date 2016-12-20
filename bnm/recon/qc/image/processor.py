@@ -5,7 +5,7 @@ import numpy
 from bnm.recon.logger import get_logger
 from bnm.recon.qc.image.writer import ImageWriter
 from bnm.recon.qc.io.annotation import AnnotationIO
-from bnm.recon.qc.io.generic import GenericParser
+from bnm.recon.qc.io.generic import GenericIO
 from bnm.recon.qc.io.surface import FreesurferIO, GiftiSurfaceIO
 from bnm.recon.qc.io.volume import VolumeIO
 from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTENSION, T1_RAS_VOLUME, MRI_DIRECTORY, \
@@ -15,7 +15,7 @@ from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTEN
 class ImageProcessor(object):
     def __init__(self, snapshots_directory, snapshot_count=0):
         self.parser_volume = VolumeIO()
-        self.generic_parser = GenericParser()
+        self.generic_io = GenericIO()
         self.annotation_parser = AnnotationIO()
         self.writer = ImageWriter(snapshots_directory)
         self.snapshot_count = snapshot_count
@@ -48,7 +48,7 @@ class ImageProcessor(object):
         volume = self.parser_volume.read(volume_path)
 
         if use_cc_point:
-            ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
+            ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
         else:
             ras = volume.get_center_point()
 
@@ -70,7 +70,7 @@ class ImageProcessor(object):
         overlay_volume = self.parser_volume.read(overlay_path)
 
         if use_cc_point:
-            ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
+            ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
         else:
             ras = background_volume.get_center_point()
 
@@ -96,7 +96,7 @@ class ImageProcessor(object):
         volume_overlay_2 = self.parser_volume.read(overlay_2_path)
 
         if use_cc_point:
-            ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
+            ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
         else:
             ras = volume_background.get_center_point()
 
@@ -127,7 +127,7 @@ class ImageProcessor(object):
         volume = self.parser_volume.read(volume_background)
 
         if use_cc_point:
-            ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
+            ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
         else:
             ras = volume.get_center_point()
 
@@ -170,7 +170,7 @@ class ImageProcessor(object):
                 idx += 1
 
         if use_cc_point:
-            ras = self.generic_parser.get_ras_coordinates(self.read_t1_affine_matrix())
+            ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
         else:
             ras = aparc_aseg_volume.get_center_point()
 

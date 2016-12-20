@@ -4,14 +4,14 @@ import os
 import numpy
 import sys
 from bnm.recon.logger import get_logger
-from bnm.recon.qc.io.generic import GenericParser
+from bnm.recon.qc.io.generic import GenericIO
 from bnm.recon.qc.model.constants import SNAPSHOT_NAME, SNAPSHOT_EXTENSION, SNAPSHOTS_DIRECTORY_ENVIRON_VAR, \
     SNAPSHOT_NUMBER_ENVIRON_VAR
 
 
 class FreeViewController(object):
     logger = get_logger(__name__)
-    parser = GenericParser()
+    generic_io = GenericIO()
 
     target_screenshot_name = SNAPSHOT_NAME
     target_file = "slices.txt"
@@ -49,10 +49,10 @@ class FreeViewController(object):
             count_number) + projection + suffix + SNAPSHOT_EXTENSION)
 
     def prepare_screenshot(self):
-        matrix = self.parser.read_transformation_matrix(self.in_matrix_file)
+        matrix = self.generic_io.read_transformation_matrix(self.in_matrix_file)
         self.logger.info("Read idx2rsa matrix: %s" % matrix)
 
-        vector = self.parser.read_cc_point(self.in_point_file, self.point_line_flag)
+        vector = self.generic_io.read_cc_point(self.in_point_file, self.point_line_flag)
         self.logger.info("Read vector: %s" % vector)
 
         a = numpy.array(matrix)
