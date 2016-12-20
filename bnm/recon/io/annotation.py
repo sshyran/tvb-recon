@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from bnm.recon.model.annotation import Annotation
 from nibabel.freesurfer.io import read_annot, write_annot
-from bnm.recon.qc.model.annotation import Annotation
 
 
 class AnnotationIO(object):

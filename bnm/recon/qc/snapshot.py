@@ -4,10 +4,10 @@ import argparse
 import os
 
 from bnm.recon.logger import get_logger
+from bnm.recon.model.constants import *
+from bnm.recon.model.constants import SNAPSHOT_NAME
 from bnm.recon.qc.image.processor import ImageProcessor
 from bnm.recon.qc.image.transformer import ImageTransformer
-from bnm.recon.qc.model.constants import *
-from bnm.recon.qc.model.constants import SNAPSHOT_NAME
 
 arg_1vol = "1vol"
 arg_2vols = "2vols"

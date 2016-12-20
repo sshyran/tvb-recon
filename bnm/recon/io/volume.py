@@ -2,7 +2,7 @@
 
 import nibabel
 from bnm.recon.logger import get_logger
-from bnm.recon.qc.model.volume import Volume
+from bnm.recon.model.volume import Volume
 
 
 class VolumeIO(object):

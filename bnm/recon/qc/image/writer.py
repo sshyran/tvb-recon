@@ -7,7 +7,7 @@ matplotlib.use('Agg')
 from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
 from bnm.recon.logger import get_logger
-from bnm.recon.qc.model.constants import SNAPSHOT_EXTENSION
+from bnm.recon.model.constants import SNAPSHOT_EXTENSION
 
 
 class ImageWriter(object):

@@ -2,7 +2,7 @@
 
 import os
 import numpy
-from bnm.recon.qc.model.constants import CC_POINT_FILE
+from bnm.recon.model.constants import CC_POINT_FILE
 
 try:
     from cStringIO import StringIO

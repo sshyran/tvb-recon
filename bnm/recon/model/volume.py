@@ -2,8 +2,8 @@
 
 import numpy
 import numpy.linalg
+from bnm.recon.model.constants import *
 from nibabel.affines import apply_affine
-from bnm.recon.qc.model.constants import *
 
 
 class Volume(object):

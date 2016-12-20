@@ -1,5 +1,5 @@
 import numpy
-from bnm.recon.qc.model.surface import Surface
+from bnm.recon.model.surface import Surface
 
 
 # TODO test by generating points on unit sphere: vtx pos should equal normal

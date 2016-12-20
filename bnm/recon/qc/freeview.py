@@ -5,7 +5,7 @@ import sys
 import numpy
 from bnm.recon.io.generic import GenericIO
 from bnm.recon.logger import get_logger
-from bnm.recon.qc.model.constants import SNAPSHOT_NAME, SNAPSHOT_EXTENSION, SNAPSHOTS_DIRECTORY_ENVIRON_VAR, \
+from bnm.recon.model.constants import SNAPSHOT_NAME, SNAPSHOT_EXTENSION, SNAPSHOTS_DIRECTORY_ENVIRON_VAR, \
     SNAPSHOT_NUMBER_ENVIRON_VAR
 
 

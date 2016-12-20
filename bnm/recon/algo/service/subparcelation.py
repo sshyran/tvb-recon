@@ -12,7 +12,7 @@ from scipy.sparse.csgraph import shortest_path
 from bnm.recon.algo.service.annotation import AnnotationService
 from bnm.recon.algo.service.surface import SurfaceService
 from bnm.recon.algo.service.volume import VolumeService
-from bnm.recon.qc.model.annotation import Annotation
+from bnm.recon.model.annotation import Annotation
 
 class SubparcellationService(object):
     def __init__(self):

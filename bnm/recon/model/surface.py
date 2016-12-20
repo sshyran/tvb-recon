@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy
+from bnm.recon.model.constants import *
 from trimesh import Trimesh, intersections
-from bnm.recon.qc.model.constants import *
 
 
 class Surface(object):

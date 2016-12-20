@@ -3,14 +3,14 @@
 import nibabel
 import numpy
 from bnm.recon.algo.geom import vertex_normals
+from bnm.recon.logger import get_logger
+from bnm.recon.model.surface import Surface
+from bnm.recon.qc.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
+from nibabel.freesurfer.io import read_geometry, write_geometry
 from nibabel.gifti import GiftiDataArray
 from nibabel.gifti import GiftiImage
 from nibabel.gifti import GiftiMetaData
 from nibabel.gifti import giftiio
-from nibabel.freesurfer.io import read_geometry, write_geometry
-from bnm.recon.qc.model.surface import Surface
-from bnm.recon.logger import get_logger
-from bnm.recon.qc.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
 
 
 class ABCSurfaceIO(object):
