@@ -20,7 +20,7 @@ def make_tree(dict_tree):
     return (tree,root)
         
         
-def return_tree_node_leafs_verts(node):
+def return_tree_leafs(node):
     leafs=[]
     for nod in node.descendants:
         if nod.isleaf:
