@@ -12,7 +12,7 @@ from bnm.recon.io.surface import FreesurferIO
 from bnm.recon.io.tvb import TVBWriter
 from bnm.recon.io.volume import VolumeIO
 from bnm.recon.model.surface import Surface
-from bnm.recon.qc.model.annotation import Annotation
+from bnm.recon.model.annotation import Annotation
 from scipy.sparse import csr_matrix
 from sklearn.metrics.pairwise import paired_distances
 
