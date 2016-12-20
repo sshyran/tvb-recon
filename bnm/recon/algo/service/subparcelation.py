@@ -16,9 +16,9 @@ from bnm.recon.qc.model.annotation import Annotation
 
 class SubparcellationService(object):
     def __init__(self):
-        self.annotationService = AnnotationService()
-        self.surfaceService = SurfaceService()
-        self.volumeService = VolumeService()
+        self.annotation_service = AnnotationService()
+        self.surface_service = SurfaceService()
+        self.volume_service = VolumeService()
 
     def make_subparc(self, surface, annotation, trg_area=100.0):
         # TODO subcort subparc with geodesic on bounding gmwmi
@@ -56,7 +56,7 @@ class SubparcellationService(object):
                 continue
 
             # compute area of faces in roi
-            roi_area = numpy.sum(self.surfaceService.tri_area(surface.vertices[surface.triangles[rfi]]))
+            roi_area = numpy.sum(self.surface_service.tri_area(surface.vertices[surface.triangles[rfi]]))
 
             # choose k for desired roi area
             k = int(roi_area / trg_area) + 1
@@ -75,16 +75,16 @@ class SubparcellationService(object):
         new_annotation.regions_color_table = numpy.random.randint(255, size=(len(new_annotation.region_names), 5))
         r, g, b, _, _ = new_annotation.regions_color_table.T
         new_annotation.regions_color_table[:, 3] = 0
-        new_annotation.regions_color_table[:, 4] = self.annotationService.rgb_to_fs_magic_number([r, g, b])
+        new_annotation.regions_color_table[:, 4] = self.annotation_service.rgb_to_fs_magic_number([r, g, b])
 
         return new_annotation
 
     def subparc_files(self, surf_path, annot_path, out_annot_parc_name, trg_area):
         trg_area = float(trg_area)
-        surface = self.surfaceService.surface_io.read(surf_path, False)
-        annotation = self.annotationService.annotationIO.read(annot_path)
+        surface = self.surface_service.surface_io.read(surf_path, False)
+        annotation = self.annotation_service.annotation_io.read(annot_path)
         new_annotation = self.make_subparc(surface, annotation, trg_area=trg_area)
-        self.annotationService.annotationIO.write(out_annot_parc_name, new_annotation)
+        self.annotation_service.annotation_io.write(out_annot_parc_name, new_annotation)
 
     def compute_surface_area(self,v,f,mask=None):
         if mask is not None:
@@ -93,7 +93,7 @@ class SubparcellationService(object):
 
     def con_vox_in_ras(self,ref_vol_path):
         # Read the reference tdi_lbl volume:
-        vollbl = self.volumeService.volume_io.read(ref_vol_path)
+        vollbl = self.volume_service.volume_io.read(ref_vol_path)
         vox = vollbl.data.astype('i')
         # Get only the voxels that correspond to connectome nodes:
         voxijk, = numpy.where(vox.flatten() > 0)
@@ -134,8 +134,8 @@ class SubparcellationService(object):
         #affinity = 1 - con[v2n - 1, :][:, v2n - 1]
         affinity = numpy.arccos(con[v2n - 1, :][:, v2n - 1])
         #Normalize:
-        affinity /=numpy.max(affinity).astype('single') 
-        return affinity  
+        affinity /=numpy.max(affinity).astype('single')
+        return affinity
 
     def compute_geodesic_dist_affinity(self,dist):
         geodist = shortest_path(dist, method='auto', directed=False,
@@ -153,30 +153,29 @@ class SubparcellationService(object):
          noncon2con_dists = geodist[iV_noncon, :][:, iV_con]
          noncon2con = numpy.argmin(noncon2con_dists, axis=1)
          noncon2con_dists_mins = noncon2con_dists[range(nVnoncon), noncon2con]
-         # For every infinite geodesic distance, 
+         # For every infinite geodesic distance,
          for iC in range(nVnoncon):
              if numpy.isinf(noncon2con_dists_mins[iC]):
                  #compute the corresponding euclidean distance
                  #noncon2con[iC] = numpy.argmin(cdist(numpy.expand_dims(verts[iV_noncon[iC], :], 1).T, verts[iV_con, :], 'euclidean'))
-                 print "Warning: Non-connected vertex among the ones without connectivity!" 
-         # ...and map them
+                 print "Warning: Non-connected vertex among the ones without connectivity!"
          # ...and map them
          noncon2con = iV[noncon2con]
          return noncon2con
-        
+
     def run_clustering(self,affinity,nParcs=2,connectivity=None):  #,algo="scikit")
    #     if algo == "scikit":
         #scikit learn algorithm:
-        model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed", 
+        model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed",
                                                 connectivity=connectivity, linkage='average')
         model.fit(affinity)
         clusters=model.labels_
-        #You can also do 
+        #You can also do
         #children=model.children_
         #to get an (nVcon,2) array of all nodes with their children
         #or
-        cluster_tree=dict(enumerate(model.children_, model.n_leaves_)) 
-        #which will give you a dictionary where each key is the 
+        cluster_tree=dict(enumerate(model.children_, model.n_leaves_))
+        #which will give you a dictionary where each key is the
         #ID of a node and the value is the pair of IDs of its children.
         #or to get a list:
 #       import itertools
@@ -194,9 +193,9 @@ class SubparcellationService(object):
 #                clusters=hierarchy.fcluster(Z,nParcs,criterion='maxclust')-1
 #            except:
 #                print "Shit!"
-#                return    
+#                return
         return clusters
-        
+
     def gen_new_parcel_annots(self,parcel_labels,base_name,base_ctab):
         # Create the new annotation for these sub-labels:
         nParcels=len(parcel_labels)
@@ -215,9 +214,9 @@ class SubparcellationService(object):
         ctab_lbl[:, iC] = numpy.array(range(base_ctab[0, iC], base_ctab[0, iC] + dist, step), dtype='int')
         ctab_lbl[:, :3][ctab_lbl[:, :3] < 0] = 0
         ctab_lbl[:, :3][ctab_lbl[:, :3] > 255] = 255
-        ctab_lbl[:, 4] = numpy.array([self.annotationService.rgb_to_fs_magic_number(base_ctab[iCl, :3]) for iCl in range(nParcels)])
+        ctab_lbl[:, 4] = numpy.array([self.annotation_service.rgb_to_fs_magic_number(base_ctab[iCl, :3]) for iCl in range(nParcels)])
         return (names_lbl,ctab_lbl)
-    
+
     def connectivity_geodesic_subparc(self, surf_path, annot_path, con_verts_idx, out_annot_path=None,
                                       labels=None, hemi=None, ctx=None,
                                       parc_area=100, con_sim_aff=1.0, geod_dist_aff=1.0, structural_connectivity_constraint=True,
@@ -225,15 +224,15 @@ class SubparcellationService(object):
                                       lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
 
         # Read the surface...
-        surface = self.surfaceService.surface_io.read(surf_path, False)
+        surface = self.surface_service.surface_io.read(surf_path, False)
         # ...and its annotation
-        annotation = self.annotationService.annotationIO.read(annot_path)
+        annotation = self.annotation_service.annotation_io.read(annot_path)
         # ...and get the correspoding labels:
-        labels_annot = self.annotationService.annot_names_to_labels(annotation.region_names, ctx, lut_path=lut_path)
+        labels_annot = self.annotation_service.annot_names_to_labels(annotation.region_names, ctx, lut_path=lut_path)
         # Read the indexes of vertices neighboring tracts' ends voxels:
         con_verts_idx = numpy.load(con_verts_idx)
         # Set the target labels:
-        labels, nLbl = self.annotationService.read_input_labels(labels=labels, hemi=hemi)
+        labels, nLbl = self.annotation_service.read_input_labels(labels=labels, hemi=hemi)
         if con_sim_aff > 0:
             # Load voxel connectivity similarity matrix:
             con = numpy.load(consim_path).astype('single')
@@ -268,9 +267,12 @@ class SubparcellationService(object):
                 print "Added "+annotation.region_names[iL]+" as it stands..."
                 continue
             # Get the vertices and faces of this label:
-            (verts_lbl, faces_lbl) = self.surfaceService.extract_subsurf(surface.vertices, surface.triangles, iVmask)
+            (verts_lbl, faces_lbl) = self.surface_service.extract_subsurf(surface.vertices, surface.triangles, iVmask)
             # Compute distances among directly connected vertices
-            dist = self.surfaceService.vertex_connectivity(verts_lbl, faces_lbl, mode="sparse", metric='euclidean').astype('single')
+            dist = self.surface_service.vertex_connectivity(verts_lbl, faces_lbl, mode="sparse", metric='euclidean').astype('single')
+            #Clustering should operate only among the vertices that fall close to tracts' ends,
+            #i.e., the so-called "con" vertices
+ #           if "con" in mode:
             # Mask of label vertices that are neighbors of tract end voxels ("con"):
             iV_con = numpy.in1d(iV, con_verts_idx)
             # Calculate total area only of "con" surface:
@@ -367,7 +369,7 @@ class SubparcellationService(object):
         if out_annot_path is None:
             out_annot_path = os.path.splitext(annot_path)[0] + str(parc_area) + ".annot"
         print out_annot_path
-        self.annotationService.annotationIO.write(out_annot_path, out_lab, out_ctab, out_names)
+        self.annotation_service.annotation_io.write(out_annot_path, out_lab, out_ctab, out_names)
         
 
         

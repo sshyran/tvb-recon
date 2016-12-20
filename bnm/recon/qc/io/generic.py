@@ -5,7 +5,7 @@ import numpy
 from bnm.recon.qc.model.constants import CC_POINT_FILE
 
 
-class GenericParser(object):
+class GenericIO(object):
     point_line_flag = "CC-CRS"
 
     def read_cc_point(self, file_path, line_flag):
