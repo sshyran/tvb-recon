@@ -4,7 +4,7 @@ Core I/O.
 
 """
 
-import numpy as np
+import numpy
 
 try:
     from cStringIO import StringIO
@@ -15,5 +15,5 @@ except ImportError: # Py 3
 def np_save_strio(arr, fmt):
     "Save a NumPy array to text in a StringIO object."
     sio = StringIO()
-    np.savetxt(sio, arr, fmt)
+    numpy.savetxt(sio, arr, fmt)
     return sio

@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 import nibabel
 import scipy.ndimage
 
@@ -24,16 +24,16 @@ def seeg_pos():
 
     def xyz_lab(idx):
         "Get XYZ coords of voxels in label idx."
-        vox_idx = np.argwhere(lab_bin == idx)
-        return aff.dot(np.c_[vox_idx, np.ones(vox_idx.shape[0])].T)[:3].T
+        vox_idx = numpy.argwhere(lab_bin == idx)
+        return aff.dot(numpy.c_[vox_idx, numpy.ones(vox_idx.shape[0])].T)[:3].T
 
     xyz5 = xyz_lab(5)
-    _, s, vt = np.linalg.svd(xyz5, 0)
+    _, s, vt = numpy.linalg.svd(xyz5, 0)
     xi = vt[0].dot(xyz5.T)
 
-    xyz5[np.argmin(xi)]
+    xyz5[numpy.argmin(xi)]
     #[Out]# array([    3.46777344,   158.53613281, -1054.70422363])
-    xyz5[np.argmax(xi)]
+    xyz5[numpy.argmax(xi)]
     #[Out]# array([  -26.23730469,   149.66894531, -1048.70446777])
 
     # these positions match extrema of electrode on lab_bin.nii in freeview

@@ -12,9 +12,9 @@ Options:
 
 import os
 import docopt
-import numpy as np
+import numpy
 
-from bnm.recon.io import tvb
+from bnm.recon.io.tvb import TVBWriter
 from bnm.recon.algo.geom import merge_lh_rh
 from bnm.recon.qc.io.annotation import AnnotationIO
 from bnm.recon.qc.io.surface import FreesurferIO
@@ -51,5 +51,5 @@ if __name__ == '__main__':
                            lh_annot.region_mapping, rh_annot.region_mapping)
 
     # write out in TVB format
-    np.savetxt('%s_ctx_roi_map.txt' % (subject,), rm.flat[:], '%i')
-    tvb.write_surface_zip('%s_pial_surf.zip' % (subject,), v, f)
+    numpy.savetxt('%s_ctx_roi_map.txt' % (subject,), rm.flat[:], '%i')
+    TVBWriter().write_surface_zip('%s_pial_surf.zip' % (subject,), v, f)
