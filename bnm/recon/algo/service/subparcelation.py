@@ -88,8 +88,8 @@ class SubparcellationService(object):
 
     def compute_surface_area(self,v,f,mask=None):
         if mask is not None:
-            (v, f) = self.surfaceService.extract_subsurf(v, f, mask)
-        return numpy.sum(self.surfaceService.tri_area(v[f]))
+            (v, f) = self.surface_service.extract_subsurf(v, f, mask)
+        return numpy.sum(self.surface_service.tri_area(v[f]))
 
     def con_vox_in_ras(self,ref_vol_path):
         # Read the reference tdi_lbl volume:
@@ -121,7 +121,6 @@ class SubparcellationService(object):
         # Add the cras to take them to scanner ras coordinates:
         if cras is not None:
             verts += numpy.repeat(numpy.expand_dims(cras, 1).T, verts.shape[0], axis=0)
-        print "Compute connectivity similarity affinity matrix..."
         # TODO?: to use aparc+aseg to correspond vertices only to voxels of the same label
         # There would have to be a vertex->voxel of aparc+aseg of the same label -> voxel of tdi_lbl_in_T1 mapping
         # Maybe redundant  because we might be ending to the same voxel of tdi_lbl anyway...
@@ -129,7 +128,7 @@ class SubparcellationService(object):
         # Find for each vertex the closest voxel node xyz coordinates:
         v2n = numpy.argmin(cdist(verts, voxxzy, 'euclidean'), axis=1)
         v2n = vox[v2n]
-        print "...whereby vertices correspond to " + str(numpy.size(numpy.unique(v2n))) + " distinct voxel nodes"
+        print "Surface component's vertices correspond to " + str(numpy.size(numpy.unique(v2n))) + " distinct voxel nodes"
         # ... convert connectivity similarity to a distance matrix
         #affinity = 1 - con[v2n - 1, :][:, v2n - 1]
         affinity = numpy.arccos(con[v2n - 1, :][:, v2n - 1])
@@ -146,30 +145,9 @@ class SubparcellationService(object):
         # Convert them to normalized distances and return them
         return geodist/max_gdist
 
-    def map_noncon_to_con_verts(self,iV,iV_con,iV_noncon,geodist): #verts,
-         iV_noncon, = numpy.where(iV_noncon)
-         nVnoncon = len(iV_noncon)
-         # Find the closest neighbors of each non-con-vertex to a con-vertex...
-         noncon2con_dists = geodist[iV_noncon, :][:, iV_con]
-         noncon2con = numpy.argmin(noncon2con_dists, axis=1)
-         noncon2con_dists_mins = noncon2con_dists[range(nVnoncon), noncon2con]
-         # For every infinite geodesic distance,
-         for iC in range(nVnoncon):
-             if numpy.isinf(noncon2con_dists_mins[iC]):
-                 #compute the corresponding euclidean distance
-                 #noncon2con[iC] = numpy.argmin(cdist(numpy.expand_dims(verts[iV_noncon[iC], :], 1).T, verts[iV_con, :], 'euclidean'))
-                 print "Warning: Non-connected vertex among the ones without connectivity!"
-         # ...and map them
-         noncon2con = iV[noncon2con]
-         return noncon2con
-
-    def run_clustering(self,affinity,nParcs=2,connectivity=None):  #,algo="scikit")
-   #     if algo == "scikit":
-        #scikit learn algorithm:
-        model = AgglomerativeClustering(n_clusters=nParcs, affinity="precomputed",
-                                                connectivity=connectivity, linkage='average')
+    def run_clustering(self,affinity,parc_area,connectivity=None):
+        model = AgglomerativeClustering(affinity="precomputed", connectivity=connectivity, linkage='average')
         model.fit(affinity)
-        clusters=model.labels_
         #You can also do
         #children=model.children_
         #to get an (nVcon,2) array of all nodes with their children
@@ -183,17 +161,6 @@ class SubparcellationService(object):
 #       tree=[{'node_id': next(ii), 'left': x[0], 'right':x[1]} for x in model.children_]
         #Now make a tree out of it:
         (cluster_tree,root)=tree.make_tree(cluster_tree)
-#        else:
-#            #scipy algorithm:
-#            numpy.fill_diagonal(affinity,0.0)
-#            affinity=squareform(affinity).astype('single')
-#            #affinity[affinity==0.0]=0.001
-#            Z=hierarchy.ward(affinity)
-#            try:
-#                clusters=hierarchy.fcluster(Z,nParcs,criterion='maxclust')-1
-#            except:
-#                print "Shit!"
-#                return
         return clusters
 
     def gen_new_parcel_annots(self,parcel_labels,base_name,base_ctab):
@@ -270,9 +237,6 @@ class SubparcellationService(object):
             (verts_lbl, faces_lbl) = self.surface_service.extract_subsurf(surface.vertices, surface.triangles, iVmask)
             # Compute distances among directly connected vertices
             dist = self.surface_service.vertex_connectivity(verts_lbl, faces_lbl, mode="sparse", metric='euclidean').astype('single')
-            #Clustering should operate only among the vertices that fall close to tracts' ends,
-            #i.e., the so-called "con" vertices
- #           if "con" in mode:
             # Mask of label vertices that are neighbors of tract end voxels ("con"):
             iV_con = numpy.in1d(iV, con_verts_idx)
             # Calculate total area only of "con" surface:
@@ -301,9 +265,9 @@ class SubparcellationService(object):
                 print "Treating connected surface component "+str(iC)+" of area "+str(comp_area[iC])+"mm2"
                 if comp_area[iC]<=1.5*parc_area:
                     if comp_area[iC]>=0.1*[parc_area]:
+                        parcels[iCompVerts] = nParcels
                         nParcels+=1
-                        parcels[iCompVerts]=nParcels-1
-                        print "Directly assigned to parcel "+str(nParcels-1)+","
+                        print "Directly assigned to parcel "+str(nParcels)+","
                         print "because its area is within the limits of [0.1, 1.5] times the target average parcel area"
                     else:
                         print "Too small surface component, i.e., less than 0.1 times the target average parcel area."
@@ -312,7 +276,7 @@ class SubparcellationService(object):
                 else:
                     print "Clustering will run for this surface component"
                     if structural_connectivity_constraint:
-                        print "Compute structural connectivity constraint matrix for this component"
+                        print "Forming the structural connectivity constraint matrix..."
                         connectivity = dist[iCompVerts, :][:, iCompVerts].astype('single')
                         connectivity[connectivity>0.0] = 1.0
                     else:
@@ -320,27 +284,27 @@ class SubparcellationService(object):
                     # Initialize affinity matrix with zeros
                     affinity = numpy.zeros((nCompVerts, nCompVerts)).astype('single')
                     if con_sim_aff>0:
-                        #Calculate the connectivity similarity affinity for this component,
-                        #first normalized in [0,1] and then weighted by con_sim_aff:
+                        print "Computing the connectivity similarity affinity matrix..."
+                        #...for this component, first normalized in [0,1] and then weighted by con_sim_aff:
                         affinity+=con_sim_aff*self.compute_consim_affinity(verts_lbl[iCompVerts,:],vox,voxxzy,con,cras).astype('single')
                     if geod_dist_aff>0:
-                        print "Computing geodesic distance affinity matrix"
+                        print "Computing the geodesic distance affinity matrix..."
                         # ...normalized in [0,1], and add it to the affinity metric with the correct weight
                         affinity += geod_dist_aff*self.compute_geodesic_dist_affinity(dist[iCompVerts, :][:, iCompVerts].todense()).astype('single')
-                    print "Run clustering"
-                    clusters=self.run_clustering(affinity,connectivity=connectivity)
+                    print "Running clustering..."
+                    clusters=self.run_clustering(affinity,parc_area,connectivity=connectivity)
                     clusters_labels=numpy.unique(clusters)
                     nClusters=len(clusters_labels)
                     parcels[iCompVerts] = clusters_labels+nParcels
                     nParcels+=nClusters
                     print str(nClusters) + ' parcels created for this component'
             parcel_labels=range(nParcels)
-            print "Dealing now with too small surface components"
-            for (iC,comp) in too_small_parcels.items():
-                iCompVerts = too_small_parcels[iC]
+            print "Dealing now with too small surface components..."
+            for (iC,iCompVerts) in too_small_parcels.items():
                 comp_to_parcel_mindist=1000.0 #this is 1 meter long!
                 assign_to_parcel=-1
                 for iP in parcel_labels:
+                    #TODO??!!: Alternatively, we could minimize the mean pacel distance with numpy. mean(.) here...
                     temp_dist=numpy.min(cdist(verts_lbl[iCompVerts, :], verts_lbl[parcels==iP, :], 'euclidean'),axis=None)
                     if temp_dist<comp_to_parcel_mindist:
                         comp_to_parcel_mindist=temp_dist
@@ -358,7 +322,7 @@ class SubparcellationService(object):
             out_lab[iV] = nL + parcels
             for iP in range(nParcels):
                 iParcVerts=parcels==iP
-                print 'parcel '+names_lbl[iP]+ 'of a connectivity area ' + self.compute_surface_area(verts_lbl,faces_lbl,mask=numpy.logical_and(iParcVerts,iV_con)) + 'mm2'
+                print 'parcel '+names_lbl[iP]+ 'of connectivity area ' + self.compute_surface_area(verts_lbl,faces_lbl,mask=numpy.logical_and(iParcVerts,iV_con)) + 'mm2'
                 print "and of total area "+ self.compute_surface_area(verts_lbl,faces_lbl,mask=iParcVerts) + 'mm2'
             nL += nParcels
         print "Write output annotation file"
