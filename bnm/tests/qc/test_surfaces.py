@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from bnm.recon.qc.io.surface import FreesurferIO, GiftiSurfaceIO
+from bnm.recon.io.surface import FreesurferIO, GiftiSurfaceIO
 from bnm.tests.base import get_data_file, get_temporary_files_path, remove_temporary_test_files
 from nibabel.filebasedimages import ImageFileError
 from nibabel.py3k import FileNotFoundError

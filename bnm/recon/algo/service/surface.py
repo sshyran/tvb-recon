@@ -2,19 +2,19 @@
 
 import glob
 import os
+import gdist
 import numpy
 import scipy
-import gdist
-from bnm.recon.io.tvb import TVBWriter
-from bnm.recon.qc.io.annotation import AnnotationIO
-from sklearn.metrics.pairwise import paired_distances
-from scipy.sparse import csr_matrix
 from bnm.recon.algo.geom import merge_lh_rh
-from bnm.recon.qc.model.surface import Surface
-from bnm.recon.qc.model.annotation import Annotation
 from bnm.recon.algo.service.annotation import AnnotationService
-from bnm.recon.qc.io.volume import VolumeIO
-from bnm.recon.qc.io.surface import FreesurferIO
+from bnm.recon.io.annotation import AnnotationIO
+from bnm.recon.io.surface import FreesurferIO
+from bnm.recon.io.tvb import TVBWriter
+from bnm.recon.io.volume import VolumeIO
+from bnm.recon.qc.model.annotation import Annotation
+from bnm.recon.qc.model.surface import Surface
+from scipy.sparse import csr_matrix
+from sklearn.metrics.pairwise import paired_distances
 
 
 class SurfaceService(object):

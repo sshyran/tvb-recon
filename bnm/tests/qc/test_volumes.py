@@ -2,7 +2,7 @@
 
 import os
 import pytest
-from bnm.recon.qc.io.volume import VolumeIO
+from bnm.recon.io.volume import VolumeIO
 from bnm.tests.base import get_data_file, get_temporary_files_path, remove_temporary_test_files
 from nibabel.filebasedimages import ImageFileError
 from nibabel.py3k import FileNotFoundError

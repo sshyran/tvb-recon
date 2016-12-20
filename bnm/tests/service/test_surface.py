@@ -3,10 +3,10 @@ import os
 
 import numpy
 import pytest
-from bnm.tests.base import get_data_file, get_temporary_files_path, remove_temporary_test_files
-from bnm.recon.qc.io.surface import FreesurferIO
-from bnm.recon.qc.io.annotation import AnnotationIO
 from bnm.recon.algo.service.surface import SurfaceService
+from bnm.recon.io.annotation import AnnotationIO
+from bnm.recon.io.surface import FreesurferIO
+from bnm.tests.base import get_data_file, get_temporary_files_path, remove_temporary_test_files
 
 
 def teardown_module():

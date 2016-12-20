@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import zipfile
-from bnm.recon.qc.io.generic import GenericIO, StringIO
+from bnm.recon.io.generic import GenericIO, StringIO
 
 
 class TVBWriter(object):

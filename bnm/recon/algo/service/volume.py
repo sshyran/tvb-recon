@@ -3,10 +3,10 @@
 import os
 import numpy
 import scipy.ndimage
-from scipy.spatial.distance import pdist, squareform
 from bnm.recon.algo.service.annotation import AnnotationService
-from bnm.recon.qc.io.volume import VolumeIO
+from bnm.recon.io.volume import VolumeIO
 from bnm.recon.qc.model.volume import Volume
+from scipy.spatial.distance import pdist, squareform
 
 
 class VolumeService(object):

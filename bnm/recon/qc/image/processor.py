@@ -2,12 +2,12 @@
 
 import os
 import numpy
+from bnm.recon.io.annotation import AnnotationIO
+from bnm.recon.io.generic import GenericIO
+from bnm.recon.io.surface import FreesurferIO, GiftiSurfaceIO
+from bnm.recon.io.volume import VolumeIO
 from bnm.recon.logger import get_logger
 from bnm.recon.qc.image.writer import ImageWriter
-from bnm.recon.qc.io.annotation import AnnotationIO
-from bnm.recon.qc.io.generic import GenericIO
-from bnm.recon.qc.io.surface import FreesurferIO, GiftiSurfaceIO
-from bnm.recon.qc.io.volume import VolumeIO
 from bnm.recon.qc.model.constants import PROJECTIONS, SNAPSHOT_NAME, GIFTI_EXTENSION, T1_RAS_VOLUME, MRI_DIRECTORY, \
     FS_TO_CONN_INDICES_MAPPING_PATH
 

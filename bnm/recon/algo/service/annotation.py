@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-import numpy
 from collections import OrderedDict
-from bnm.recon.qc.io.annotation import AnnotationIO
+import numpy
+from bnm.recon.io.annotation import AnnotationIO
 
 
 class AnnotationService(object):

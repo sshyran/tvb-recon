@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import os
-import numpy
 import sys
+import numpy
+from bnm.recon.io.generic import GenericIO
 from bnm.recon.logger import get_logger
-from bnm.recon.qc.io.generic import GenericIO
 from bnm.recon.qc.model.constants import SNAPSHOT_NAME, SNAPSHOT_EXTENSION, SNAPSHOTS_DIRECTORY_ENVIRON_VAR, \
     SNAPSHOT_NUMBER_ENVIRON_VAR
 
