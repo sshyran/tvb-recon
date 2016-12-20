@@ -1,3 +1,4 @@
+import glob
 import nibabel
 from ..algo.geom import vertex_normals
 
@@ -16,3 +17,9 @@ def write_brain_visa_surf(fname, v, f):
 def convert_fs_to_brain_visa(fs_surf):
     v, f = nibabel.freesurfer.read_geometry(fs_surf)
     write_brain_visa_surf(fs_surf + '.tri', v, f)
+
+
+def convert_bem_to_tri(self):
+    surfs_glob = '%s/%s/bem/watershed/*_surface-low' % (self.subjects_dir, self.subject)
+    for surf_name in glob.glob(surfs_glob):
+        convert_fs_to_brain_visa(surf_name)

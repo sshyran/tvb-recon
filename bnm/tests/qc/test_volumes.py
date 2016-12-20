@@ -2,7 +2,7 @@
 
 import os
 import pytest
-from bnm.recon.qc.parser.volume import VolumeIO
+from bnm.recon.qc.io.volume import VolumeIO
 from bnm.tests.base import get_data_file, get_temporary_files_path, remove_temporary_test_files
 from nibabel.filebasedimages import ImageFileError
 from nibabel.py3k import FileNotFoundError
@@ -42,5 +42,5 @@ def test_write_volume():
     in_file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_VOLUME_FOLDER, "T1.nii.gz")
     volume = parser.read(in_file_path)
     out_file_path = get_temporary_files_path('T1-out.nii.gz')
-    parser.write(out_file_path, volume.data, volume.affine_matrix, volume.header)
+    parser.write(out_file_path, volume)
     assert os.path.exists(out_file_path)

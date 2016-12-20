@@ -1,6 +1,3 @@
-# TODO break into several modules in package
-
-
 import os
 import sys
 import warnings
@@ -64,8 +61,8 @@ def sample_vol_on_surf(surf_path,vol_path,annot_path,out_surf_path,cras_path, ct
 
 #------------------Subparcellation-subsegmentation-----------------------------
 
-def subparc_files(hemi, parc_name, out_parc_name, trg_area):
-    subparcelatioService.subparc_files(hemi, parc_name, out_parc_name, trg_area)
+def subparc_files(surf_path, annot_path, out_annot_parc_name, trg_area):
+    subparcelatioService.subparc_files(surf_path, annot_path, out_annot_parc_name, trg_area)
 
 def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_path=None,
                                   parc_area=100, labels=None, hemi=None, ctx=None, mode="con+geod+adj",

@@ -12,3 +12,7 @@ class AnnotationIO(object):
 
     def write(self, out_annot_path, region_mapping, regions_color_table, region_names):
         write_annot(out_annot_path, region_mapping, regions_color_table, region_names)
+
+    def write(self, out_annotation_path, annotation):
+        write_annot(out_annotation_path, annotation.region_mapping, annotation.regions_color_table,
+                    annotation.region_names)

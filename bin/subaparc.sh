@@ -7,7 +7,8 @@ for area in $SUBAPARC_AREA
 do
     for h in lh rh
     do
-        python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.subparc_files('$h','aparc','aparc.sub$area',$area)"
+        python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.subparc_files('$SUBJECTS_DIR/$SUBJECT/surf/$h.sphere',
+                                '$SUBJECTS_DIR/$SUBJECT/label/$h.aparc.annot','$SUBJECTS_DIR/$SUBJECT/label/$h.aparc.sub$area',$area)"
         #or equivalently if PYTHONPATH is NOT set:
         #python bnm.recon.algo.reconutils.py subparc $h aparc aparc$area $area
     done

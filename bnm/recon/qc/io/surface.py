@@ -14,7 +14,7 @@ from bnm.recon.qc.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SU
 
 class ABCSurfaceIO(object):
     """
-    This will define the behaviour needed for a surface parser.
+    This will define the behaviour needed for a surface io.
     """
 
     def read(self, data_file, use_center_surface):
