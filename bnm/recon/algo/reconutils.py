@@ -51,9 +51,6 @@ def label_vol_from_tdi(tdi_nii_fname, out_fname, lo=0.5):
 def remove_zero_connectivity_nodes(node_vol_path,con_mat_path,tract_length_path=None):
     volumeService.remove_zero_connectivity_nodes(node_vol_path, con_mat_path, tract_length_path)
 
-def node_connectivity_metric(con_mat_path,metric="cosine", mode='sim', out_consim_path=None):
-    volumeService.node_connectivity_metric(con_mat_path, metric, mode, out_consim_path)
-
 def simple_label_config(aparc_fname, out_fname):
     volumeService.simple_label_config(aparc_fname, out_fname)
 
@@ -73,6 +70,9 @@ def connectivity_geodesic_subparc(surf_path,annot_path,con_verts_idx,out_annot_p
                                   lut_path=os.path.join(FREESURFER_HOME,'FreeSurferColorLUT.txt')):
    subparcelatioService.connectivity_geodesic_subparc(surf_path, annot_path, con_verts_idx, out_annot_path, parc_area,
                                                       labels, hemi, ctx, mode, cras_path, ref_vol_path, consim_path, lut_path)
+
+def node_connectivity_metric(con_mat_path,metric="cosine", out_consim_path=None):
+    subparcelatioService.node_connectivity_metric(con_mat_path, metric, out_consim_path)
 
 #-------------------------------Contacts---------------------------------------
 def periodic_xyz_for_object(lab, val, aff, bw=0.1, doplot=False):
