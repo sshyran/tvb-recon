@@ -6,7 +6,6 @@ import scipy.ndimage
 from bnm.recon.algo.service.annotation import AnnotationService
 from bnm.recon.io.volume import VolumeIO
 from bnm.recon.model.volume import Volume
-from scipy.spatial.distance import pdist, squareform
 
 
 class VolumeService(object):
@@ -258,16 +257,16 @@ class VolumeService(object):
         self.volume_io.write(out_path, aparc)
 
     # Make label volume from tckmap output.
-           def label_vol_from_tdi(self, tdi_nii_fname, out_fname, lo=0.5):
-            nii_volume = self.volume_io.read(tdi_nii_fname)
+    def label_vol_from_tdi(self, tdi_nii_fname, out_fname, lo=0.5):
+        nii_volume = self.volume_io.read(tdi_nii_fname)
 
-            tdi_volume = Volume(nii_volume.data.copy(), nii_volume.affine_matrix, nii_volume.header)
-            # and mask them to get the voxels of tract ends
-            mask = tdi_volume.data > lo
-            # (all other voxels ->0)
-            tdi_volume.data[~mask] = 0
-            # Assign them with integer labels starting from 1
-            tdi_volume.data[mask] = numpy.r_[1:mask.sum() + 1]
+        tdi_volume = Volume(nii_volume.data.copy(), nii_volume.affine_matrix, nii_volume.header)
+        # and mask them to get the voxels of tract ends
+        mask = tdi_volume.data > lo
+        # (all other voxels ->0)
+        tdi_volume.data[~mask] = 0
+        # Assign them with integer labels starting from 1
+        tdi_volume.data[mask] = numpy.r_[1:mask.sum() + 1]
 
         self.volume_io.write(out_fname, tdi_volume)
 
