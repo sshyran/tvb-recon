@@ -106,22 +106,19 @@ class SurfaceService(object):
 
             if os.path.exists(this_surf_path):
                 ind_l, = numpy.where(label_indices == label_index)
-                out_annotation.region_names.append(label_names[ind_l])
-                out_annotation.regions_color_table.append(color_table[ind_l, :])
+                out_annotation.add_region_names_and_colors(label_names[ind_l], color_table[ind_l, :])
                 label_number += 1
                 surface = self.surface_io.read(this_surf_path, False)
-                out_surface.generic_metadata = surface.get_main_metadata()
+                out_surface.set_main_metadata(surface.get_main_metadata())
                 faces = surface.triangles + verts_number  # Update vertices indexes
                 verts_number += surface.vertices.shape[0]
-                out_surface.vertices.append(surface.vertices)
-                out_surface.triangles.append(faces)
-                out_annotation.region_mapping.append(
+                out_surface.add_vertices_and_triangles(surface.vertices, faces)
+                out_annotation.add_region_mapping(
                     label_number * numpy.ones((surface.vertices.shape[0],), dtype='int64'))
 
         out_annotation.regions_color_table = numpy.squeeze(numpy.array(out_annotation.regions_color_table).astype('i'))
-        out_surface.vertices = numpy.vstack(out_surface.vertices)
-        out_surface.triangles = numpy.vstack(out_surface.triangles)
-        out_annotation.region_mapping = numpy.hstack(out_annotation.region_mapping)
+        out_surface.stack_vertices_and_triangles()
+        out_annotation.stack_region_mapping()
 
         self.surface_io.write(out_surface, out_surf_path)
         self.annotation_io.write(annot_path, out_annotation)
@@ -257,7 +254,7 @@ class SurfaceService(object):
             # Write the output surfaces and annotations to files. Also write files with the indexes of vertices to keep.
             self.surface_io.write(surface, out_surf_path)
 
-            annotation.region_mapping = annotation.region_mapping[verts_out_indices]
+            annotation.set_region_mapping(annotation.get_region_mapping_by_indices([verts_out_indices]))
             self.annotation_io.write(out_surf_path + ".annot", annotation)
 
             numpy.save(out_surf_path + "-idx.npy", verts_out_indices)

@@ -36,6 +36,14 @@ class Surface(object):
         else:
             self.generic_metadata = new_metadata
 
+    def add_vertices_and_triangles(self, new_vertices, new_triangles):
+        self.vertices.append(new_vertices)
+        self.triangles.append(new_triangles)
+
+    def stack_vertices_and_triangles(self):
+        self.vertices = numpy.vstack(self.vertices)
+        self.triangles = numpy.vstack(self.triangles)
+
     def _get_plane_origin(self, ras):
         plane_origin = numpy.subtract(ras, self.center_ras)
         return list(plane_origin)
