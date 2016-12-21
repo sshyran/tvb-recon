@@ -266,7 +266,7 @@ then
     out_consim_path=./consim-vol-counts$STRMLNS_SIFT_NO-v$VOX.npy
     #Compute the voxel connectivity similarity
     #This takes a lot of time...
-    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.node_connectivity_metric('$DMR/vol-counts$STRMLNS_SIFT_NO-v$VOX.npy',metric='cosine', mode='sim',out_consim_path='$out_consim_path')"
+    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.node_connectivity_metric('$DMR/vol-counts$STRMLNS_SIFT_NO-v$VOX.npy',metric='cosine', out_consim_path='$out_consim_path')"
 
 else
     ref_vol_path=''

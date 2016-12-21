@@ -247,17 +247,27 @@ class VolumeService(object):
 
         self.volume_io.write(out_nii_fname, mask)
 
-    # Make label volume from tckmap output.
-    def label_vol_from_tdi(self, tdi_nii_fname, out_fname, lo=0.5):
-        nii_volume = self.volume_io.read(tdi_nii_fname)
+    #TODO for Paula: Merge with the next one
+    # Rewrite label volume to have contiguous values like mrtrix' labelconfig.
+    def simple_label_config(self, in_aparc_path, out_path):
+        aparc = self.volume_io.read(in_aparc_path)
+        unique_data = numpy.unique(aparc.data)
+        unique_data_map = numpy.r_[:unique_data.max() + 1]
+        unique_data_map[unique_data] = numpy.r_[:unique_data.size]
+        aparc.data = unique_data_map[aparc.data]
+        self.volume_io.write(out_path, aparc)
 
-        tdi_volume = Volume(nii_volume.data.copy(), nii_volume.affine_matrix, nii_volume.header)
-        # and mask them to get the voxels of tract ends
-        mask = tdi_volume.data > lo
-        # (all other voxels ->0)
-        tdi_volume.data[~mask] = 0
-        # Assign them with integer labels starting from 1
-        tdi_volume.data[mask] = numpy.r_[1:mask.sum() + 1]
+    # Make label volume from tckmap output.
+           def label_vol_from_tdi(self, tdi_nii_fname, out_fname, lo=0.5):
+            nii_volume = self.volume_io.read(tdi_nii_fname)
+
+            tdi_volume = Volume(nii_volume.data.copy(), nii_volume.affine_matrix, nii_volume.header)
+            # and mask them to get the voxels of tract ends
+            mask = tdi_volume.data > lo
+            # (all other voxels ->0)
+            tdi_volume.data[~mask] = 0
+            # Assign them with integer labels starting from 1
+            tdi_volume.data[mask] = numpy.r_[1:mask.sum() + 1]
 
         self.volume_io.write(out_fname, tdi_volume)
 
@@ -310,27 +320,4 @@ class VolumeService(object):
 
         self.volume_io.write(node_volume_path, out_volume)
 
-    # It receives a binary connectivity matrix, and outputs a node connectivity
-    # similarity or distance  matrix
-    # con_mat_path: path to connectivity file
-    # metric: default "cosine"
-    # mode: "sim" or "dist" for similarity or distance output
-    def node_connectivity_metric(self, con_mat_path, metric="cosine", mode='sim', out_consim_path=None):
-        con = numpy.load(con_mat_path)
-        # Calculate distance metric
-        con = squareform(pdist(con, metric=metric))
-        # If similarity is required, calculate it.
-        if mode == 'sim':
-            con = 1 - con
-        if out_consim_path is not None:
-            numpy.save(out_consim_path, con)
-        return con
 
-    # Rewrite label volume to have contiguous values like mrtrix' labelconfig.
-    def simple_label_config(self, in_aparc_path, out_path):
-        aparc = self.volume_io.read(in_aparc_path)
-        unique_data = numpy.unique(aparc.data)
-        unique_data_map = numpy.r_[:unique_data.max() + 1]
-        unique_data_map[unique_data] = numpy.r_[:unique_data.size]
-        aparc.data = unique_data_map[aparc.data]
-        self.volume_io.write(out_path, aparc)

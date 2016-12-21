@@ -86,6 +86,19 @@ class SubparcellationService(object):
         new_annotation = self.make_subparc(surface, annotation, trg_area=trg_area)
         self.annotation_service.annotation_io.write(out_annot_parc_name, new_annotation)
 
+        # It receives a binary connectivity matrix, and outputs a node connectivity
+        # distance or dissimilarity  matrix
+        # con_mat_path: path to connectivity file
+        # metric: default "cosine"
+
+    def node_connectivity_metric(self, con_mat_path, metric="cosine", out_consim_path=None):
+        con = numpy.load(con_mat_path)
+        # Calculate distance metric
+        con = squareform(pdist(con, metric=metric))
+        if out_consim_path is not None:
+            numpy.save(out_consim_path, con)
+        return con
+
     def compute_surface_area(self,v,f,mask=None):
         if mask is not None:
             (v, f) = self.surface_service.extract_subsurf(v, f, mask)
@@ -203,6 +216,8 @@ class SubparcellationService(object):
         if con_sim_aff > 0:
             # Load voxel connectivity similarity matrix:
             con = numpy.load(consim_path).astype('single')
+            # Convert it to similarity cosine:
+            con = 1-con
             # Read the cras:
             cras = numpy.loadtxt(cras_path)
             # Get only the reference tdi_lbl volume's voxels that correspond to connectome nodes
