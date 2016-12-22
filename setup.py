@@ -15,7 +15,7 @@ setup(
     version="1.0",
     license="Apache 2.0",
     author="BNM Team",
-    install_requires=["numpy", "nibabel", "matplotlib", "trimesh", "Pegasus"]
+    install_requires=["numpy", "nibabel", "matplotlib", "trimesh", "Pegasus", "scikit-learn", "anytree"]
 )
 
 shutil.rmtree('bnm.egg-info', True)

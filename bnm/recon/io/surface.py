@@ -2,19 +2,19 @@
 
 import nibabel
 import numpy
+from bnm.recon.logger import get_logger
+from bnm.recon.model.surface import Surface
+from bnm.recon.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
+from nibabel.freesurfer.io import read_geometry, write_geometry
 from nibabel.gifti import GiftiDataArray
 from nibabel.gifti import GiftiImage
 from nibabel.gifti import GiftiMetaData
 from nibabel.gifti import giftiio
-from nibabel.freesurfer.io import read_geometry, write_geometry
-from bnm.recon.qc.model.surface import Surface
-from bnm.recon.logger import get_logger
-from bnm.recon.qc.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
 
 
-class ABCSurfaceParser(object):
+class ABCSurfaceIO(object):
     """
-    This will define the behaviour needed for a surface parser.
+    This will define the behaviour needed for a surface io.
     """
 
     def read(self, data_file, use_center_surface):
@@ -35,7 +35,7 @@ TRANSFORM_MATRIX_GIFTI_KEYS = [['VolGeomX_R', 'VolGeomY_R', 'VolGeomZ_R', CENTER
                                ['VolGeomX_S', 'VolGeomY_S', 'VolGeomZ_S', CENTER_RAS_GIFTI_SURF[2]]]
 
 
-class GiftiSurfaceParser(ABCSurfaceParser):
+class GiftiSurfaceIO(ABCSurfaceIO):
     """
     This class reads content of GIFTI surface files
     """
@@ -115,7 +115,7 @@ class GiftiSurfaceParser(ABCSurfaceParser):
 TRANSFORM_MATRIX_FS_KEYS = ['xras', 'yras', 'zras', CENTER_RAS_FS_SURF]
 
 
-class FreesurferParser(ABCSurfaceParser):
+class FreesurferIO(ABCSurfaceIO):
     logger = get_logger(__name__)
 
     def read(self, surface_path, use_center_surface):
@@ -164,3 +164,13 @@ class FreesurferParser(ABCSurfaceParser):
                            [0.0, 0.0, 0.0]]
         for i, fs_key in enumerate(TRANSFORM_MATRIX_FS_KEYS):
             image_metadata[fs_key] = identity_matrix[i]
+
+    def write_brain_visa_surf(self, file_path, surface):
+        vn = surface.vertex_normals()
+        with open(file_path, 'w') as fd:
+            fd.write('- %d\n' % len(vn))
+            for (vx, vy, vz), (nx, ny, nz) in zip(surface.vertices, vn):
+                fd.write('%f %f %f %f %f %f\n' % (vx, vy, vz, nx, ny, nz))
+            fd.write('- %d %d %d\n' % ((len(surface.triangles),) * 3))
+            for i, j, k in surface.triangles:
+                fd.write('%d %d %d\n' % (i, j, k))

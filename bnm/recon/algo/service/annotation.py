@@ -1,30 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import os
-import numpy
 from collections import OrderedDict
-from nibabel.freesurfer import read_annot, write_annot
-from bnm.recon.qc.parser.annotation import AnnotationParser
+import numpy
+from bnm.recon.io.annotation import AnnotationIO
 
 
 class AnnotationService(object):
     def __init__(self):
-        self.annotationParser = AnnotationParser()
+        self.annotation_io = AnnotationIO()
 
-    #TODO do we need this?
-    def annot_path(self, hemi, annot_name):
-        annot_fname = '%s.%s.annot' % (hemi, annot_name)
-        annot_path = os.path.join(os.environ['SUBJECTS_DIR'], os.environ['SUBJECT'], 'label', annot_fname)
-        return annot_path
-
-    #TODO use this from qc.parser?
-    def read_annot(self, hemi, annot_name):
-        return read_annot(self.annot_path(hemi, annot_name))
-
-    def write_annot(self, hemi, annot_name, labels, ctab, names):
-        return write_annot(self.annot_path(hemi, annot_name), labels, ctab, names)
-
-    def read_lut(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt'), key_mode='label'):
+    def read_lut(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt'),
+                 key_mode='label'):
         f = open(lut_path, "r")
         l = list(f)
         f.close()
@@ -59,18 +46,18 @@ class AnnotationService(object):
                     pass
         return (labels, names, colors)
 
-    # TODO where to put this
-    def rgb_to_fs_magic_number(self,rgb):
+    def rgb_to_fs_magic_number(self, rgb):
         return rgb[0] + 256 * rgb[1] + 256 * 256 * rgb[2]
 
-    def annot_to_lut(self, hemi, annot_name, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
-        _, ctab, names = self.read_annot(hemi, annot_name)
+    def annot_to_lut(self, annot_path, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
+        annotation = self.annotation_io.read(annot_path)
         with open(lut_path, 'w') as fd:
-            for name, (r, g, b, a, id) in zip(names, ctab):
+            for name, (r, g, b, a, id) in zip(annotation.region_names, annotation.regions_color_table):
                 fd.write('%d\t%s\t%d %d %d %d\n' % (id, name, r, g, b, a))
 
-    def lut_to_annot_names_ctab(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt'), labels=None):
-        (_, names_dict, colors) = self.read_lut(lut_path=lut_path)
+    def lut_to_annot_names_ctab(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt'),
+                                labels=None):
+        _, names_dict, colors = self.read_lut(lut_path=lut_path)
         if labels is None:
             labels = names_dict.keys()
         elif isinstance(labels, basestring):
@@ -85,10 +72,11 @@ class AnnotationService(object):
             magic_number = self.rgb_to_fs_magic_number(rgb) * numpy.ones((1,), dtype='int64')
             ctab.append(numpy.concatenate([rgb, numpy.zeros((1,), dtype='int64'), magic_number]))
         ctab = numpy.asarray(ctab).astype('int64')
-        return (names, ctab)
+        return names, ctab
 
-    def annot_names_to_labels(self, names, ctx=None, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
-        (labels_dict, _, _) = self.read_lut(lut_path=lut_path, key_mode='name')
+    def annot_names_to_labels(self, names, ctx=None,
+                              lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
+        labels_dict, _, _ = self.read_lut(lut_path=lut_path, key_mode='name')
         labels = []
         if ctx == 'lh' or ctx == 'rh':
             ctx = 'ctx-' + ctx + '-'
@@ -98,10 +86,10 @@ class AnnotationService(object):
             labels.append(labels_dict[ctx + name])
         return labels
 
-    def annot_to_conn_conf(self, hemi, annot_name, conn_conf_path):
-        _, _, names = self.read_annot(hemi, annot_name)
+    def annot_to_conn_conf(self, annot_path, conn_conf_path):
+        annotation = self.annotation_io.read(annot_path)
         with open(conn_conf_path, 'w') as fd:
-            for id, name in enumerate(names):
+            for id, name in enumerate(annotation.region_names):
                 fd.write('%d\t%s\n' % (id, name))
 
     def read_input_labels(self, labels=None, hemi=None):
@@ -118,5 +106,5 @@ class AnnotationService(object):
                     labels = labels + range(1000, 1036)
                 elif h == 'rh':
                     labels = labels + range(2000, 2036)
-        nLbl = len(labels)
-        return (labels, nLbl)
+
+        return labels, len(labels)

@@ -1,0 +1,11 @@
+#No. Label Name:                            R   G   B   A
+
+0   Unknown                                 0   0   0   0
+1   Left-Cerebral-Exterior                  70  130 180 0
+2   Left-Cerebral-White-Matter              245 245 245 0
+10  Left-Thalamus-Proper                    0   118 14  0
+11  Left-Caudate                            122 186 220 0
+1000    ctx-lh-unknown                      25  5   25  0
+1001    ctx-lh-bankssts                     25  100 40  0
+2000    ctx-rh-unknown                      25  5   25  0
+2001    ctx-rh-bankssts                     25  100 40  0

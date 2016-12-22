@@ -4,7 +4,7 @@ import os
 import subprocess
 from os.path import basename
 from bnm.recon.logger import get_logger
-from bnm.recon.qc.model.constants import GIFTI_EXTENSION
+from bnm.recon.model.constants import GIFTI_EXTENSION
 
 
 class ImageTransformer(object):

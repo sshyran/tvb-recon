@@ -2,8 +2,8 @@
 
 import os
 import pytest
+from bnm.recon.model.constants import SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME, AXIAL
 from bnm.recon.qc.image.processor import ImageProcessor
-from bnm.recon.qc.model.constants import SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME, SNAPSHOT_EXTENSION, AXIAL
 from bnm.tests.base import get_data_file
 
 SNAPSHOT_NUMBER = 0

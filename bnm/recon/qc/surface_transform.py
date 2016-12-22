@@ -3,10 +3,11 @@
 import argparse
 import os
 import numpy
-from bnm.recon.qc.image.processor import ImageProcessor
-from bnm.recon.qc.parser.generic import GenericParser
+from bnm.recon.io.generic import GenericIO
 from bnm.recon.logger import get_logger
-from bnm.recon.qc.model.constants import SNAPSHOTS_DIRECTORY_ENVIRON_VAR, SNAPSHOT_NUMBER_ENVIRON_VAR
+from bnm.recon.model.constants import SNAPSHOTS_DIRECTORY_ENVIRON_VAR, SNAPSHOT_NUMBER_ENVIRON_VAR
+from bnm.recon.qc.image.processor import ImageProcessor
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Transform a surface from its native space to another space")
@@ -29,17 +30,17 @@ if __name__ == "__main__":
 
     image_processor = ImageProcessor(snapshots_directory=os.environ[SNAPSHOTS_DIRECTORY_ENVIRON_VAR],
                                      snapshot_count=int(os.environ.get(SNAPSHOT_NUMBER_ENVIRON_VAR, 0)))
-    generic_parser = GenericParser()
+    generic_io = GenericIO()
 
     logger.info("The surface transformation process has began")
-    surface_parser = image_processor.factory_surface_parser(surface_path)
+    surface_parser = image_processor.factory_surface_io(surface_path)
     surface = surface_parser.read(surface_path, False)
 
     if len(args.matrix_paths) is not 0:
         transformation_matrices = []
 
         for transform_matrix_path in args.matrix_paths:
-            transformation_matrices.append(numpy.array(generic_parser.read_transformation_matrix(os.path.expandvars(transform_matrix_path))))
+            transformation_matrices.append(numpy.array(generic_io.read_transformation_matrix(os.path.expandvars(transform_matrix_path))))
 
         for i in xrange(len(surface.vertices)):
             for j in xrange(len(transformation_matrices)):

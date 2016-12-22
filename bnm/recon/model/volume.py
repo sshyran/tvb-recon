@@ -2,8 +2,8 @@
 
 import numpy
 import numpy.linalg
+from bnm.recon.model.constants import *
 from nibabel.affines import apply_affine
-from bnm.recon.qc.model.constants import *
 
 
 class Volume(object):
@@ -13,10 +13,11 @@ class Volume(object):
     Has a method that cuts a slice from the volume.
     """
 
-    def __init__(self, data, affine_matrix):
+    def __init__(self, data, affine_matrix, header):
         self.data = data  # 3D array
         self.dimensions = data.shape  # array with the length of each data dimension
         self.affine_matrix = affine_matrix  # matrix containing voxel to ras transformation
+        self.header = header
 
     def get_center_point(self):
         a = numpy.array(self.affine_matrix)
