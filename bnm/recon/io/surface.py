@@ -2,7 +2,6 @@
 
 import nibabel
 import numpy
-from bnm.recon.algo.geom import vertex_normals
 from bnm.recon.logger import get_logger
 from bnm.recon.model.surface import Surface
 from bnm.recon.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
@@ -167,7 +166,7 @@ class FreesurferIO(ABCSurfaceIO):
             image_metadata[fs_key] = identity_matrix[i]
 
     def write_brain_visa_surf(self, file_path, surface):
-        vn = vertex_normals(surface.vertices, surface.triangles)
+        vn = surface.vertex_normals()
         with open(file_path, 'w') as fd:
             fd.write('- %d\n' % len(vn))
             for (vx, vy, vz), (nx, ny, nz) in zip(surface.vertices, vn):

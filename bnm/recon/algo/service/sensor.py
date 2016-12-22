@@ -5,7 +5,7 @@ import numpy
 import matplotlib
 matplotlib.use('Qt5Agg')
 import pylab
-from bnm.recon.algo.geom import vertex_normals
+from bnm.recon.model.surface import Surface
 
 class SensorService(object):
     def gen_head_model(self, subjects_dir, subject):
@@ -61,7 +61,8 @@ class SensorService(object):
             if ori_or_face.dtype in numpy.floattypes:
                 ori = ori_or_face
             else:
-                ori = vertex_normals(v=pos, f=ori_or_face)
+                surface = Surface(pos, ori_or_face, [], None)
+                ori = surface.vertex_normals()
         numpy.savetxt(out_fname, numpy.c_[pos, ori], fmt='%f')
 
     def periodic_xyz_for_object(self, lab, val, aff, bw=0.1, doplot=False):

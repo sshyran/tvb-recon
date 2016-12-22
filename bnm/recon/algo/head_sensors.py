@@ -7,10 +7,10 @@ import os
 import os.path
 import numpy
 import scipy.cluster.vq
+from bnm.recon.model.surface import Surface
 from pyqtgraph import mkQApp
 import pyqtgraph.opengl
 from nibabel.freesurfer import read_geometry
-from bnm.recon.algo.geom import vertex_normals
 
 
 def mask_mesh(v, f, mask):
@@ -83,7 +83,8 @@ def xyz2rgb(vl):
 
 
 def sens_xyz_ori(v, f, l):
-    vn = vertex_normals(v, f)
+    surface = Surface(v, f, [], None)
+    vn = surface.vertex_normals()
     pos = numpy.zeros((n_sens, 6))
     numpy.add.at(pos, l, numpy.c_[v, vn])
     return pos / numpy.bincount(l)[:, numpy.newaxis]

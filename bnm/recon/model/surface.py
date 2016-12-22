@@ -79,3 +79,20 @@ class Surface(object):
             normals[i][2] = u[0] * v[1] - u[1] * v[0]
 
         return normals
+
+    def vertex_normals(self):
+        # TODO test by generating points on unit sphere: vtx pos should equal normal
+
+        vf = self.vertices[self.triangles]
+        fn = numpy.cross(vf[:, 1] - vf[:, 0], vf[:, 2] - vf[:, 0])
+        vf = [set() for _ in range(len(self.vertices))]
+        for i, fi in enumerate(self.triangles):
+            for j in fi:
+                vf[j].add(i)
+        vn = numpy.zeros_like(self.vertices)
+        for i, fi in enumerate(vf):
+            fni = fn[list(fi)]
+            norm = fni.sum(axis=0)
+            norm /= numpy.sqrt((norm ** 2).sum())
+            vn[i] = norm
+        return vn

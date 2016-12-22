@@ -5,7 +5,6 @@ import os
 import gdist
 import numpy
 import scipy
-from bnm.recon.algo.geom import merge_lh_rh
 from bnm.recon.algo.service.annotation import AnnotationService
 from bnm.recon.io.annotation import AnnotationIO
 from bnm.recon.io.surface import FreesurferIO
@@ -40,6 +39,14 @@ class SurfaceService(object):
         for surf_name in glob.glob(surfs_glob):
             self.convert_fs_to_brain_visa(surf_name)
 
+    # Merge left and right hemisphere surfaces, and their region maps.
+    def merge_lh_rh(self, lh_surface, rh_surface, left_region_mapping, right_region_mapping):
+        out_surface = Surface([], [], [], None)
+        out_surface.vertices = numpy.r_[lh_surface.vertices, rh_surface.vertices]
+        out_surface.triangles = numpy.r_[lh_surface.triangles, rh_surface.triangles + lh_surface.vertices.max()]
+        out_region_mapping = numpy.r_[left_region_mapping, right_region_mapping + lh_surface.triangles.max()]
+        return out_surface, out_region_mapping
+
     # Merge surfaces and roi maps. Write out in TVB format.
     def convert_fs_subj_to_tvb_surf(self, subject=None):
         subjects_dir = os.environ['SUBJECTS_DIR']
@@ -58,7 +65,7 @@ class SurfaceService(object):
         lh_annot = self.annotation_io.read(lh_annot_path)
         rh_annot = self.annotation_io.read(rh_annot_path)
 
-        surface, region_mapping = merge_lh_rh(lh_surface, rh_surface, lh_annot.region_mapping, rh_annot.region_mapping)
+        surface, region_mapping = self.merge_lh_rh(lh_surface, rh_surface, lh_annot.region_mapping, rh_annot.region_mapping)
 
         numpy.savetxt('%s_ctx_roi_map.txt' % (subject,), region_mapping.flat[:], '%i')
         TVBWriter().write_surface_zip('%s_pial_surf.zip' % (subject,), surface)
