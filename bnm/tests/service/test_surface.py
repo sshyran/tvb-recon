@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import os
 
+import os
 import numpy
-import pytest
 from bnm.recon.algo.service.surface import SurfaceService
 from bnm.recon.io.annotation import AnnotationIO
+from bnm.recon.io.h5 import H5IO
 from bnm.recon.io.surface import FreesurferIO
 from bnm.tests.base import get_data_file, get_temporary_files_path, remove_temporary_test_files
 
@@ -12,6 +12,14 @@ from bnm.tests.base import get_data_file, get_temporary_files_path, remove_tempo
 def teardown_module():
     remove_temporary_test_files()
 
+def test_tri_area():
+    service = SurfaceService()
+    h5_path = get_data_file('head2', 'SurfaceCortical.h5')
+    h5_io = H5IO()
+    surface = h5_io.read_surface(h5_path)
+    rfi = numpy.array([0])
+    area = service.tri_area(surface.vertices[surface.triangles[rfi]])
+    assert area[0] == 5000
 
 def test_extract_subsurf():
     service = SurfaceService()
@@ -46,10 +54,22 @@ def test_aseg_surf_conc_annot():
     assert len(surface.triangles) == 11420
 
 
-@pytest.mark.skip("Because we need simpler test data")
 def test_vertex_connectivity():
     service = SurfaceService()
-    surf_path = get_data_file("freesurfer_fsaverage", "surf", "lh.pial")
-    surface_parser = FreesurferIO()
-    surface = surface_parser.read(surf_path, False)
-    service.vertex_connectivity(surface.vertices, surface.triangles)
+    surf_path = get_data_file("head2", 'SurfaceCortical.h5')
+    surface_parser = H5IO()
+    surface = surface_parser.read_surface(surf_path)
+    conn = service.vertex_connectivity(surface.vertices, surface.triangles)
+    assert conn.shape == (16, 16)
+    assert conn[0, 1] == 1
+    assert conn[0, 10] == 0
+
+def test_vertex_connectivity_2():
+    service = SurfaceService()
+    surf_path = get_data_file("head2", 'SurfaceCortical.h5')
+    surface_parser = H5IO()
+    surface = surface_parser.read_surface(surf_path)
+    conn = service.vertex_connectivity(surface.vertices, surface.triangles, metric='euclidean')
+    assert conn.shape == (16, 16)
+    assert conn[0, 1] == 100
+    assert conn[0, 10] == 0

@@ -246,28 +246,34 @@ class VolumeService(object):
 
         self.volume_io.write(out_nii_fname, mask)
 
-    #TODO for Paula: Merge with the next one
-    # Rewrite label volume to have contiguous values like mrtrix' labelconfig.
-    def simple_label_config(self, in_aparc_path, out_path):
-        aparc = self.volume_io.read(in_aparc_path)
+    def _label_config(self, aparc):
         unique_data = numpy.unique(aparc.data)
         unique_data_map = numpy.r_[:unique_data.max() + 1]
         unique_data_map[unique_data] = numpy.r_[:unique_data.size]
         aparc.data = unique_data_map[aparc.data]
+        return aparc
+
+    #TODO for Paula: Merge with the next one
+    # Rewrite label volume to have contiguous values like mrtrix' labelconfig.
+    def simple_label_config(self, in_aparc_path, out_path):
+        aparc = self.volume_io.read(in_aparc_path)
+        aparc = self._label_config(aparc)
         self.volume_io.write(out_path, aparc)
 
-    # Make label volume from tckmap output.
-    def label_vol_from_tdi(self, tdi_nii_fname, out_fname, lo=0.5):
-        nii_volume = self.volume_io.read(tdi_nii_fname)
-
-        tdi_volume = Volume(nii_volume.data.copy(), nii_volume.affine_matrix, nii_volume.header)
+    def _label_volume(self, tdi_volume, lo=0.5):
+        # tdi_volume = Volume(nii_volume.data.copy(), nii_volume.affine_matrix, nii_volume.header)
         # and mask them to get the voxels of tract ends
         mask = tdi_volume.data > lo
         # (all other voxels ->0)
         tdi_volume.data[~mask] = 0
         # Assign them with integer labels starting from 1
         tdi_volume.data[mask] = numpy.r_[1:mask.sum() + 1]
+        return tdi_volume
 
+    # Make label volume from tckmap output.
+    def label_vol_from_tdi(self, tdi_nii_fname, out_fname, lo=0.5):
+        nii_volume = self.volume_io.read(tdi_nii_fname)
+        tdi_volume = self._label_volume(nii_volume, lo)
         self.volume_io.write(out_fname, tdi_volume)
 
     # It removes network nodes with zero connectivity, and returns a symmetric connectivity matrix
