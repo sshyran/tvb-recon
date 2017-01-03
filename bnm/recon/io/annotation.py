@@ -18,6 +18,9 @@ class ABCAnnotationIO(object):
 
 
 class AnnotationIO(ABCAnnotationIO):
+    """
+    This class reads content of Freesurfer annotation files
+    """
 
     def read(self, annotation_path):
         region_mapping, regions_color_table, region_names = read_annot(annotation_path)
@@ -32,6 +35,9 @@ class AnnotationIO(ABCAnnotationIO):
 
 
 class H5AnnotationIO(ABCAnnotationIO):
+    """
+    This class reads content of H5 annotation files
+    """
 
     def read(self, annotation_path):
         h5_file = h5py.File(annotation_path, 'r', libver='latest')

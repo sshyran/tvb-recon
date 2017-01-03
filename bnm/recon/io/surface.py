@@ -117,6 +117,9 @@ TRANSFORM_MATRIX_FS_KEYS = ['xras', 'yras', 'zras', CENTER_RAS_FS_SURF]
 
 
 class FreesurferIO(ABCSurfaceIO):
+    """
+    This class reads content of Freesurfer surface files
+    """
     logger = get_logger(__name__)
 
     def read(self, surface_path, use_center_surface):
@@ -176,6 +179,9 @@ class FreesurferIO(ABCSurfaceIO):
 
 
 class H5SurfaceIO(ABCSurfaceIO):
+    """
+    This class reads content of H5 surface files
+    """
     logger = get_logger(__name__)
 
     def read(self, h5_path, use_center_surface=False):
