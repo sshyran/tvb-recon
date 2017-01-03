@@ -5,7 +5,7 @@ from bnm.recon.algo.service.volume import VolumeService
 from bnm.recon.model.volume import Volume
 
 
-def _test_label_vol_from_tdi():
+def test_label_vol_from_tdi():
     service = VolumeService()
     data = numpy.array([[[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]], [[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]]])
     volume = Volume(data, [], None)
