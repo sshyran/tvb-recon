@@ -19,8 +19,7 @@ def teardown_module():
 
 def test_parse_volume():
     file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_VOLUME_FOLDER, "T1.nii.gz")
-    volume_io = io_factory.get_volume_io(file_path)
-    volume = volume_io.read(file_path)
+    volume = io_factory.read_volume(file_path)
     assert volume.dimensions == (256, 256, 256)
 
 
@@ -40,15 +39,13 @@ def test_parse_not_volume():
 
 def test_parse_h5_volume():
     h5_path = get_data_file('head2', 'VolumeT1Background.h5')
-    volume_io = io_factory.get_volume_io(h5_path)
-    volume = volume_io.read(h5_path)
+    volume = io_factory.read_volume(h5_path)
     assert volume.dimensions == (6, 5, 4)
 
 
 def test_write_volume():
     in_file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_VOLUME_FOLDER, "T1.nii.gz")
-    volume_io = io_factory.get_volume_io(in_file_path)
-    volume = volume_io.read(in_file_path)
+    volume = io_factory.read_volume(in_file_path)
     out_file_path = get_temporary_files_path('T1-out.nii.gz')
-    volume_io.write(out_file_path, volume)
+    io_factory.write_volume(out_file_path, volume)
     assert os.path.exists(out_file_path)

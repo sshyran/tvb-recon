@@ -10,28 +10,26 @@ TEST_MODIF_SUBJECT = "fsaverage_modified"
 TEST_SURFACE_FOLDER = "surf"
 io_factory = IOFactory()
 
+
 def teardown_module():
     remove_temporary_test_files()
 
 
 def test_parse_fs_surface():
     file_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
-    surface_io = io_factory.get_surface_io(file_path)
-    surf = surface_io.read(file_path, False)
+    surf = io_factory.read_surface(file_path, False)
     assert len(surf.triangles) == 327680
 
 
 def test_parse_fs_centered_surface():
     file_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
-    surface_io = io_factory.get_surface_io(file_path)
-    surf = surface_io.read(file_path, True)
+    surf = io_factory.read_surface(file_path, True)
     assert len(surf.triangles) == 327680
 
 
 def test_parse_centered_fs_surface():
     file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh-centered.pial")
-    surface_io = io_factory.get_surface_io(file_path)
-    surf = surface_io.read(file_path, False)
+    surf = io_factory.read_surface(file_path, False)
     assert surf.center_ras == [0, 0, 0]
 
 
@@ -51,15 +49,13 @@ def test_parse_not_surface():
 
 def test_parse_gifti_surface():
     file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
-    surface_io = io_factory.get_surface_io(file_path)
-    surf = surface_io.read(file_path, False)
+    surf = io_factory.read_surface(file_path, False)
     assert len(surf.triangles) == 327680
 
 
 def test_parse_gifti_centered_surface():
     file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
-    surface_io = io_factory.get_surface_io(file_path)
-    surf = surface_io.read(file_path, True)
+    surf = io_factory.read_surface(file_path, True)
     assert len(surf.triangles) == 327680
 
 
@@ -72,8 +68,7 @@ def test_parse_not_existing_gifti_surface():
 
 def test_parse_h5_surface():
     h5_path = get_data_file('head2', 'SurfaceCortical.h5')
-    surface_io = io_factory.get_surface_io(h5_path)
-    surface = surface_io.read(h5_path)
+    surface = io_factory.read_surface(h5_path, False)
     assert len(surface.vertices) == 16
     assert len(surface.triangles) == 24
 

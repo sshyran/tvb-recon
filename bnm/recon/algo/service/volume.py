@@ -4,14 +4,14 @@ import os
 import numpy
 import scipy.ndimage
 from bnm.recon.algo.service.annotation import AnnotationService
-from bnm.recon.io.volume import VolumeIO
+from bnm.recon.io.factory import IOFactory
 from bnm.recon.model.volume import Volume
 
 
 class VolumeService(object):
     def __init__(self):
         self.annotation_service = AnnotationService()
-        self.volume_io = VolumeIO()
+        self.io_factory = IOFactory()
 
     # Separate the voxels of the outer surface of a structure, from the inner ones
     # Default behavior: surface voxels retain their label, inner voxels get the label 0,
@@ -47,7 +47,7 @@ class VolumeService(object):
             labels_inner = labels_inner.tolist()
 
         # Read the input volume...
-        volume = self.volume_io.read(in_vol_path)
+        volume = self.io_factory.read_volume(in_vol_path)
 
         # Neigbors' grid sharing a face
         border_grid = numpy.c_[numpy.identity(3), -numpy.identity(3)].T.astype('i')
@@ -93,7 +93,7 @@ class VolumeService(object):
         if out_vol_path is None:
             out_vol_path = in_vol_path
 
-        self.volume_io.write(out_vol_path, out_volume)
+        self.io_factory.write_volume(out_vol_path, out_volume)
 
         # save the output indexes that survived masking
         out_ijk = numpy.vstack(out_ijk)
@@ -115,7 +115,7 @@ class VolumeService(object):
 
         else:
             # Read the labels and make sure there is one for each label
-            labels_mask = numpy.array (labels_mask.split()).astype('i')
+            labels_mask = numpy.array(labels_mask.split()).astype('i')
 
             if len(labels_mask) == 1:
                 labels_mask = numpy.repeat(labels_mask, number_of_labels).tolist()
@@ -141,9 +141,9 @@ class VolumeService(object):
         else:
             labels_nomask = labels_nomask.tolist()
 
-        volume = self.volume_io.read(in_vol_path)
+        volume = self.io_factory.read_volume(in_vol_path)
 
-        mask_vol = self.volume_io.read(mask_vol_path)
+        mask_vol = self.io_factory.read_volume(mask_vol_path)
 
         # Compute the transform from vol ijk to mask ijk:
         ijk2ijk = numpy.identity(4)
@@ -226,7 +226,7 @@ class VolumeService(object):
         if out_vol_path == None:
             out_vol_path = in_vol_path
 
-        self.volume_io.write(out_vol_path, out_volume)
+        self.io_factory.write_volume(out_vol_path, out_volume)
 
         # Save the output indexes that survived masking
         out_ijk = numpy.vstack(out_ijk)
@@ -237,14 +237,14 @@ class VolumeService(object):
     # Label one nifti with its dilation, cf seeg-ct.sh
     def label_with_dilation(self, to_label_nii_fname, dilated_nii_fname, out_nii_fname):
         # TODO could make dilation with ndimage also.
-        mask = self.volume_io.read(to_label_nii_fname)
-        dil_mask = self.volume_io.read(dilated_nii_fname)
+        mask = self.io_factory.read_volume(to_label_nii_fname)
+        dil_mask = self.io_factory.read_volume(dilated_nii_fname)
 
         lab, n = scipy.ndimage.label(dil_mask.data)
         mask.data *= lab
         print('[label_with_dilation] %d objects found.' % (n,))
 
-        self.volume_io.write(out_nii_fname, mask)
+        self.io_factory.write_volume(out_nii_fname, mask)
 
     def _label_config(self, aparc):
         unique_data = numpy.unique(aparc.data)
@@ -256,9 +256,9 @@ class VolumeService(object):
     #TODO for Paula: Merge with the next one
     # Rewrite label volume to have contiguous values like mrtrix' labelconfig.
     def simple_label_config(self, in_aparc_path, out_path):
-        aparc = self.volume_io.read(in_aparc_path)
+        aparc = self.io_factory.read_volume(in_aparc_path)
         aparc = self._label_config(aparc)
-        self.volume_io.write(out_path, aparc)
+        self.io_factory.write_volume(out_path, aparc)
 
     def _label_volume(self, tdi_volume, lo=0.5):
         # tdi_volume = Volume(nii_volume.data.copy(), nii_volume.affine_matrix, nii_volume.header)
@@ -272,9 +272,9 @@ class VolumeService(object):
 
     # Make label volume from tckmap output.
     def label_vol_from_tdi(self, tdi_nii_fname, out_fname, lo=0.5):
-        nii_volume = self.volume_io.read(tdi_nii_fname)
+        nii_volume = self.io_factory.read_volume(tdi_nii_fname)
         tdi_volume = self._label_volume(nii_volume, lo)
-        self.volume_io.write(out_fname, tdi_volume)
+        self.io_factory.write_volume(out_fname, tdi_volume)
 
     # It removes network nodes with zero connectivity, and returns a symmetric connectivity matrix
     # Inputs:
@@ -286,7 +286,7 @@ class VolumeService(object):
     #    updated
     # Optionally: if the tract length matrix is in the input, it is also processed
     def remove_zero_connectivity_nodes(self, node_volume_path, connectivity_matrix_path, tract_length_path=None):
-        node_volume = self.volume_io.read(node_volume_path)
+        node_volume = self.io_factory.read_volume(node_volume_path)
         out_volume = Volume(node_volume.data, node_volume.affine_matrix, node_volume.header)
 
         connectivity = numpy.array(numpy.genfromtxt(connectivity_matrix_path, dtype='int64'))
@@ -314,7 +314,7 @@ class VolumeService(object):
             print tract_length_path + " is not a valid path"
 
         nodes_to_remove_indices, = numpy.where(~nodes_to_keep_indices)
-        nodes_to_remove_indices = nodes_to_remove_indices + 1
+        nodes_to_remove_indices += 1
         nodes_to_keep_number = connectivity.shape[0]
 
         for iR in nodes_to_remove_indices:
@@ -323,6 +323,4 @@ class VolumeService(object):
         # Update remaining indexes
         out_volume.data[out_volume.data > 0] = numpy.r_[1:(nodes_to_keep_number + 1)]
 
-        self.volume_io.write(node_volume_path, out_volume)
-
-
+        self.io_factory.write_volume(node_volume_path, out_volume)
