@@ -7,6 +7,8 @@ from bnm.tests.base import get_temporary_files_path, remove_temporary_test_files
 from bnm.recon.algo.service.volume import VolumeService
 from bnm.recon.model.volume import Volume
 
+io_factory = IOFactory()
+
 
 def teardown_module():
     remove_temporary_test_files()
@@ -30,6 +32,33 @@ def test_simple_label_config():
         [[[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]], [[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]]]).all()
 
 
+def test_label_with_dilation():
+    service = VolumeService()
+
+    ct_mask_data = numpy.array(
+        [[[0, 0, 0], [0, 1, 0], [0, 1, 0]], [[1, 1, 1], [0, 0, 0], [0, 0, 0]], [[0, 0, 1], [0, 0, 0], [0, 0, 1]]])
+    ct_mask_volume = Volume(ct_mask_data, [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], None)
+    ct_mask_path = get_temporary_files_path("ct_mask.nii.gz")
+    io_factory.write_volume(ct_mask_path, ct_mask_volume)
+
+    ct_dil_mask_data = numpy.array(
+        [[[0, 0, 0], [1, 1, 1], [0, 1, 0]], [[1, 1, 1], [0, 0, 0], [0, 0, 0]], [[0, 1, 1], [0, 0, 0], [0, 1, 1]]])
+    ct_dil_mask_volume = Volume(ct_dil_mask_data, [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], None)
+    ct_dil_mask_path = get_temporary_files_path("ct_dil_mask.nii.gz")
+    io_factory.write_volume(ct_dil_mask_path, ct_dil_mask_volume)
+
+    ct_result = get_temporary_files_path("ct_res.nii.gz")
+
+    service.label_with_dilation(ct_mask_path, ct_dil_mask_path, ct_result)
+
+    assert os.path.exists(ct_mask_path)
+    assert os.path.exists(ct_dil_mask_path)
+    assert os.path.exists(ct_result)
+
+    vol = io_factory.read_volume(ct_result)
+    assert numpy.array_equal(numpy.unique(vol.data), [0, 1, 2, 3])
+
+
 def test_remove_zero_connectivity():
     service = VolumeService()
 
@@ -37,10 +66,9 @@ def test_remove_zero_connectivity():
     volume = Volume(data, [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], None)
     volume_path = get_temporary_files_path("tdi_lbl.nii.gz")
 
-    io_factory = IOFactory()
     io_factory.write_volume(volume_path, volume)
 
-    in_connectivity = numpy.array([[10, 1, 0, 3],[0, 10, 0, 2], [0, 0, 0, 0], [0, 0, 0, 10]])
+    in_connectivity = numpy.array([[10, 1, 0, 3], [0, 10, 0, 2], [0, 0, 0, 0], [0, 0, 0, 10]])
     connectivity_path = get_temporary_files_path("conn.csv")
     numpy.savetxt(connectivity_path, in_connectivity, fmt='%1d')
 
