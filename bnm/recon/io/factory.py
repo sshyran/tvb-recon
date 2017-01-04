@@ -29,7 +29,7 @@ class IOFactory(object):
 
     def write_surface(self, out_surface_path, surface):
         surface_io = self.get_surface_io(out_surface_path)
-        surface_io.write(out_surface_path, surface)
+        surface_io.write(surface, out_surface_path)
 
     def get_volume_io(self, volume_path):
         extension = self.__get_extension(volume_path)

@@ -51,33 +51,6 @@ class ImageWriter(object):
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name), bbox_inches='tight', pad_inches=0.0)
 
-    def write_surface(self, surface, result_name, positions=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
-        figs_folder = self.snapshots_directory
-        self.logger.info("6 snapshots of the 3D surface will be generated in folder: %s" % figs_folder)
-
-        x = surface.vertices[:, 0]
-        y = surface.vertices[:, 1]
-        z = surface.vertices[:, 2]
-
-        fig = pyplot.figure()
-
-        ax = Axes3D(fig)
-        ax.set_xlim3d(-120, 60)
-        ax.set_ylim3d(-120, 120)
-        ax.set_zlim3d(-60, 120)
-        ax.dist = 3
-
-        ax.plot_trisurf(x, y, z, triangles=surface.triangles, color='g', linewidth=0.4)
-        pyplot.axis('off')
-
-        snapshot_index = 0
-        for e, a in positions:
-            ax.view_init(elev=e, azim=a)
-            pyplot.savefig(self.get_path(result_name + str(snapshot_index)))
-            snapshot_index += 1
-
-        self.logger.info("The 6 snapshots were generated")
-
     def write_surface_with_annotation(self, surface, annot, result_name,
                                       positions=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
         x = surface.vertices[:, 0]
@@ -95,14 +68,16 @@ class ImageWriter(object):
         ax.set_ylim3d(min, max)
         ax.set_zlim3d(min, max)
 
-        face_colors = annot.compute_face_colors(surface.triangles)
-
-        normals = surface.compute_normals()
-        face_colors = ax._shade_colors(face_colors, normals)
+        if annot is not None:
+            face_colors = annot.compute_face_colors(surface.triangles)
+            normals = surface.compute_normals()
+            face_colors = ax._shade_colors(face_colors, normals)
 
         poly_line = ax.plot_trisurf(x, y, z, triangles=surface.triangles)
-        poly_line.set_edgecolor(face_colors)
-        poly_line.set_facecolor(face_colors)
+
+        if annot is not None:
+            poly_line.set_edgecolor(face_colors)
+            poly_line.set_facecolor(face_colors)
 
         pyplot.axis('off')
 
@@ -112,6 +87,8 @@ class ImageWriter(object):
             ax.dist = 6
             pyplot.savefig(self.get_path(result_name + str(snapshot_index)), dpi=fig.dpi)
             snapshot_index += 1
+
+        self.logger.info("The 6 snapshots were generated")
 
     def save_figure(self, result_name):
         pyplot.axes().set_aspect('equal', 'datalim')

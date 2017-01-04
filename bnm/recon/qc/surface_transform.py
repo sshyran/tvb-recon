@@ -69,4 +69,4 @@ if __name__ == "__main__":
     logger.info("The transformed surface has been written to file: %s" % output_path)
 
     if args.ss:
-        image_processor.writer.write_surface(surface, image_processor.generate_file_name("transformed_surface"))
+        image_processor.writer.write_surface_with_annotation(surface, None, image_processor.generate_file_name("transformed_surface"))

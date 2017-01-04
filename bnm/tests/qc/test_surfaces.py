@@ -75,27 +75,25 @@ def test_parse_h5_surface():
 
 def test_write_fs_surface():
     file_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
-    surface_io = io_factory.get_surface_io(file_path)
-    original_surface = surface_io.read(file_path, False)
+    original_surface = io_factory.read_surface(file_path, False)
     triangles_number = len(original_surface.triangles)
 
     output_file_path = get_temporary_files_path("lh-test.pial")
-    surface_io.write(original_surface, output_file_path)
+    io_factory.write_surface(output_file_path, original_surface)
 
-    new_surface = surface_io.read(output_file_path, False)
+    new_surface = io_factory.read_surface(output_file_path, False)
     assert triangles_number == len(new_surface.triangles) == 327680
 
 
 def test_write_gifti_surface():
     file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
-    surface_io = io_factory.get_surface_io(file_path)
-    original_surface = surface_io.read(file_path, False)
+    original_surface = io_factory.read_surface(file_path, False)
     triangles_number = len(original_surface.triangles)
 
     output_file_path = get_temporary_files_path("lh-test.pial.gii")
-    surface_io.write(original_surface, output_file_path)
+    io_factory.write_surface(output_file_path, original_surface)
 
-    new_surface = surface_io.read(output_file_path, False)
+    new_surface = io_factory.read_surface(output_file_path, False)
     assert triangles_number == len(new_surface.triangles) == 327680
 
 
