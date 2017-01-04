@@ -301,7 +301,7 @@ class VolumeService(object):
         connectivity = connectivity[nodes_to_keep_indices, :][:, nodes_to_keep_indices]
 
         numpy.save(os.path.splitext(connectivity_matrix_path)[0] + ".npy", connectivity)
-        numpy.savetxt(connectivity_matrix_path, connectivity)
+        numpy.savetxt(connectivity_matrix_path, connectivity, fmt='%1d')
 
         if os.path.exists(str(tract_length_path)):
             connectivity = numpy.array(numpy.genfromtxt(tract_length_path, dtype='int64'))
