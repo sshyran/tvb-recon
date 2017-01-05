@@ -5,10 +5,10 @@ import os
 import gdist
 import numpy
 import scipy
+from bnm.recon.logger import get_logger
 from bnm.recon.algo.service.annotation import AnnotationService
 from bnm.recon.io.annotation import AnnotationIO
 from bnm.recon.io.surface import FreesurferIO
-from bnm.recon.io.tvb import TVBWriter
 from bnm.recon.io.volume import VolumeIO
 from bnm.recon.model.surface import Surface
 from bnm.recon.model.annotation import Annotation
@@ -17,6 +17,8 @@ from sklearn.metrics.pairwise import paired_distances
 
 
 class SurfaceService(object):
+    logger = get_logger(__name__)
+
     def __init__(self):
         self.annotation_service = AnnotationService()
         self.surface_io = FreesurferIO()
@@ -32,43 +34,22 @@ class SurfaceService(object):
         surface = self.surface_io.read(in_surf_path, False)
         self.surface_io.write_brain_visa_surf(in_surf_path + '.tri', surface)
 
-    def convert_bem_to_tri(self):
-        subjects_dir = os.environ['SUBJECTS_DIR']
-        subject = os.environ['SUBJECT']
-        surfs_glob = '%s/%s/bem/watershed/*_surface-low' % (subjects_dir, subject)
+    def convert_bem_to_tri(self, surfaces_directory_path):
+        surfs_glob = '%s/*_surface-low' % (surfaces_directory_path)
         for surf_name in glob.glob(surfs_glob):
             self.convert_fs_to_brain_visa(surf_name)
 
-    # Merge left and right hemisphere surfaces, and their region maps.
     def merge_lh_rh(self, lh_surface, rh_surface, left_region_mapping, right_region_mapping):
+        """
+        Merge left and right hemisphere surfaces, and their region mappings.
+        :return: the merge result surface and region mapping.
+        """
+
         out_surface = Surface([], [], [], None)
         out_surface.vertices = numpy.r_[lh_surface.vertices, rh_surface.vertices]
         out_surface.triangles = numpy.r_[lh_surface.triangles, rh_surface.triangles + lh_surface.vertices.max()]
         out_region_mapping = numpy.r_[left_region_mapping, right_region_mapping + lh_surface.triangles.max()]
         return out_surface, out_region_mapping
-
-    # Merge surfaces and roi maps. Write out in TVB format.
-    def convert_fs_subj_to_tvb_surf(self, subject=None):
-        subjects_dir = os.environ['SUBJECTS_DIR']
-
-        if subject is None:
-            subject = os.environ['SUBJECT']
-
-        lh_surf_path = os.path.join(subjects_dir, subject, 'surf', 'lh.pial')
-        rh_surf_path = os.path.join(subjects_dir, subject, 'surf', 'rh.pial')
-        lh_annot_path = os.path.join(subjects_dir, subject, 'label', 'lh.aparc.annot')
-        rh_annot_path = os.path.join(subjects_dir, subject, 'label', 'rh.aparc.annot')
-
-        lh_surface = self.surface_io.read(lh_surf_path, False)
-        rh_surface = self.surface_io.read(rh_surf_path, False)
-
-        lh_annot = self.annotation_io.read(lh_annot_path)
-        rh_annot = self.annotation_io.read(rh_annot_path)
-
-        surface, region_mapping = self.merge_lh_rh(lh_surface, rh_surface, lh_annot.region_mapping, rh_annot.region_mapping)
-
-        numpy.savetxt('%s_ctx_roi_map.txt' % (subject,), region_mapping.flat[:], '%i')
-        TVBWriter().write_surface_zip('%s_pial_surf.zip' % (subject,), surface)
 
     def compute_gdist_mat(self, surf_name='pial', max_distance=40.0):
         max_distance = float(max_distance)  # in case passed from sys.argv
@@ -81,23 +62,31 @@ class SurfaceService(object):
             mat = gdist.local_gdist_matrix(surface.vertices, surface.triangles.astype('<i4'), max_distance=max_distance)
             scipy.io.savemat(mat_path, {'gdist': mat})
 
+    # TODO: instead of verts and faces we should use surface.
     def extract_subsurf(self, verts, faces, verts_mask):
-        # verts and faces to keep
+        """
+        Extracts a sub-surface that contains only the masked vertices and the corresponding faces.
+        An important step is to replace old vertices indexes of faces to the new ones.
+        :param verts_mask: vertices to keep mask.
+        :return: vertices and faces of the sub-surface.
+        """
+
         verts_out = verts[verts_mask, :]
         face_mask = numpy.c_[verts_mask[faces[:, 0]], verts_mask[faces[:, 1]], verts_mask[faces[:, 2]]].all(axis=1)
         faces_out = faces[face_mask]
-
-        # ...but the old vertices' indexes of faces have to be transformed to the new verts_out_inds:
         verts_out_inds, = numpy.where(verts_mask)
+
         for face_idx in xrange(faces_out.shape[0]):
             for vertex_idx in xrange(3):
                 faces_out[face_idx, vertex_idx], = numpy.where(faces_out[face_idx, vertex_idx] == verts_out_inds)
 
         return verts_out, faces_out
 
-    # Concatenate surfaces of specific labels to create a single annotated surface
     def aseg_surf_conc_annot(self, surf_path, out_surf_path, annot_path, label_indices,
                              lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
+        """
+        Concatenate surfaces of specific labels to create a single annotated surface.
+        """
 
         label_names, color_table = self.annotation_service.lut_to_annot_names_ctab(lut_path=lut_path,
                                                                                    labels=label_indices)
@@ -130,9 +119,14 @@ class SurfaceService(object):
         self.surface_io.write(out_surface, out_surf_path)
         self.annotation_io.write(annot_path, out_annotation)
 
-    # It returns a sparse matrix of the connectivity among the vertices of a surface
-    # mode: "sparse" (default) or "2D"
+    #TODO: use surface instead of v and f
     def vertex_connectivity(self, v, f, mode="sparse", metric=None):
+        """
+        It computes a sparse matrix of the connectivity among the vertices of a surface.
+        :param mode: "sparse" by default or "2D"
+        :param metric: None by default, could be "euclidean"
+        :return: the computed matrix.
+        """
         # Get all pairs of vertex indexes that appear in each face
         f = numpy.r_[f[:, [0, 1]], f[:, [1, 2]], f[:, [2, 0]]]
         # Remove repetitions
@@ -164,12 +158,15 @@ class SurfaceService(object):
 
             return grid, n_grid
 
-    # Sample a volume of a specific label on a surface, by keeping only those surface vertices, the nearest voxel of
-    # which is of the given label (+ of possibly additional target labels, such as white matter)
-    # Allow optionally for vertices within a given voxel distance vn from the target voxels
     def sample_vol_on_surf(self, surf_path, vol_path, annot_path, out_surf_path, cras_path, ctx=None,
                            vertex_neighbourhood=1, add_lbl=[],
                            lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
+        """
+        Sample a volume of a specific label on a surface, by keeping only those surface vertices, the nearest voxel of
+        which is of the given label (+ of possibly additional target labels, such as white matter).
+        Allow optionally for vertices within a given voxel distance vn from the target voxels.
+        """
+
         # Read the inputs
         surface = self.surface_io.read(surf_path, False)
 
@@ -189,9 +186,9 @@ class SurfaceService(object):
 
         for label_index in xrange(len(labels)):
             if isinstance(ctx, basestring):
-                print 'ctx-' + ctx + '-' + annotation.region_names[label_index]
+                self.logger.info("ctx-%s-%s", ctx, annotation.region_names[label_index])
             else:
-                print annotation.region_names[label_index]
+                self.logger.info("%s", annotation.region_names[label_index])
 
             # Add any additional labels
             all_labels = [labels[label_index]] + add_lbl

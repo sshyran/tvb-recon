@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 
 import pytest
 from bnm.recon.io.factory import IOFactory
@@ -129,3 +130,14 @@ def test_write_transformation_matrix_gifti_metadata():
     surface_io.write_transformation_matrix(surf.get_main_metadata())
     matrix = surface_io.read_transformation_matrix_from_metadata(surf.get_main_metadata())
     assert matrix == [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+
+
+def test_write_write_brain_visa_surf():
+    surface_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
+    out_path = get_temporary_files_path("lh.pial.tri")
+
+    io_surface = io_factory.get_surface_io(surface_path)
+    surface = io_surface.read(surface_path, False)
+    io_surface.write_brain_visa_surf(out_path, surface)
+
+    assert os.path.exists(out_path)
