@@ -178,7 +178,8 @@ if __name__ == "__main__":
         imageProcessor.show_aparc_aseg_with_new_values(os.path.expandvars(aparc_aseg_volume_path),
                                                        os.path.expandvars(args.region_values),
                                                        os.path.expandvars(background_volume_path),
-                                                       os.path.expandvars(args.fs_to_conn_mapping), args.use_cc_point,
+                                                       args.use_cc_point,
+                                                       os.path.expandvars(args.fs_to_conn_mapping),
                                                        snapshot_name=args.snapshot_name)
 
     try:
