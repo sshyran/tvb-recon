@@ -19,17 +19,19 @@ def test_label_vol_from_tdi():
     data = numpy.array([[[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]], [[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]]])
     volume = Volume(data, [], None)
     labeled_volume = service._label_volume(volume, 0.5)
-    assert labeled_volume.data.all() == numpy.array(
-        [[[0, 0, 1], [2, 3, 0]], [[4, 5, 6], [7, 8, 0]], [[0, 0, 9], [10, 11, 0]], [[12, 13, 14], [15, 16, 0]]]).all()
+    assert numpy.array_equal(labeled_volume.data,
+                             [[[0, 0, 1], [2, 3, 0]], [[4, 5, 6], [7, 8, 0]], [[0, 0, 9], [10, 11, 0]],
+                              [[12, 13, 14], [15, 16, 0]]])
 
 
 def test_simple_label_config():
     service = VolumeService()
-    data = numpy.array([[[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]], [[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]]])
+    data = numpy.array(
+        [[[0, 0, 1], [1, 2, 0]], [[2, 1, 1000], [1000, 1, 0]], [[0, 0, 1], [1, 2, 0]], [[2, 1, 1000], [3, 1, 0]]])
     in_volume = Volume(data, [], None)
     out_volume = service._label_config(in_volume)
-    assert out_volume.data.all() == numpy.array(
-        [[[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]], [[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]]]).all()
+    assert numpy.array_equal(out_volume.data, [[[0, 0, 1], [1, 2, 0]], [[2, 1, 4], [4, 1, 0]], [[0, 0, 1], [1, 2, 0]],
+                                               [[2, 1, 4], [3, 1, 0]]])
 
 
 def test_label_with_dilation():

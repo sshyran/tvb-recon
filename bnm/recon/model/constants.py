@@ -29,6 +29,7 @@ SNAPSHOT_EXTENSION = ".png"
 SNAPSHOTS_DIRECTORY = "snapshots"
 GIFTI_EXTENSION = ".gii"
 H5_EXTENSION = ".h5"
+NPY_EXTENSION = ".npy"
 
 CENTER_RAS_FS_SURF = 'cras'
 CENTER_RAS_GIFTI_SURF = ['VolGeomC_R', 'VolGeomC_A', 'VolGeomC_S']
