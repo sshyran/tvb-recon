@@ -85,10 +85,20 @@ def test_overlap_volume_centered_surface():
     resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
     assert os.path.exists(processor.writer.get_path(resulted_file_name))
 
+
 def test_overlap_volume_gifti_surface():
     processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
     volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, TEST_T1)
     surface_path = get_data_file(TEST_SUBJECT_MODIF, TEST_SURF_FOLDER, TEST_GIFTI_SURF)
     processor.overlap_volume_surfaces(volume_path, [surface_path], False, False)
+    resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
+    assert os.path.exists(processor.writer.get_path(resulted_file_name))
+
+
+def test_show_aparc_aseg_with_new_values():
+    processor = ImageProcessor(SNAPSHOTS_DIRECTORY, SNAPSHOT_NUMBER)
+    volume_path = get_data_file(TEST_SUBJECT_MODIF, TEST_MRI_FOLDER, "aparc+aseg.nii.gz")
+    conn_measure_path = get_data_file("connectivity_measure.txt")
+    processor.show_aparc_aseg_with_new_values(volume_path, conn_measure_path, '', False)
     resulted_file_name = processor.generate_file_name(AXIAL, SNAPSHOT_NAME)
     assert os.path.exists(processor.writer.get_path(resulted_file_name))
