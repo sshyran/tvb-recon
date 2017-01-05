@@ -58,12 +58,12 @@ class VolumeService(object):
         # Initialize output indexes
         out_ijk = []
 
-        for label_index in range(number_of_labels):
+        for label_index in xrange(number_of_labels):
             current_label = labels[label_index]
             # Get the indexes of all voxels of this label:
             label_volxels_i, label_voxels_j, label_voxels_k = numpy.where(volume.data == current_label)
             # and for each voxel
-            for voxel_index in range(label_volxels_i.size):
+            for voxel_index in xrange(label_volxels_i.size):
                 # indexes of this voxel:
                 current_voxel_i, current_voxel_j, current_voxel_k = label_volxels_i[voxel_index], label_voxels_j[voxel_index], label_voxels_k[voxel_index]
                 # Create the neighbors' grid sharing a face
@@ -165,12 +165,12 @@ class VolumeService(object):
         out_ijk = []
 
         # For each target label:
-        for label_index in range(number_of_labels):
+        for label_index in xrange(number_of_labels):
             current_label = labels[label_index]
             # Get the indexes of all voxels of this label:
             label_voxels_i, label_voxels_j, label_voxels_k = numpy.where(volume.data == current_label)
 
-            for voxel_index in range(label_voxels_i.size):
+            for voxel_index in xrange(label_voxels_i.size):
                 current_voxel_i, current_voxel_j, current_voxel_k = label_voxels_i[voxel_index], label_voxels_j[voxel_index], label_voxels_k[voxel_index]
                 # TODO if necessary: deal with voxels at the edge of the image, such as brain stem ones...
                 #     if any([(i==0), (i==mask_shape[0]-1),(j==0), (j==mask_shape[0]-1),(k==0), (k==mask_shape[0]-1)]):
@@ -181,7 +181,7 @@ class VolumeService(object):
                 ijk = numpy.round(ijk2ijk.dot(numpy.array([current_voxel_i, current_voxel_j, current_voxel_k, 1]))[:3]).astype('i')
 
                 # Make sure this point is within image limits
-                for cc in range(3):
+                for cc in xrange(3):
                     if ijk[cc] < 0:
                         ijk[cc] = 0
 

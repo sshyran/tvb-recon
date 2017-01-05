@@ -85,7 +85,7 @@ class Surface(object):
 
         vf = self.vertices[self.triangles]
         fn = numpy.cross(vf[:, 1] - vf[:, 0], vf[:, 2] - vf[:, 0])
-        vf = [set() for _ in range(len(self.vertices))]
+        vf = [set() for _ in xrange(len(self.vertices))]
         for i, fi in enumerate(self.triangles):
             for j in fi:
                 vf[j].add(i)

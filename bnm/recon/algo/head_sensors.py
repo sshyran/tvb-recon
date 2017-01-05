@@ -58,9 +58,9 @@ def read_off(fname):
     with open(fname, 'r') as fd:
         fd.readline()
         nv, nf, _ = [int(i) for i in fd.readline().strip().split()]
-        for _ in range(nv):
+        for _ in xrange(nv):
             vl.append([float(f) for f in fd.readline().strip().split()])
-        for _ in range(nf):
+        for _ in xrange(nf):
             fl.append([int(i) for i in fd.readline().strip().split()[1:]])
     vl = numpy.array(vl)
     fl = numpy.array(fl)

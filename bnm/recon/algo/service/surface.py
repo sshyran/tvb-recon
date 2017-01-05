@@ -89,8 +89,8 @@ class SurfaceService(object):
 
         # ...but the old vertices' indexes of faces have to be transformed to the new verts_out_inds:
         verts_out_inds, = numpy.where(verts_mask)
-        for face_idx in range(faces_out.shape[0]):
-            for vertex_idx in range(3):
+        for face_idx in xrange(faces_out.shape[0]):
+            for vertex_idx in xrange(3):
                 faces_out[face_idx, vertex_idx], = numpy.where(faces_out[face_idx, vertex_idx] == verts_out_inds)
 
         return verts_out, faces_out
@@ -187,7 +187,7 @@ class SurfaceService(object):
         # Initialize the output mask:
         verts_out_mask = numpy.repeat([False], surface.vertices.shape[0])
 
-        for label_index in range(len(labels)):
+        for label_index in xrange(len(labels)):
             if isinstance(ctx, basestring):
                 print 'ctx-' + ctx + '-' + annotation.region_names[label_index]
             else:
@@ -223,7 +223,7 @@ class SurfaceService(object):
                 verts_indices_of_label = numpy.delete(verts_indices_of_label, verts_keep)
                 ijk = numpy.delete(ijk, verts_keep, axis=0)
 
-                for vertex_index in range(verts_indices_of_label.size):
+                for vertex_index in xrange(verts_indices_of_label.size):
                     # Generate the specific grid centered at the voxel ijk
                     ijk_grid = grid + numpy.tile(ijk[vertex_index, :], (n_grid, 1))
 
@@ -251,8 +251,8 @@ class SurfaceService(object):
             faces_out = surface.triangles[face_out_mask]
 
             # The old vertices' indexes of faces have to be transformed to the new vrtx_out_inds:
-            for iF in range(faces_out.shape[0]):
-                for vertex_index in range(3):
+            for iF in xrange(faces_out.shape[0]):
+                for vertex_index in xrange(3):
                     faces_out[iF, vertex_index], = numpy.where(faces_out[iF, vertex_index] == verts_out_indices)
 
             surface.vertices = verts_out
