@@ -9,13 +9,14 @@ from bnm.recon.io.surface import FreesurferIO, H5SurfaceIO
 from bnm.recon.model.surface import Surface
 from bnm.tests.base import get_data_file, get_temporary_files_path, remove_temporary_test_files
 
+service = SurfaceService()
+
 
 def teardown_module():
     remove_temporary_test_files()
 
 
 def test_tri_area():
-    service = SurfaceService()
     h5_path = get_data_file('head2', 'SurfaceCortical.h5')
     h5_io = H5SurfaceIO()
     surface = h5_io.read(h5_path)
@@ -25,7 +26,6 @@ def test_tri_area():
 
 
 def test_merge_lh_rh():
-    service = SurfaceService()
     io_factory = IOFactory()
 
     h5_surface_path = get_data_file("head2", "SurfaceCortical.h5")
@@ -50,7 +50,6 @@ def test_merge_lh_rh():
 
 
 def test_extract_subsurf():
-    service = SurfaceService()
     surface_parser = FreesurferIO()
     annot_parser = AnnotationIO()
     surface_file = get_data_file("freesurfer_fsaverage", "surf", "lh.pial")
@@ -66,7 +65,6 @@ def test_extract_subsurf():
 
 
 def test_aseg_surf_conc_annot():
-    service = SurfaceService()
     surf_path = "data/aseg"
     out_surf_path = get_temporary_files_path("out_aseg")
     out_annot_path = get_temporary_files_path("out_annot")
@@ -81,9 +79,12 @@ def test_aseg_surf_conc_annot():
     assert len(surface.vertices) == 5714
     assert len(surface.triangles) == 11420
 
+    annotation = IOFactory().read_annotation(out_annot_path)
+    assert numpy.array_equal(annotation.regions_color_table,
+                             [[0, 118, 14, 255, 947712], [122, 186, 220, 255, 14465658]])
+
 
 def test_vertex_connectivity():
-    service = SurfaceService()
     surf_path = get_data_file("head2", 'SurfaceCortical.h5')
     surface_parser = H5SurfaceIO()
     surface = surface_parser.read(surf_path)
@@ -94,7 +95,6 @@ def test_vertex_connectivity():
 
 
 def test_vertex_connectivity_2():
-    service = SurfaceService()
     surf_path = get_data_file("head2", 'SurfaceCortical.h5')
     surface_parser = H5SurfaceIO()
     surface = surface_parser.read(surf_path)

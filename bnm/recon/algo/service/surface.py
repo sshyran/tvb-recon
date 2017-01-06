@@ -93,7 +93,7 @@ class SurfaceService(object):
         label_indices = numpy.array(label_indices.split()).astype('i')
 
         out_surface = Surface([], [], [], None)
-        out_annotation = Annotation([], [], [])
+        out_annotation = Annotation([], None, [])
         label_number = -1
         verts_number = 0
 

@@ -40,4 +40,4 @@ class H5AnnotationIO(ABCAnnotationIO):
         h5_file = h5py.File(annotation_path, 'r', libver='latest')
         region_mapping = h5_file['/data'][()]
         h5_file.close()
-        return Annotation(region_mapping, [], [])
+        return Annotation(region_mapping, None, [])

@@ -19,7 +19,10 @@ class Annotation(object):
 
     def add_region_names_and_colors(self, new_region_names, new_region_colors):
         self.region_names.append(new_region_names)
-        self.regions_color_table.append(new_region_colors)
+        if self.regions_color_table is None:
+            self.regions_color_table = numpy.array(new_region_colors)
+        else:
+            self.regions_color_table = numpy.concatenate((self.regions_color_table, new_region_colors), axis=0)
 
     def add_region_mapping(self, new_region_mapping):
         self.region_mapping.append(new_region_mapping)
