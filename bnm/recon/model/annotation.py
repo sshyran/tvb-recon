@@ -11,7 +11,7 @@ class Annotation(object):
     """
     def __init__(self, region_mapping, regions_color_table, region_names):
         self.region_mapping = region_mapping  # ndarray of region_names indices
-        self.regions_color_table = regions_color_table  # ndarray matrix that contains a rgba color array for each vertex
+        self.regions_color_table = regions_color_table  # ndarray matrix that contains a rgba color array for each region
         self.region_names = region_names  # list of region names
 
     def set_region_mapping(self, new_region_mapping):
