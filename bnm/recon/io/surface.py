@@ -167,7 +167,10 @@ class FreesurferIO(ABCSurfaceIO):
         for i, fs_key in enumerate(TRANSFORM_MATRIX_FS_KEYS):
             image_metadata[fs_key] = identity_matrix[i]
 
-    def write_brain_visa_surf(self, file_path, surface):
+
+class BrainVisaIO(ABCSurfaceIO):
+
+    def write(self, surface, file_path):
         vn = surface.vertex_normals()
         with open(file_path, 'w') as fd:
             fd.write('- %d\n' % len(vn))

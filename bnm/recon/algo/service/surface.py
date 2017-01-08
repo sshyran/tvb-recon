@@ -5,10 +5,9 @@ import os
 import gdist
 import numpy
 import scipy
+from bnm.recon.io.factory import IOFactory
 from bnm.recon.logger import get_logger
 from bnm.recon.algo.service.annotation import AnnotationService
-from bnm.recon.io.annotation import AnnotationIO
-from bnm.recon.io.surface import FreesurferIO
 from bnm.recon.io.volume import VolumeIO
 from bnm.recon.model.surface import Surface
 from bnm.recon.model.annotation import Annotation
@@ -21,8 +20,7 @@ class SurfaceService(object):
 
     def __init__(self):
         self.annotation_service = AnnotationService()
-        self.surface_io = FreesurferIO()
-        self.annotation_io = AnnotationIO()
+        self.io_factory = IOFactory()
 
     def tri_area(self, tri):
         i, j, k = numpy.transpose(tri, (1, 0, 2))
@@ -31,8 +29,8 @@ class SurfaceService(object):
         return numpy.sqrt(numpy.sum(numpy.cross(ij, ik) ** 2, axis=1)) / 2.0
 
     def convert_fs_to_brain_visa(self, in_surf_path):
-        surface = self.surface_io.read(in_surf_path, False)
-        self.surface_io.write_brain_visa_surf(in_surf_path + '.tri', surface)
+        surface = self.io_factory.read_surface(in_surf_path, False)
+        self.io_factory.write_surface(in_surf_path + '.tri', surface)
 
     def convert_bem_to_tri(self, surfaces_directory_path):
         surfs_glob = '%s/*_surface-low' % (surfaces_directory_path)
@@ -57,7 +55,7 @@ class SurfaceService(object):
             subjects_dir = os.environ['SUBJECTS_DIR']
             subject = os.environ['SUBJECT']
             surf_path = '%s/%s/surf/%sh.%s' % (subjects_dir, subject, h, surf_name)
-            surface = self.surface_io.read(surf_path, False)
+            surface = self.io_factory.read_surface(surf_path, False)
             mat_path = '%s/%s/surf/%sh.%s.gdist.mat' % (subjects_dir, subject, h, surf_name)
             mat = gdist.local_gdist_matrix(surface.vertices, surface.triangles.astype('<i4'), max_distance=max_distance)
             scipy.io.savemat(mat_path, {'gdist': mat})
@@ -104,7 +102,7 @@ class SurfaceService(object):
                 ind_l, = numpy.where(label_indices == label_index)
                 out_annotation.add_region_names_and_colors(label_names[ind_l], color_table[ind_l, :])
                 label_number += 1
-                surface = self.surface_io.read(this_surf_path, False)
+                surface = self.io_factory.read_surface(this_surf_path, False)
                 out_surface.set_main_metadata(surface.get_main_metadata())
                 faces = surface.triangles + verts_number  # Update vertices indexes
                 verts_number += surface.vertices.shape[0]
@@ -116,8 +114,8 @@ class SurfaceService(object):
         out_surface.stack_vertices_and_triangles()
         out_annotation.stack_region_mapping()
 
-        self.surface_io.write(out_surface, out_surf_path)
-        self.annotation_io.write(annot_path, out_annotation)
+        self.io_factory.write_surface(out_surf_path, out_surface)
+        self.io_factory.write_annotation(annot_path, out_annotation)
 
     #TODO: use surface instead of v and f
     def vertex_connectivity(self, v, f, mode="sparse", metric=None):
@@ -168,9 +166,9 @@ class SurfaceService(object):
         """
 
         # Read the inputs
-        surface = self.surface_io.read(surf_path, False)
+        surface = self.io_factory.read_surface(surf_path, False)
 
-        annotation = self.annotation_io.read(annot_path)
+        annotation = self.io_factory.read_annotation(annot_path)
         labels = self.annotation_service.annot_names_to_labels(annotation.region_names, ctx, lut_path)
 
         volume_parser = VolumeIO()
@@ -256,10 +254,10 @@ class SurfaceService(object):
             surface.triangles = faces_out
 
             # Write the output surfaces and annotations to files. Also write files with the indexes of vertices to keep.
-            self.surface_io.write(surface, out_surf_path)
+            self.io_factory.write_surface(out_surf_path, surface)
 
             annotation.set_region_mapping(annotation.get_region_mapping_by_indices([verts_out_indices]))
-            self.annotation_io.write(out_surf_path + ".annot", annotation)
+            self.io_factory.write_annotation(out_surf_path + ".annot", annotation)
 
             numpy.save(out_surf_path + "-idx.npy", verts_out_indices)
             numpy.savetxt(out_surf_path + "-idx.txt", verts_out_indices, fmt='%d')
