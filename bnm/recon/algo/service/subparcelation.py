@@ -9,7 +9,7 @@ from sklearn.cluster import AgglomerativeClustering
 from scipy.sparse.csgraph import connected_components
 import bnm.recon.algo.tree as tree
 from scipy.sparse.csgraph import shortest_path
-from bnm.recon.io.factory import IOFactory
+from bnm.recon.io.factory import IOUtils
 from bnm.recon.algo.service.annotation import AnnotationService
 from bnm.recon.algo.service.surface import SurfaceService
 from bnm.recon.algo.service.volume import VolumeService
@@ -17,7 +17,6 @@ from bnm.recon.model.annotation import Annotation
 
 class SubparcellationService(object):
     def __init__(self):
-        self.io_factory = IOFactory()
         self.annotation_service = AnnotationService()
         self.surface_service = SurfaceService()
         self.volume_service = VolumeService()
@@ -83,10 +82,10 @@ class SubparcellationService(object):
 
     def subparc_files(self, surf_path, annot_path, out_annot_parc_name, trg_area):
         trg_area = float(trg_area)
-        surface = self.io_factory.read_surface(surf_path, False)
-        annotation = self.io_factory.read_annotation(annot_path)
+        surface = IOUtils.read_surface(surf_path, False)
+        annotation = IOUtils.read_annotation(annot_path)
         new_annotation = self.make_subparc(surface, annotation, trg_area=trg_area)
-        self.io_factory.write_annotation(out_annot_parc_name, new_annotation)
+        IOUtils.write_annotation(out_annot_parc_name, new_annotation)
 
         # It receives a binary connectivity matrix, and outputs a node connectivity
         # distance or dissimilarity  matrix
@@ -108,7 +107,7 @@ class SubparcellationService(object):
 
     def con_vox_in_ras(self,ref_vol_path):
         # Read the reference tdi_lbl volume:
-        vollbl = self.io_factory.read_volume(ref_vol_path)
+        vollbl = IOUtils.read_volume(ref_vol_path)
         vox = vollbl.data.astype('i')
         # Get only the voxels that correspond to connectome nodes:
         voxijk, = numpy.where(vox.flatten() > 0)
@@ -206,9 +205,9 @@ class SubparcellationService(object):
                                       lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
 
         # Read the surface...
-        surface = self.io_factory.read_surface(surf_path, False)
+        surface = IOUtils.read_surface(surf_path, False)
         # ...and its annotation
-        annotation = self.io_factory.read_annotation(annot_path)
+        annotation = IOUtils.read_annotation(annot_path)
         # ...and get the correspoding labels:
         labels_annot = self.annotation_service.annot_names_to_labels(annotation.region_names, ctx, lut_path=lut_path)
         # Read the indexes of vertices neighboring tracts' ends voxels:
@@ -350,4 +349,4 @@ class SubparcellationService(object):
         if out_annot_path is None:
             out_annot_path = os.path.splitext(annot_path)[0] + str(parc_area) + ".annot"
         print out_annot_path
-        self.io_factory.write_annotation(out_annot_path, Annotation(out_lab, out_ctab, out_names))
+        IOUtils.write_annotation(out_annot_path, Annotation(out_lab, out_ctab, out_names))

@@ -2,7 +2,7 @@
 
 import os
 import numpy
-from bnm.recon.io.factory import IOFactory
+from bnm.recon.io.factory import IOUtils
 from bnm.recon.io.generic import GenericIO
 from bnm.recon.logger import get_logger
 from bnm.recon.model.constants import PROJECTIONS, SNAPSHOT_NAME, T1_RAS_VOLUME, MRI_DIRECTORY, \
@@ -12,7 +12,6 @@ from bnm.recon.qc.image.writer import ImageWriter
 
 class ImageProcessor(object):
     def __init__(self, snapshots_directory, snapshot_count=0):
-        self.io_factory = IOFactory()
         self.generic_io = GenericIO()
         self.writer = ImageWriter(snapshots_directory)
         self.snapshot_count = snapshot_count
@@ -23,12 +22,12 @@ class ImageProcessor(object):
         return file_name
 
     def read_t1_affine_matrix(self):
-        t1_volume = self.io_factory.read_volume(os.path.join(os.environ[MRI_DIRECTORY], os.environ[T1_RAS_VOLUME]))
+        t1_volume = IOUtils.read_volume(os.path.join(os.environ[MRI_DIRECTORY], os.environ[T1_RAS_VOLUME]))
         return t1_volume.affine_matrix
 
     def show_single_volume(self, volume_path, use_cc_point, snapshot_name=SNAPSHOT_NAME):
 
-        volume = self.io_factory.read_volume(volume_path)
+        volume = IOUtils.read_volume(volume_path)
 
         if use_cc_point:
             ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
@@ -49,8 +48,8 @@ class ImageProcessor(object):
 
     def overlap_2_volumes(self, background_path, overlay_path, use_cc_point, snapshot_name=SNAPSHOT_NAME):
 
-        background_volume = self.io_factory.read_volume(background_path)
-        overlay_volume = self.io_factory.read_volume(overlay_path)
+        background_volume = IOUtils.read_volume(background_path)
+        overlay_volume = IOUtils.read_volume(overlay_path)
 
         if use_cc_point:
             ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
@@ -74,9 +73,9 @@ class ImageProcessor(object):
     def overlap_3_volumes(self, background_path, overlay_1_path, overlay_2_path, use_cc_point,
                           snapshot_name=SNAPSHOT_NAME):
 
-        volume_background = self.io_factory.read_volume(background_path)
-        volume_overlay_1 = self.io_factory.read_volume(overlay_1_path)
-        volume_overlay_2 = self.io_factory.read_volume(overlay_2_path)
+        volume_background = IOUtils.read_volume(background_path)
+        volume_overlay_1 = IOUtils.read_volume(overlay_1_path)
+        volume_overlay_2 = IOUtils.read_volume(overlay_2_path)
 
         if use_cc_point:
             ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
@@ -100,21 +99,21 @@ class ImageProcessor(object):
                                          self.generate_file_name(projection, snapshot_name))
 
     def overlap_surface_annotation(self, surface_path, annotation, snapshot_name=SNAPSHOT_NAME):
-        annotation = self.io_factory.read_annotation(annotation)
-        surface = self.io_factory.read_surface(surface_path, False)
+        annotation = IOUtils.read_annotation(annotation)
+        surface = IOUtils.read_surface(surface_path, False)
         self.writer.write_surface_with_annotation(surface, annotation,
                                                   self.generate_file_name('surface_annotation', snapshot_name))
 
     def overlap_volume_surfaces(self, volume_background, surfaces_path, use_center_surface, use_cc_point,
                                 snapshot_name=SNAPSHOT_NAME):
-        volume = self.io_factory.read_volume(volume_background)
+        volume = IOUtils.read_volume(volume_background)
 
         if use_cc_point:
             ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
         else:
             ras = volume.get_center_point()
 
-        surfaces = [self.io_factory.read_surface(os.path.expandvars(surface), use_center_surface) for surface in
+        surfaces = [IOUtils.read_surface(os.path.expandvars(surface), use_center_surface) for surface in
                     surfaces_path]
 
         for projection in PROJECTIONS:
@@ -138,7 +137,7 @@ class ImageProcessor(object):
                                         use_cc_point, fs_to_conn_indices_mapping_path=FS_TO_CONN_INDICES_MAPPING_PATH,
                                         snapshot_name=SNAPSHOT_NAME):
 
-        aparc_aseg_volume = self.io_factory.read_volume(aparc_aseg_volume_path)
+        aparc_aseg_volume = IOUtils.read_volume(aparc_aseg_volume_path)
 
         fs_to_conn_indices_mapping = {}
         with open(fs_to_conn_indices_mapping_path) as fs_to_conn_indices_mapping_file:
@@ -159,7 +158,7 @@ class ImageProcessor(object):
             ras = aparc_aseg_volume.get_center_point()
 
         if background_volume_path != '':
-            background_volume = self.io_factory.read_volume(background_volume_path)
+            background_volume = IOUtils.read_volume(background_volume_path)
 
         for projection in PROJECTIONS:
             try:

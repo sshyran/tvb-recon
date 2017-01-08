@@ -3,13 +3,10 @@
 import os
 import numpy
 from collections import OrderedDict
-from bnm.recon.io.factory import IOFactory
+from bnm.recon.io.factory import IOUtils
 
 
 class AnnotationService(object):
-    def __init__(self):
-        self.io_factory = IOFactory()
-
     def read_lut(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt'),
                  key_mode='label'):
         f = open(lut_path, "r")
@@ -50,7 +47,7 @@ class AnnotationService(object):
         return rgb[0] + 256 * rgb[1] + 256 * 256 * rgb[2]
 
     def annot_to_lut(self, annot_path, lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
-        annotation = self.io_factory.read_annotation(annot_path)
+        annotation = IOUtils.read_annotation(annot_path)
         with open(lut_path, 'w') as fd:
             for name, (r, g, b, a, id) in zip(annotation.region_names, annotation.regions_color_table):
                 fd.write('%d\t%s\t%d %d %d %d\n' % (id, name, r, g, b, a))
@@ -87,7 +84,7 @@ class AnnotationService(object):
         return labels
 
     def annot_to_conn_conf(self, annot_path, conn_conf_path):
-        annotation = self.io_factory.read_annotation(annot_path)
+        annotation = IOUtils.read_annotation(annot_path)
         with open(conn_conf_path, 'w') as fd:
             for id, name in enumerate(annotation.region_names):
                 fd.write('%d\t%s\n' % (id, name))

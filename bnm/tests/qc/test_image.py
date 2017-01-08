@@ -2,7 +2,7 @@
 
 import os
 import numpy
-from bnm.recon.io.factory import IOFactory
+from bnm.recon.io.factory import IOUtils
 from bnm.recon.model.constants import SNAPSHOTS_DIRECTORY, SNAPSHOT_NAME, AXIAL
 from bnm.recon.qc.image.processor import ImageProcessor
 from bnm.recon.qc.image.writer import ImageWriter
@@ -61,11 +61,10 @@ def test_overlap_3_volumes():
 
 def test_overlap_surface_annotation():
     writer = ImageWriter(SNAPSHOTS_DIRECTORY)
-    io_factory = IOFactory()
     surface_path = get_data_file(TEST_HEAD2, "SurfaceCortical.h5")
-    surface = io_factory.read_surface(surface_path, False)
+    surface = IOUtils.read_surface(surface_path, False)
     annot_path = get_data_file(TEST_HEAD2, "RegionMapping.h5")
-    annot = io_factory.read_annotation(annot_path)
+    annot = IOUtils.read_annotation(annot_path)
     annot.region_names = ['reg1', 'reg2']
     annot.regions_color_table = numpy.array([[200, 200, 200, 255, 30567], [100, 150, 200, 255, 30568]])
     resulted_file_name = processor.generate_file_name('surface_annotation', SNAPSHOT_NAME)

@@ -4,7 +4,7 @@ import os
 import numpy
 from bnm.recon.algo.service.surface import SurfaceService
 from bnm.recon.io.annotation import AnnotationIO
-from bnm.recon.io.factory import IOFactory
+from bnm.recon.io.factory import IOUtils
 from bnm.recon.io.surface import FreesurferIO, H5SurfaceIO
 from bnm.recon.model.surface import Surface
 from bnm.tests.base import get_data_file, get_temporary_files_path, remove_temporary_test_files
@@ -26,10 +26,8 @@ def test_tri_area():
 
 
 def test_merge_lh_rh():
-    io_factory = IOFactory()
-
     h5_surface_path = get_data_file("head2", "SurfaceCortical.h5")
-    h5_surface = io_factory.read_surface(h5_surface_path, False)
+    h5_surface = IOUtils.read_surface(h5_surface_path, False)
 
     lh_surface = Surface(h5_surface.vertices[:len(h5_surface.vertices) / 2],
                          h5_surface.triangles[:len(h5_surface.triangles) / 2], [], None)
@@ -37,7 +35,7 @@ def test_merge_lh_rh():
                          h5_surface.triangles[len(h5_surface.triangles) / 2:], [], None)
 
     h5_region_mapping_path = get_data_file("head2", "RegionMapping.h5")
-    annotation = io_factory.read_annotation(h5_region_mapping_path)
+    annotation = IOUtils.read_annotation(h5_region_mapping_path)
 
     lh_region_mapping = annotation.region_mapping[:len(annotation.region_mapping) / 2]
     rh_region_mapping = annotation.region_mapping[len(annotation.region_mapping) / 2:]
@@ -79,7 +77,7 @@ def test_aseg_surf_conc_annot():
     assert len(surface.vertices) == 5714
     assert len(surface.triangles) == 11420
 
-    annotation = IOFactory().read_annotation(out_annot_path)
+    annotation = IOUtils.read_annotation(out_annot_path)
     assert numpy.array_equal(annotation.regions_color_table,
                              [[0, 118, 14, 255, 947712], [122, 186, 220, 255, 14465658]])
 

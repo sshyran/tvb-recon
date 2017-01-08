@@ -3,7 +3,7 @@
 import argparse
 import os
 import numpy
-from bnm.recon.io.factory import IOFactory
+from bnm.recon.io.factory import IOUtils
 from bnm.recon.io.generic import GenericIO
 from bnm.recon.logger import get_logger
 from bnm.recon.model.constants import SNAPSHOTS_DIRECTORY_ENVIRON_VAR, SNAPSHOT_NUMBER_ENVIRON_VAR
@@ -34,15 +34,15 @@ if __name__ == "__main__":
     generic_io = GenericIO()
 
     logger.info("The surface transformation process has began")
-    io_factory = IOFactory()
-    surface_io = io_factory.get_surface_io(surface_path)
+    surface_io = IOUtils.surface_io_factory(surface_path)
     surface = surface_io.read(surface_path, False)
 
     if len(args.matrix_paths) is not 0:
         transformation_matrices = []
 
         for transform_matrix_path in args.matrix_paths:
-            transformation_matrices.append(numpy.array(generic_io.read_transformation_matrix(os.path.expandvars(transform_matrix_path))))
+            transformation_matrices.append(
+                numpy.array(generic_io.read_transformation_matrix(os.path.expandvars(transform_matrix_path))))
 
         for i in xrange(len(surface.vertices)):
             for j in xrange(len(transformation_matrices)):
@@ -69,4 +69,5 @@ if __name__ == "__main__":
     logger.info("The transformed surface has been written to file: %s" % output_path)
 
     if args.ss:
-        image_processor.writer.write_surface_with_annotation(surface, None, image_processor.generate_file_name("transformed_surface"))
+        image_processor.writer.write_surface_with_annotation(surface, None,
+                                                             image_processor.generate_file_name("transformed_surface"))

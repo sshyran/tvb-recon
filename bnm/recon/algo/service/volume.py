@@ -5,7 +5,7 @@ import numpy
 import scipy.ndimage
 from bnm.recon.logger import get_logger
 from bnm.recon.algo.service.annotation import AnnotationService
-from bnm.recon.io.factory import IOFactory
+from bnm.recon.io.factory import IOUtils
 from bnm.recon.model.volume import Volume
 from bnm.recon.model.constants import NPY_EXTENSION
 
@@ -14,7 +14,6 @@ class VolumeService(object):
 
     def __init__(self):
         self.annotation_service = AnnotationService()
-        self.io_factory = IOFactory()
 
     def vol_to_ext_surf_vol(self, in_vol_path, labels=None, hemi=None, out_vol_path=None, labels_surf=None,
                             labels_inner='0'):
@@ -51,7 +50,7 @@ class VolumeService(object):
             labels_inner = labels_inner.tolist()
 
         # Read the input volume...
-        volume = self.io_factory.read_volume(in_vol_path)
+        volume = IOUtils.read_volume(in_vol_path)
 
         # Neigbors' grid sharing a face
         border_grid = numpy.c_[numpy.identity(3), -numpy.identity(3)].T.astype('i')
@@ -98,7 +97,7 @@ class VolumeService(object):
         if out_vol_path is None:
             out_vol_path = in_vol_path
 
-        self.io_factory.write_volume(out_vol_path, out_volume)
+        IOUtils.write_volume(out_vol_path, out_volume)
 
         # save the output indexes that survived masking
         out_ijk = numpy.vstack(out_ijk)
@@ -147,9 +146,9 @@ class VolumeService(object):
         else:
             labels_nomask = labels_nomask.tolist()
 
-        volume = self.io_factory.read_volume(in_vol_path)
+        volume = IOUtils.read_volume(in_vol_path)
 
-        mask_vol = self.io_factory.read_volume(mask_vol_path)
+        mask_vol = IOUtils.read_volume(mask_vol_path)
 
         # Compute the transform from vol ijk to mask ijk:
         ijk2ijk = numpy.identity(4)
@@ -233,7 +232,7 @@ class VolumeService(object):
         if out_vol_path == None:
             out_vol_path = in_vol_path
 
-        self.io_factory.write_volume(out_vol_path, out_volume)
+        IOUtils.write_volume(out_vol_path, out_volume)
 
         # Save the output indexes that survived masking
         out_ijk = numpy.vstack(out_ijk)
@@ -249,14 +248,14 @@ class VolumeService(object):
         """
 
         # TODO could make dilation with ndimage also.
-        mask = self.io_factory.read_volume(to_label_nii_fname)
-        dil_mask = self.io_factory.read_volume(dilated_nii_fname)
+        mask = IOUtils.read_volume(to_label_nii_fname)
+        dil_mask = IOUtils.read_volume(dilated_nii_fname)
 
         lab, n = scipy.ndimage.label(dil_mask.data)
         mask.data *= lab
         self.logger.info('%d objects found when labeling the dilated volume.', n)
 
-        self.io_factory.write_volume(out_nii_fname, mask)
+        IOUtils.write_volume(out_nii_fname, mask)
 
     def _label_config(self, aparc):
         unique_data = numpy.unique(aparc.data)
@@ -272,9 +271,9 @@ class VolumeService(object):
         :return: writes the labeled volume to out_volume_path.
         """
 
-        aparc = self.io_factory.read_volume(in_aparc_path)
+        aparc = IOUtils.read_volume(in_aparc_path)
         aparc = self._label_config(aparc)
-        self.io_factory.write_volume(out_volume_path, aparc)
+        IOUtils.write_volume(out_volume_path, aparc)
 
     def _label_volume(self, tdi_volume, lo=0.5):
         mask = tdi_volume.data > lo
@@ -291,9 +290,9 @@ class VolumeService(object):
         :return: writes labeled volume to :ut_volume_path.
         """
 
-        nii_volume = self.io_factory.read_volume(tdi_volume_path)
+        nii_volume = IOUtils.read_volume(tdi_volume_path)
         tdi_volume = self._label_volume(nii_volume, lo)
-        self.io_factory.write_volume(out_volume_path, tdi_volume)
+        IOUtils.write_volume(out_volume_path, tdi_volume)
 
     def remove_zero_connectivity_nodes(self, node_volume_path, connectivity_matrix_path, tract_length_path=None):
         """
@@ -306,7 +305,7 @@ class VolumeService(object):
         :return: overwrites the input volume and matrices with the processed ones. Also saves matrices as .npy.
         """
 
-        node_volume = self.io_factory.read_volume(node_volume_path)
+        node_volume = IOUtils.read_volume(node_volume_path)
 
         connectivity = numpy.array(numpy.genfromtxt(connectivity_matrix_path, dtype='int64'))
         connectivity = connectivity + connectivity.T
@@ -336,4 +335,4 @@ class VolumeService(object):
 
         node_volume.data[node_volume.data > 0] = numpy.r_[1:(connectivity.shape[0] + 1)]
 
-        self.io_factory.write_volume(node_volume_path, node_volume)
+        IOUtils.write_volume(node_volume_path, node_volume)

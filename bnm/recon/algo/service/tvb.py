@@ -3,12 +3,11 @@
 import os
 import numpy
 from bnm.recon.algo.service.surface import SurfaceService
-from bnm.recon.io.factory import IOFactory
+from bnm.recon.io.factory import IOUtils
 from bnm.recon.io.tvb import TVBWriter
 
 
 class TVBService(object):
-    io_factory = IOFactory()
     surface_service = SurfaceService()
 
     def convert_fs_subj_to_tvb_surf(self, subject=None):
@@ -26,11 +25,11 @@ class TVBService(object):
         lh_annot_path = os.path.join(subjects_dir, subject, 'label', 'lh.aparc.annot')
         rh_annot_path = os.path.join(subjects_dir, subject, 'label', 'rh.aparc.annot')
 
-        lh_surface = self.io_factory.read_surface(lh_surf_path, False)
-        rh_surface = self.io_factory.read_surface(rh_surf_path, False)
+        lh_surface = IOUtils.read_surface(lh_surf_path, False)
+        rh_surface = IOUtils.read_surface(rh_surf_path, False)
 
-        lh_annot = self.io_factory.read_annotation(lh_annot_path)
-        rh_annot = self.io_factory.read_annotation(rh_annot_path)
+        lh_annot = IOUtils.read_annotation(lh_annot_path)
+        rh_annot = IOUtils.read_annotation(rh_annot_path)
 
         surface, region_mapping = self.surface_service.merge_lh_rh(lh_surface, rh_surface, lh_annot.region_mapping,
                                                                    rh_annot.region_mapping)
