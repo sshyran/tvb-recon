@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from bnm.recon.io.annotation import AnnotationIO
-from bnm.tests.base import get_data_file
+from bnm.recon.io.factory import IOUtils
+from bnm.tests.base import get_data_file, get_temporary_files_path, remove_temporary_test_files
 
 TEST_SUBJECT = 'freesurfer_fsaverage'
 TEST_ANNOT_FOLDER = 'label'
 
 
+def teardown_module():
+    remove_temporary_test_files()
+
+
 def test_parse_annotation():
-    parser = AnnotationIO()
     file_path = get_data_file(TEST_SUBJECT, TEST_ANNOT_FOLDER, "lh.aparc.annot")
-    annot = parser.read(file_path)
+    annot = IOUtils.read_annotation(file_path)
     assert annot.region_names == ['unknown', 'bankssts', 'caudalanteriorcingulate', 'caudalmiddlefrontal',
                                   'corpuscallosum', 'cuneus', 'entorhinal', 'fusiform', 'inferiorparietal',
                                   'inferiortemporal', 'isthmuscingulate', 'lateraloccipital', 'lateralorbitofrontal',
@@ -24,14 +27,31 @@ def test_parse_annotation():
 
 
 def test_parse_not_existent_annotation():
-    parser = AnnotationIO()
     file_path = "not_existent_annotation.annot"
+    annotation_io = IOUtils.annotation_io_factory(file_path)
     with pytest.raises(IOError):
-        parser.read(file_path)
+        annotation_io.read(file_path)
 
 
 def test_parse_not_annotation():
-    parser = AnnotationIO()
     file_path = get_data_file(TEST_SUBJECT, "surf", "lh.pial")
+    annotation_io = IOUtils.annotation_io_factory(file_path)
     with pytest.raises(ValueError):
-        parser.read(file_path)
+        annotation_io.read(file_path)
+
+
+def test_parse_h5_annotation():
+    h5_path = get_data_file('head2', 'RegionMapping.h5')
+    annotation = IOUtils.read_annotation(h5_path)
+    assert len(annotation.region_mapping) == 16
+
+
+def test_write_annotation():
+    file_path = get_data_file(TEST_SUBJECT, TEST_ANNOT_FOLDER, "lh.aparc.annot")
+    annotation = IOUtils.read_annotation(file_path)
+
+    out_annotation_path = get_temporary_files_path("lh-test.aparc.annot")
+    IOUtils.write_annotation(out_annotation_path, annotation)
+
+    new_annotation = IOUtils.read_annotation(out_annotation_path)
+    assert annotation.region_names == new_annotation.region_names

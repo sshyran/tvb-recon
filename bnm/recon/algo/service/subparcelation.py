@@ -3,12 +3,13 @@
 import os
 import numpy
 import scipy
-from scipy.spatial.distance import cdist, squareform
+from scipy.spatial.distance import pdist, cdist, squareform
 from sklearn.cluster import AgglomerativeClustering
 #from scipy.cluster import hierarchy
 from scipy.sparse.csgraph import connected_components
 import bnm.recon.algo.tree as tree
 from scipy.sparse.csgraph import shortest_path
+from bnm.recon.io.factory import IOUtils
 from bnm.recon.algo.service.annotation import AnnotationService
 from bnm.recon.algo.service.surface import SurfaceService
 from bnm.recon.algo.service.volume import VolumeService
@@ -81,10 +82,10 @@ class SubparcellationService(object):
 
     def subparc_files(self, surf_path, annot_path, out_annot_parc_name, trg_area):
         trg_area = float(trg_area)
-        surface = self.surface_service.surface_io.read(surf_path, False)
-        annotation = self.annotation_service.annotation_io.read(annot_path)
+        surface = IOUtils.read_surface(surf_path, False)
+        annotation = IOUtils.read_annotation(annot_path)
         new_annotation = self.make_subparc(surface, annotation, trg_area=trg_area)
-        self.annotation_service.annotation_io.write(out_annot_parc_name, new_annotation)
+        IOUtils.write_annotation(out_annot_parc_name, new_annotation)
 
         # It receives a binary connectivity matrix, and outputs a node connectivity
         # distance or dissimilarity  matrix
@@ -99,14 +100,22 @@ class SubparcellationService(object):
             numpy.save(out_consim_path, con)
         return con
 
+    # Applying optionally a mask to the vertices and picking up only the relevant triangles,
+    # before computing the surface area
     def compute_surface_area(self,v,f,mask=None):
         if mask is not None:
+            #Apply the optional mask in order to extract the sub-surface (vertices and relevant triangles)
             (v, f) = self.surface_service.extract_subsurf(v, f, mask)
         return numpy.sum(self.surface_service.tri_area(v[f]))
 
+    # This function takes as an input a reference tdi_lbl volume (ref_vol_path),
+    # where increasing integers>0 signify each voxel-connectome node,
+    #and it returns a vector of these voxels (vox),
+    #  and their coordinates in the ras space of the original T1 (voxxyz),
+    # simply by applying the affine transform of tdi_lbl.
     def con_vox_in_ras(self,ref_vol_path):
         # Read the reference tdi_lbl volume:
-        vollbl = self.volume_service.volume_io.read(ref_vol_path)
+        vollbl = IOUtils.read_volume(ref_vol_path)
         vox = vollbl.data.astype('i')
         # Get only the voxels that correspond to connectome nodes:
         voxijk, = numpy.where(vox.flatten() > 0)
@@ -116,6 +125,14 @@ class SubparcellationService(object):
         voxxzy = vollbl.affine_matrix.dot(numpy.c_[voxijk[0], voxijk[1], voxijk[2], numpy.ones(vox.shape[0])].T)[:3].T
         return vox, voxxzy
 
+    # This function
+    # takes a surface and its connectivity matrix
+    # (where for each triangle side, there is the value 1 for the corresponding connection)
+    # separates the dis-connected components, if any, of a surface, and returns
+    # in order to return the number (nComponents),
+    # the indices (components; an integer value for each component assigned to each vertex),
+    # and the areas (comp_area; using an optional mask)
+    # of all separate dis-connected components of the surface (1 component minimum)
     def connected_surface_components(self,v,f,connectivity, mask=None):
         #Find all connected components of this surface
         (nComponents, components) = connected_components(connectivity, directed=False, connection='weak', return_labels=True)
@@ -130,25 +147,38 @@ class SubparcellationService(object):
             comp_area.append(self.compute_surface_area(v,f,mask=numpy.logical_and(iCompVerts,mask[iCompVerts])))
         return nComponents, components, comp_area
 
+    # This function takes as inputs
+    # the vertices of a surface,
+    # the voxels indices of the reference tdi_lbl volume
+    # (optionally with cras in order to be transferred to freesurfer surface tk-ras space)
+    # and their coordinates in the T1 ras space,
+    # as well as the connectivity similarity matrix among the node-voxels of that volume,
+    # in order to compute a connectivity distance matrix among the vertices (affinity; the output),
+    # by assignement for each vertex from the nearest voxel,
+    # and by inversion of the similarity using arccos (assuming cosine similarity as similarity metric)
     def compute_consim_affinity(self,verts,vox,voxxzy,con,cras=None):
-        # Add the cras to take them to scanner ras coordinates:
+        # Add the cras to take them to scanner ras coordinates, if necessary:
         if cras is not None:
             verts += numpy.repeat(numpy.expand_dims(cras, 1).T, verts.shape[0], axis=0)
         # TODO?: to use aparc+aseg to correspond vertices only to voxels of the same label
         # There would have to be a vertex->voxel of aparc+aseg of the same label -> voxel of tdi_lbl_in_T1 mapping
         # Maybe redundant  because we might be ending to the same voxel of tdi_lbl anyway...
         # Something to test/discuss...
-        # Find for each vertex the closest voxel node xyz coordinates:
+        # Find for each vertex the closest voxel node in terms of euclidean distance:
         v2n = numpy.argmin(cdist(verts, voxxzy, 'euclidean'), axis=1)
+        #Assign to each vertex the integer identity of the nearest voxel node.
         v2n = vox[v2n]
         print "Surface component's vertices correspond to " + str(numpy.size(numpy.unique(v2n))) + " distinct voxel nodes"
-        # ... convert connectivity similarity to a distance matrix
-        #affinity = 1 - con[v2n - 1, :][:, v2n - 1]
+        # Convert connectivity similarity to a distance matrix
+        # affinity = 1 - con[v2n - 1, :][:, v2n - 1]
+        # (inverting cosine similarity to arccos distance)
         affinity = numpy.arccos(con[v2n - 1, :][:, v2n - 1])
-        #Normalize:
+        #Normalize with maximum
         affinity /=numpy.max(affinity).astype('single')
         return affinity
 
+    # This function computes normalized (by maximum non-infinite) geodesic distances,
+    # starting from a distance matrix between all adjacent nodes of a mesh
     def compute_geodesic_dist_affinity(self,dist):
         geodist = shortest_path(dist, method='auto', directed=False,
                                 return_predecessors=False, unweighted=False, overwrite=False).astype('single')
@@ -158,6 +188,8 @@ class SubparcellationService(object):
         # Convert them to normalized distances and return them
         return geodist/max_gdist
 
+    # This function clusters the nodes of a mesh, using hiearchical clustering,
+    # an affinity matrix, and connectivity constraints
     def run_clustering(self,affinity,parc_area,connectivity=None):
         model = AgglomerativeClustering(affinity="precomputed", connectivity=connectivity, linkage='average')
         model.fit(affinity)
@@ -176,8 +208,12 @@ class SubparcellationService(object):
         (cluster_tree,root)=tree.make_tree(cluster_tree)
         return clusters
 
+    # This function
+    # takes as inputs the labels of a new parcellation, a base name for the parcels and a base color,
+    # and generates the name labels, and colors of the new parcellation's annotation
+    # It splits the RGB color space along the dimension that has a longer margin, in order to create new, adjacent colors
+    # Names are created by just adding increasing numbers to the base name.
     def gen_new_parcel_annots(self,parcel_labels,base_name,base_ctab):
-        # Create the new annotation for these sub-labels:
         nParcels=len(parcel_labels)
         #Names:
         names_lbl = [base_name+ "-" + str(item).zfill(2) for item in parcel_labels]
@@ -185,15 +221,22 @@ class SubparcellationService(object):
         ctab_lbl = numpy.repeat(base_ctab, nParcels, axis=0)
         # For the RGB coordinate with the bigger distance to 255 or 0
         # distribute that distance  to nParcs values:
+        # Find the maximum and minimum RGB coordinates
         iC = numpy.argsort(base_ctab[0, :3])
+        # Calculate the distances of the maximum RGB coordinate to 0, and of the minimum one to 255,
         x = 255 - base_ctab[0, iC[0]] >= base_ctab[0, iC[2]]
         dist = numpy.where(x, 255 - base_ctab[0, iC[0]], -base_ctab[0, iC[2]])
+        # Pick the coordinate with the longer available range
         iC = numpy.where(x, iC[0], iC[2])
+        # Create the step size to run along that range, and make it to be exact
         step = dist / (nParcels - 1)
         dist = step * nParcels
+        # Assign colors
         ctab_lbl[:, iC] = numpy.array(range(base_ctab[0, iC], base_ctab[0, iC] + dist, step), dtype='int')
+        # Fix 0 and 255 as min and max RGB values
         ctab_lbl[:, :3][ctab_lbl[:, :3] < 0] = 0
         ctab_lbl[:, :3][ctab_lbl[:, :3] > 255] = 255
+        # Calculate the resulting freesurfer magic number for each new RGB triplet
         ctab_lbl[:, 4] = numpy.array([self.annotation_service.rgb_to_fs_magic_number(base_ctab[iCl, :3]) for iCl in range(nParcels)])
         return (names_lbl,ctab_lbl)
 
@@ -204,9 +247,9 @@ class SubparcellationService(object):
                                       lut_path=os.path.join(os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')):
 
         # Read the surface...
-        surface = self.surface_service.surface_io.read(surf_path, False)
+        surface = IOUtils.read_surface(surf_path, False)
         # ...and its annotation
-        annotation = self.annotation_service.annotation_io.read(annot_path)
+        annotation = IOUtils.read_annotation(annot_path)
         # ...and get the correspoding labels:
         labels_annot = self.annotation_service.annot_names_to_labels(annotation.region_names, ctx, lut_path=lut_path)
         # Read the indexes of vertices neighboring tracts' ends voxels:
@@ -348,7 +391,4 @@ class SubparcellationService(object):
         if out_annot_path is None:
             out_annot_path = os.path.splitext(annot_path)[0] + str(parc_area) + ".annot"
         print out_annot_path
-        self.annotation_service.annotation_io.write(out_annot_path, out_lab, out_ctab, out_names)
-        
-
-        
+        IOUtils.write_annotation(out_annot_path, Annotation(out_lab, out_ctab, out_names))

@@ -3,6 +3,7 @@
 import argparse
 import os
 import numpy
+from bnm.recon.io.factory import IOUtils
 from bnm.recon.io.generic import GenericIO
 from bnm.recon.logger import get_logger
 from bnm.recon.model.constants import SNAPSHOTS_DIRECTORY_ENVIRON_VAR, SNAPSHOT_NUMBER_ENVIRON_VAR
@@ -33,14 +34,15 @@ if __name__ == "__main__":
     generic_io = GenericIO()
 
     logger.info("The surface transformation process has began")
-    surface_parser = image_processor.factory_surface_io(surface_path)
-    surface = surface_parser.read(surface_path, False)
+    surface_io = IOUtils.surface_io_factory(surface_path)
+    surface = surface_io.read(surface_path, False)
 
     if len(args.matrix_paths) is not 0:
         transformation_matrices = []
 
         for transform_matrix_path in args.matrix_paths:
-            transformation_matrices.append(numpy.array(generic_io.read_transformation_matrix(os.path.expandvars(transform_matrix_path))))
+            transformation_matrices.append(
+                numpy.array(generic_io.read_transformation_matrix(os.path.expandvars(transform_matrix_path))))
 
         for i in xrange(len(surface.vertices)):
             for j in xrange(len(transformation_matrices)):
@@ -55,16 +57,17 @@ if __name__ == "__main__":
 
     else:
         main_metadata = surface.get_main_metadata()
-        transform_matrix = surface_parser.read_transformation_matrix_from_metadata(main_metadata)
+        transform_matrix = surface_io.read_transformation_matrix_from_metadata(main_metadata)
         for i in xrange(len(surface.vertices)):
             vertex_coords = numpy.array([surface.vertices[i][0], surface.vertices[i][1], surface.vertices[i][2], 1])
             new_vertex_coords = vertex_coords.dot(transform_matrix)
             surface.vertices[i] = new_vertex_coords[:3]
-        surface_parser.write_transformation_matrix(main_metadata)
+        surface_io.write_transformation_matrix(main_metadata)
         surface.set_main_metadata(main_metadata)
 
-    surface_parser.write(surface, output_path)
+    surface_io.write(surface, output_path)
     logger.info("The transformed surface has been written to file: %s" % output_path)
 
     if args.ss:
-        image_processor.writer.write_surface(surface, image_processor.generate_file_name("transformed_surface"))
+        image_processor.writer.write_surface_with_annotation(surface, None,
+                                                             image_processor.generate_file_name("transformed_surface"))

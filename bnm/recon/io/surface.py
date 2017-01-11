@@ -2,6 +2,7 @@
 
 import nibabel
 import numpy
+import h5py
 from bnm.recon.logger import get_logger
 from bnm.recon.model.surface import Surface
 from bnm.recon.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
@@ -116,6 +117,9 @@ TRANSFORM_MATRIX_FS_KEYS = ['xras', 'yras', 'zras', CENTER_RAS_FS_SURF]
 
 
 class FreesurferIO(ABCSurfaceIO):
+    """
+    This class reads content of Freesurfer surface files
+    """
     logger = get_logger(__name__)
 
     def read(self, surface_path, use_center_surface):
@@ -131,19 +135,17 @@ class FreesurferIO(ABCSurfaceIO):
                 self.logger.info("The ras centering point for surface %s is %s", surface_path, cras)
             else:
                 cras = [0, 0, 0]
-                self.logger.warning("Could not read the ras centering point from surface %s header. The cras will be %s",
-                                    surface_path, cras)
+                self.logger.warning("Could not read the ras centering point from surface %s header. "
+                                    "The cras will be %s", surface_path, cras)
 
         return Surface(vertices, triangles, cras, metadata)
-
 
     def write(self, surface, surface_path):
         write_geometry(filepath=surface_path, coords=surface.vertices, faces=surface.triangles,
                        volume_info=surface.get_main_metadata())
 
-
     def read_transformation_matrix_from_metadata(self, image_metadata):
-        matrix_from_metadata = [[0, 0, 0, 0] for _ in xrange(4)] #or numpy.zeros((4,4))
+        matrix_from_metadata = [[0, 0, 0, 0] for _ in xrange(4)]  # or numpy.zeros((4,4))
 
         for i, fs_key in enumerate(TRANSFORM_MATRIX_FS_KEYS):
             for j in xrange(3):
@@ -165,7 +167,10 @@ class FreesurferIO(ABCSurfaceIO):
         for i, fs_key in enumerate(TRANSFORM_MATRIX_FS_KEYS):
             image_metadata[fs_key] = identity_matrix[i]
 
-    def write_brain_visa_surf(self, file_path, surface):
+
+class BrainVisaIO(ABCSurfaceIO):
+
+    def write(self, surface, file_path):
         vn = surface.vertex_normals()
         with open(file_path, 'w') as fd:
             fd.write('- %d\n' % len(vn))
@@ -174,3 +179,17 @@ class FreesurferIO(ABCSurfaceIO):
             fd.write('- %d %d %d\n' % ((len(surface.triangles),) * 3))
             for i, j, k in surface.triangles:
                 fd.write('%d %d %d\n' % (i, j, k))
+
+
+class H5SurfaceIO(ABCSurfaceIO):
+    """
+    This class reads content of H5 surface files
+    """
+    logger = get_logger(__name__)
+
+    def read(self, h5_path, use_center_surface=False):
+        h5_file = h5py.File(h5_path, 'r', libver='latest')
+        vertices = h5_file['/vertices'][()]
+        triangles = h5_file['/triangles'][()]
+        h5_file.close()
+        return Surface(vertices, triangles, [], None)
