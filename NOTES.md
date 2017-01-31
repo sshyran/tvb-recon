@@ -2,7 +2,8 @@
 
 Tools for building full brain network models from standard structural MR scans.
 
-This is a work in progress.
+_These notes are out of date_.
+
 
 ## Goals
 

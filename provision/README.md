@@ -1,5 +1,7 @@
 # Setup
 
+#### to be updated w/ Vagrant/Ansible
+
 _Disclaimer_ These instructions are provided on a best-effort basis: you
 may need to be resourceful in case upstream providers have changed their
 software. RTFM!
