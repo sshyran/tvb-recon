@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 
 # bootstrap recent Python, assuming sane dev env & ssl headers
-set -e
+set -eu
+set -o pipefail
+
+export PREFIX=${PREFIX:-"/work/env"}
+
+if [[ ! -z $(which jupyter) ]]
+then
+    echo "[70-python.sh] jupyter found, not setting up Python env."
+    exit 0
+else
+    echo "[70-python.sh] building Python env."
+fi
 
 j=6
 prefix=/work/env
@@ -45,3 +56,7 @@ done
 $prefix/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
 
 # consider focusing on jupyter/notebook for visualizations are required
+
+# finally set up recon tools package for work
+echo TODO pushd /vagrant
+echo TODO $prefix/bin/python setup.py develop
