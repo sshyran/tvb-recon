@@ -15,9 +15,19 @@ class Surface(object):
     def __init__(self, vertices, triangles, area_mask=None, center_ras=[], vertices_coord_system=None,
                                             generic_metadata=None, vertices_metadata=None, triangles_metadata=None):
 
-        self.vertices = vertices  # array of (x,y,z) tuples
-        self.triangles = triangles  # array of (v1, v2, v3) indices in vertices array
+        if len(vertices)==0:
+            self.vertices=numpy.empty((0,3))
+        else:
+            self.vertices = numpy.array(vertices)  # numpy array of n_vertices x 3 [x,y,z] vertices' coordinates
+        if len(triangles)==0:
+            self.triangles=numpy.empty((0,3),dtype='i')
+        else:
+            self.triangles = numpy.array(triangles) # numpy array of n_triangles x 3 [v1, v2, v3] indices in vertices' array
+
         self.center_ras = center_ras  # [x, y, z]
+
+        self.n_vertices = self.vertices.shape[0]
+        self.n_triangles = self.triangles.shape[0]
 
         self.generic_metadata = generic_metadata
         self.vertices_metadata = vertices_metadata
@@ -26,7 +36,7 @@ class Surface(object):
         self.vertices_coord_system = vertices_coord_system
 
         if area_mask is None:
-            self.area_mask = numpy.ones((self.vertices.shape[0],),dtype='bool')
+            self.area_mask = numpy.ones((self.n_vertices,),dtype='bool')
         else:
             self.area_mask = area_mask
 
@@ -41,19 +51,22 @@ class Surface(object):
         else:
             self.generic_metadata = new_metadata
 
-    def add_vertices_and_triangles(self, new_vertices, new_triangles, new_area_mask=None):
-        n_verts = self.vertices.shape[0]
-        self.vertices.append(new_vertices)
-        self.triangles.append(new_triangles+n_verts)
-        if new_area_mask==None:
-            new_area_mask=numpy.ones((new_vertices.shape[0],), dtype='bool')
-        self.area_mask.append(new_area_mask)
-        self.stack_vertices_and_triangles()
+    #TODO: it will fail if one tries to add empty inputs
+    def add_vertices_and_triangles(self, new_vertices, new_triangles, new_area_mask=[]):
+        self.triangles=numpy.r_[self.triangles,new_triangles+self.n_vertices]
+        self.vertices=numpy.r_[self.vertices,new_vertices]
+        n_new_vertices=new_vertices.shape[0]
+        self.n_vertices+=n_new_vertices
+        if len(new_area_mask)==0:
+            new_area_mask=numpy.ones((n_new_vertices,), dtype='bool')
+        numpy.r_[self.area_mask,new_area_mask]
+        #self.stack_vertices_and_triangles()
 
-    def stack_vertices_and_triangles(self):
-        self.vertices = numpy.vstack(self.vertices)
-        self.triangles = numpy.vstack(self.triangles)
-        self.area_mask = numpy.hstack(self.area_mask)
+    # def stack_vertices_and_triangles(self):
+    #     self.vertices = numpy.vstack(self.vertices)
+    #     self.triangles = numpy.vstack(self.triangles)
+    #     self.n_vertices = len(self.vertices)
+    #     self.n_triangles = len(self.triangles)
 
     def _get_plane_origin(self, ras):
         plane_origin = numpy.subtract(ras, self.center_ras)

@@ -25,26 +25,26 @@ def test_tri_area():
     assert area[0] == 5000
 
 
-def test_merge_lh_rh():
+def test_merge_surfaces():
     h5_surface_path = get_data_file("head2", "SurfaceCortical.h5")
     h5_surface = IOUtils.read_surface(h5_surface_path, False)
 
     lh_surface = Surface(h5_surface.vertices[:len(h5_surface.vertices) / 2],
-                         h5_surface.triangles[:len(h5_surface.triangles) / 2], [], None)
+                         h5_surface.triangles[:len(h5_surface.triangles) / 2])
     rh_surface = Surface(h5_surface.vertices[len(h5_surface.vertices) / 2:],
-                         h5_surface.triangles[len(h5_surface.triangles) / 2:], [], None)
+                         h5_surface.triangles[len(h5_surface.triangles) / 2:])
 
-    h5_region_mapping_path = get_data_file("head2", "RegionMapping.h5")
-    annotation = IOUtils.read_annotation(h5_region_mapping_path)
+    # h5_region_mapping_path = get_data_file("head2", "RegionMapping.h5")
+    # annotation = IOUtils.read_annotation(h5_region_mapping_path)
+    #
+    # lh_region_mapping = annotation.region_mapping[:len(annotation.region_mapping) / 2]
+    # rh_region_mapping = annotation.region_mapping[len(annotation.region_mapping) / 2:]
 
-    lh_region_mapping = annotation.region_mapping[:len(annotation.region_mapping) / 2]
-    rh_region_mapping = annotation.region_mapping[len(annotation.region_mapping) / 2:]
-
-    out_surface, out_region_mapping = service.merge_lh_rh(lh_surface, rh_surface, lh_region_mapping, rh_region_mapping)
+    out_surface = service.merge_surfaces([lh_surface, rh_surface])
 
     assert len(out_surface.vertices) == len(lh_surface.vertices) + len(rh_surface.vertices)
     assert len(out_surface.triangles) == len(lh_surface.triangles) + len(rh_surface.triangles)
-    assert len(out_region_mapping) == len(lh_region_mapping) + len(rh_region_mapping)
+    #assert len(out_region_mapping) == len(lh_region_mapping) + len(rh_region_mapping)
 
 
 def test_extract_subsurf():
@@ -54,12 +54,13 @@ def test_extract_subsurf():
     annot_file = get_data_file("freesurfer_fsaverage", "label", "lh.aparc.annot")
     surface = surface_parser.read(surface_file, False)
     verts = surface.vertices
-    faces = surface.triangles
     annot = annot_parser.read(annot_file)
     labels = annot.region_mapping
     verts_mask = labels == 7
-    subsurf_verts, subsurf_faces = service.extract_subsurf(verts, faces, verts_mask)
+    subsurf_verts, subsurf_faces = service.extract_subsurf(surface, verts_mask, output='verts_triangls')[:2]
     assert subsurf_verts.all() == verts[numpy.where(verts_mask)].all()
+    subsurf = service.extract_subsurf(surface, verts_mask, output='surface')
+    assert subsurf.vertices.all() == verts[numpy.where(verts_mask)].all()
 
 
 def test_aseg_surf_conc_annot():
@@ -86,7 +87,7 @@ def test_vertex_connectivity():
     surf_path = get_data_file("head2", 'SurfaceCortical.h5')
     surface_parser = H5SurfaceIO()
     surface = surface_parser.read(surf_path)
-    conn = service.vertex_connectivity(surface.vertices, surface.triangles)
+    conn = service.vertex_connectivity(surface)
     assert conn.shape == (16, 16)
     assert conn[0, 1] == 1
     assert conn[0, 10] == 0
@@ -96,7 +97,7 @@ def test_vertex_connectivity_2():
     surf_path = get_data_file("head2", 'SurfaceCortical.h5')
     surface_parser = H5SurfaceIO()
     surface = surface_parser.read(surf_path)
-    conn = service.vertex_connectivity(surface.vertices, surface.triangles, metric='euclidean')
+    conn = service.vertex_connectivity(surface, metric='euclidean')
     assert conn.shape == (16, 16)
     assert conn[0, 1] == 100
     assert conn[0, 10] == 0

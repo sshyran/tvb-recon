@@ -64,16 +64,16 @@ def test_annot_names_to_labels():
     lut_path = get_data_file(color_lut_name)
     labels = service.annot_names_to_labels(['Unknown'], lut_path=lut_path)
     assert labels[0] == 0
-    labels = service.annot_names_to_labels(['unknown'], ctx='lh', lut_path=lut_path)
+    labels = service.annot_names_to_labels(['unknown'], add_string='ctx-lh-', lut_path=lut_path)
     assert labels[0] == 1000
-    labels = service.annot_names_to_labels(['bankssts'], ctx='rh', lut_path=lut_path)
+    labels = service.annot_names_to_labels(['bankssts'], add_string='ctx-rh-', lut_path=lut_path)
     assert labels[0] == 2001
 
 
 def test_read_input_labels():
     service = AnnotationService()
-    labels1, length_labels1 = service.read_input_labels(labels=[0, 1], hemi='rh')
-    labels2, length_labels2 = service.read_input_labels(labels=[0, 1], hemi='lh')
+    labels1, length_labels1 = service.read_input_labels(labels='0 1', ctx='rh')
+    labels2, length_labels2 = service.read_input_labels(labels='0 1', ctx='lh')
     assert length_labels1 == length_labels2 == 38
     labels, length_labels = service.read_input_labels()
     assert labels == []

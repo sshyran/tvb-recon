@@ -146,12 +146,6 @@ class AnnotationService(object):
                     labels = labels + range(1000, 1036)
                 elif h == 'rh':
                     labels = labels + range(2000, 2036)
-
-                    # This function
-                    # takes as inputs the labels of a new parcellation, a base name for the parcels and a base color,
-                    # and generates the name labels, and colors of the new parcellation's annotation
-                    # It splits the RGB color space along the dimension that has a longer margin, in order to create new, adjacent colors
-                    # Names are created by just adding increasing numbers to the base name.
         return labels, len(labels)
 
     def gen_new_parcel_annots(self, parcel_labels, base_name, base_ctab):

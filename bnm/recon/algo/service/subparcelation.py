@@ -303,7 +303,7 @@ class SubparcellationService(object):
         :return: clusters: an array of one integer index>=0, coding for participation to a cluster/parcel
         """
         #Total number of vertices to cluster:
-        n_verts = surface.vertices.shape[0]
+        n_verts = surface.n_vertices
         #Initialize
         # -the number of resulting clusters:
         n_out_clusters = 0

@@ -58,34 +58,34 @@ class SurfaceService(object):
         for surf_name in glob.glob(surfs_glob):
             self.convert_fs_to_brain_visa(surf_name)
 
-    def merge_surfaces(self, surfaces, region_mappings=[]):
+    def merge_surfaces(self, surfaces):
         """
         Merge several surfaces, and their region mappings.
         :return: the merge result surface and region mapping.
         """
         n_surfaces = len(surfaces)
         out_surface = Surface([], [])
-        out_region_mapping=[]
-        if len(region_mappings) == n_surfaces:
-            reg_map=True
+        #TODO: how to deal with the metadata of merged surfaces, so that freesurfer.io can handle them, e.g., write them
+        #i.e., we need to have a final unique version of the metadata, not a list of them, as I am doing here in the
+        #commented code
+        # out_surface_attributes=dict()
+        # for attribute in ["vertices_coord_system", "generic_metadata", "vertices_metadata", "triangles_metadata"]:
+        #     out_surface_attributes[attribute]=[]
         for i_srf in range(n_surfaces):
-            if reg_map:
-                out_region_mapping = numpy.r_[region_mappings, region_mappings[i_srf] + out_surface.vertices.shape[0]]
             out_surface.add_vertices_and_triangles(surfaces[i_srf].vertices,
                                                    surfaces[i_srf].triangles,
                                                    surfaces[i_srf].area_mask)
-            if out_surface.center_ras==[]:
+            if len(surfaces[i_srf].center_ras) == 0:
+                pass
+            elif len(out_surface.center_ras) == 0:
                 out_surface.center_ras = surfaces[i_srf].center_ras
-            elif out_surface.center_ras != surfaces[i_srf].center_ras:
-                print "Error! At least two surfaces have different -non empty- centers in RAS coordinates!"
-                return 0
-            #TODO: think about how to better merge these fields
-            for attribute in ["vertices_coord_system", "generic_metadata", "vertices_metadata", "triangles_metadata"]:
-                out_value = getattr(out_surface,attribute)
-                value= getattr(surfaces[i_srf],attribute)
-                setattr(out_surface,attribute,out_value.append(value))
-        #out_surface.stack_vertices_and_triangles()
-        return out_surface, out_region_mapping
+            elif numpy.any(out_surface.center_ras != surfaces[i_srf].center_ras):
+                raise ValueError("At least two surfaces have different -non empty- centers in RAS coordinates!")
+            # #TODO: think about how to better merge these fields
+            # for attribute in ["vertices_coord_system", "generic_metadata", "vertices_metadata", "triangles_metadata"]:
+            #     out_surface_attributes[attribute].append(getattr(surfaces[i_srf],attribute))
+            #     setattr(out_surface,attribute,out_surface_attributes[attribute])
+        return out_surface
 
 
 
@@ -271,10 +271,8 @@ class SurfaceService(object):
 
         #                  verts tri area_mask cras
         surfaces=[]
-        region_mappings=[]
-        out_annotation = Annotation([], None, [])
+        out_annotation = Annotation([], [], [])
         label_number = -1
-        #verts_number = 0
 
         for label_index in label_indices:
             this_surf_path = surf_path + "-%06d" % int(label_index)
@@ -284,18 +282,10 @@ class SurfaceService(object):
                 out_annotation.add_region_names_and_colors(label_names[ind_l], color_table[ind_l, :])
                 label_number += 1
                 surfaces.append(IOUtils.read_surface(this_surf_path, False))
-                # out_surface.set_main_metadata(surface.get_main_metadata())
-                # faces = surface.triangles + verts_number  # Update vertices indexes
-                # verts_number += surface.vertices.shape[0]
-                # out_surface.add_vertices_and_triangles(surface.vertices, faces, surface.area_mask)
-                #out_annotation.add_region_mapping(
-                #    label_number * numpy.ones((surface.vertices.shape[0],), dtype='int64'))
-                region_mappings.append(numpy.zeros((surfaces[:-1].vertices.shape[0],)))
-        (out_surface,out_region_mapping) = self.merge_surfaces(surfaces,region_mappings)
-        out_annotation.set_region_mapping(out_region_mapping)
-        out_annotation.regions_color_table = numpy.squeeze(numpy.array(out_annotation.regions_color_table).astype('i'))
-        #out_surface.stack_vertices_and_triangles()
-        #out_annotation.stack_region_mapping()
+                out_annotation.add_region_mapping(
+                    label_number * numpy.ones((surfaces[-1].n_vertices,), dtype='int64'))
+        out_surface = self.merge_surfaces(surfaces)
+        #out_annotation.regions_color_table = numpy.squeeze(numpy.array(out_annotation.regions_color_table).astype('i'))
 
         IOUtils.write_surface(out_surf_path, out_surface)
         IOUtils.write_annotation(annot_path, out_annotation)

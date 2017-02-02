@@ -10,8 +10,14 @@ class Annotation(object):
     Has a method to compute face colors using vertices_color_mapping .
     """
     def __init__(self, region_mapping, regions_color_table, region_names):
-        self.region_mapping = region_mapping  # ndarray of region_names indices
-        self.regions_color_table = regions_color_table  # ndarray matrix that contains a rgba color array for each region
+        if len(region_mapping) == 0:
+            self.region_mapping = numpy.empty((0,),dtype='i')
+        else:
+            self.region_mapping = numpy.array(region_mapping)  # ndarray of region_names indices
+        if len(regions_color_table) == 0:
+            self.regions_color_table = numpy.empty((0,5),dtype='i')
+        else:
+            self.regions_color_table = numpy.array(regions_color_table)  # ndarray matrix that contains a rgba color array for each region
         self.region_names = region_names  # list of region names
 
     def set_region_mapping(self, new_region_mapping):
@@ -19,17 +25,13 @@ class Annotation(object):
 
     def add_region_names_and_colors(self, new_region_names, new_region_colors):
         self.region_names.append(new_region_names)
-        if self.regions_color_table is None:
-            self.regions_color_table = numpy.array(new_region_colors)
-        else:
-            self.regions_color_table = numpy.concatenate((self.regions_color_table, new_region_colors), axis=0)
+        self.regions_color_table = numpy.concatenate((self.regions_color_table, new_region_colors), axis=0).astype('i')
 
     def add_region_mapping(self, new_region_mapping):
-        self.region_mapping.append(new_region_mapping)
-        self.stack_region_mapping()
+        self.region_mapping = numpy.r_[self.region_mapping, new_region_mapping]
 
-    def stack_region_mapping(self):
-        self.region_mapping = numpy.hstack(self.region_mapping)
+    # def stack_region_mapping(self):
+    #     self.region_mapping = numpy.hstack(self.region_mapping)
 
     def get_region_mapping_by_indices(self, indices):
         return self.region_mapping[indices]
