@@ -35,7 +35,9 @@ do
     pushd ${pkg}*
     if [[ $pkg == "bzip" ]]
     then
+        make -j$j -f Makefile-libbz2_so
         make -j$j install PREFIX=$prefix
+        cp libbz2.so* $PREFIX/lib
     else
         ./configure --prefix=$prefix
         make -j$j
@@ -47,6 +49,8 @@ done
 
 py_pkgs="numpy scipy matplotlib cython scikit-learn pandas h5py nibabel"
 py_pkgs="$py_pkgs nibabel anytree trimesh flake8 mypy mne jupyterlab"
+py_pkgs="$py_pkgs gdist pytest"
+
 for pkg in $py_pkgs
 do
     echo "pip installing $pkg"
