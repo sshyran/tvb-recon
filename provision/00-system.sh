@@ -38,7 +38,7 @@ chown -R ubuntu:ubuntu $prefix_base
 echo /work/env/lib > /etc/ld.so.conf.d/work.conf
 ldconfig
 
-cp /vagrant/jupyter-lab.service /etc/systemd/system/
+cp /vagrant/provision/jupyter-lab.service /etc/systemd/system/
 
 cat >> /etc/bash.bashrc <<EOF
 export PREFIX=$PREFIX

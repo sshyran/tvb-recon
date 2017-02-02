@@ -1,0 +1,13 @@
+[Unit]
+Description=Jupyter Lab
+After=network.target
+
+[Service]
+ExecStart=/work/env/bin/jupyter lab --ip 0.0.0.0 --port 8888
+WorkingDirectory=/work/
+User=ubuntu
+Group=ubuntu
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
