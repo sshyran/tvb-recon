@@ -56,7 +56,12 @@ EOF
 
     for pkg in zlib bzip sql Py
     do
-        curl -O $(eval echo \$${pkg}_url)
+        if [[ -z "$(which curl)" ]]
+        then
+            wget $(eval echo \$${pkg}_url)
+        else
+            curl -O $(eval echo \$${pkg}_url)
+        fi
         tar xzf ${pkg}*
         pushd ${pkg}*
         if [[ $pkg == "bzip" ]]
