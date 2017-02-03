@@ -16,6 +16,7 @@ from scipy.sparse.csgraph import connected_components, shortest_path
 from sklearn.metrics.pairwise import paired_distances
 from scipy.spatial.distance import cdist
 from copy import deepcopy
+from .annotation import default_lut_path  # TODO into fs module
 
 
 class SurfaceService(object):
@@ -276,11 +277,13 @@ class SurfaceService(object):
         components[verts_mask] = components_masked
         return n_components, components, comp_area
 
-    def aseg_surf_conc_annot(self, surf_path, out_surf_path, annot_path, label_indices,
-                             lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT)):
+    def aseg_surf_conc_annot(self, surf_path, out_surf_path, annot_path,
+                             label_indices, lut_path=None):
         """
         Concatenate surfaces of one specific label of interest each, to create a single annotated surface.
         """
+
+        lut_path = lut_path or default_lut_path()
 
         label_names, color_table = self.annotation_service.lut_to_annot_names_ctab(lut_path=lut_path,
                                                                                    labels=label_indices)
@@ -297,7 +300,8 @@ class SurfaceService(object):
             if os.path.exists(this_surf_path):
                 ind_l, = numpy.where(label_indices == label_index)
                 out_annotation.add_region_names_and_colors(
-                    label_names[ind_l], color_table[ind_l, :])
+                    numpy.array(label_names)[ind_l],
+                    color_table[ind_l, :])
                 label_number += 1
                 surfaces.append(IOUtils.read_surface(this_surf_path, False))
                 out_annotation.add_region_mapping(
@@ -321,14 +325,16 @@ class SurfaceService(object):
 
             return grid, n_grid
 
-    def sample_vol_on_surf(self, surf_path, vol_path, annot_path, out_surf_path, cras_path,
-                           add_string='', vertex_neighbourhood=1, add_lbl=[],
-                           lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT)):
+    def sample_vol_on_surf(self, surf_path, vol_path, annot_path, out_surf_path,
+                           cras_path, add_string='', vertex_neighbourhood=1,
+                           add_lbl=[], lut_path=None):
         """
         Sample a volume of a specific label on a surface, by keeping only those surface vertices, the nearest voxel of
         which is of the given label (+ of possibly additional target labels, such as white matter).
         Allow optionally for vertices within a given voxel distance vn from the target voxels.
         """
+
+        lut_path = lut_path or default_lut_path()
 
         # Read the inputs
         surface = IOUtils.read_surface(surf_path, False)

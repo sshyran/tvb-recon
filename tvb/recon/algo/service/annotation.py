@@ -9,6 +9,26 @@ from datetime import datetime
 DEFAULT_LUT = 'FreeSurferColorLUT_INS_test.txt'
 
 
+def default_lut_path():
+    """
+    Get a path to the default LUT. If FreeSurfer is available, as determined
+    by the presence of the FREESURFER_HOME environment variable, then its
+    color LUT is returned. Otherwise a package copy is provided.
+
+    Returns
+    -------
+    path: str
+        path to FreeSurferColorLUT.txt or equivalent
+
+    """
+    fshome = os.environ.get('FREESURFER_HOME', None)
+    if fshome:
+        return fshome
+    # TODO not sure what reasonable behavior here is
+    here = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(here, '..', '..', '..', '..', 'data',
+                        'FreeSurferColorLUT.txt')
+
 class AnnotationService(object):
 
     def default_lut(self):
@@ -17,8 +37,8 @@ class AnnotationService(object):
     # TODO: an annotation merging function, similar to the one for merging
     # surfaces
 
-    def read_lut(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT),
-                 key_mode='label'):
+    def read_lut(self, lut_path=None, key_mode='label'):
+        lut_path = lut_path or default_lut_path()
         f = open(lut_path, "r")
         l = list(f)
         f.close()
@@ -73,12 +93,9 @@ class AnnotationService(object):
         """
         return rgb[0] + 256 * rgb[1] + 256 * 256 * rgb[2]
 
-    _default_lut_path = os.path.join(os.environ['FREESURFER_HOME'],
-                                     DEFAULT_LUT)
-
     def annot_to_lut(self,
                      annot_path,
-                     lut_path=_default_lut_path,
+                     lut_path=None,
                      subject=None,
                      prefix=''):
         """
@@ -102,6 +119,7 @@ class AnnotationService(object):
         annotation = IOUtils.read_annotation(annot_path)
         subject = subject or os.environ['SUBJECT']
         # If this is an already existing lut file:
+        lut_path = lut_path or default_lut_path()
         if os.path.isfile(lut_path):
             #...find the maximum label in it and add 1
             add_lbl = 1 + \
@@ -138,8 +156,8 @@ class AnnotationService(object):
                 fd.write('%d\t%s\t%d %d %d %d\n' %
                          (lbl + add_lbl, prefix + name, r, g, b, 0))
 
-    def lut_to_annot_names_ctab(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT),
-                                labels=None):
+    def lut_to_annot_names_ctab(self, lut_path=None, labels=None):
+        lut_path = lut_path or default_lut_path()
         _, names_dict, colors = self.read_lut(lut_path=lut_path)
         if labels is None:
             labels = list(names_dict.keys())
@@ -159,8 +177,8 @@ class AnnotationService(object):
         ctab = numpy.asarray(ctab).astype('int64')
         return names, ctab
 
-    def annot_names_to_labels(self, names, add_string='',
-                              lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT)):
+    def annot_names_to_labels(self, names, add_string='', lut_path=None):
+        lut_path = lut_path or default_lut_path()
         labels_dict, _, _ = self.read_lut(lut_path=lut_path, key_mode='name')
         labels = []
         # if ctx == 'lh' or ctx == 'rh':
