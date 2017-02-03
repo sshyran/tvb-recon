@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 # bootstrap recent Python, assuming sane dev env & ssl headers
-set -eu
-set -o pipefail
 
 # if on macos check for ssl header, suggest install
 if [[ "$(uname)" == "Darwin" ]]
@@ -20,6 +18,9 @@ then
         echo "[70-python.sh] consider \`brew install openssl\`."
     fi
 fi
+
+set -eu
+set -o pipefail
 
 export PREFIX=${PREFIX:-"/work/env"}
 mkdir -p $PREFIX/src

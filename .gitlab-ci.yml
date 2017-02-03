@@ -1,9 +1,8 @@
-setup_env:
-    stage: build
-    script:
-        - PREFIX=$(pwd)/env bash provision/70-python.sh
-
 run_tests:
-    stage: test
-    script:
-      - PATH=$(pwd)/env/bin:$PATH COV=yes bash bin/run-tests.sh
+  stage: test
+  before_script:
+    - PREFIX=$(pwd)/env bash provision/70-python.sh &> env.log
+  script:
+    - PATH=$(pwd)/env/bin:$PATH COV=yes bash bin/run-tests.sh
+  artifacts:
+    - env.log
