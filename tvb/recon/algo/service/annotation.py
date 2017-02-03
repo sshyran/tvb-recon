@@ -56,19 +56,51 @@ class AnnotationService(object):
         return labels, names, colors
 
     def rgb_to_fs_magic_number(self, rgb):
+        """
+        Produces a FreeSurfer style checksum of a color, which is used to
+        determine whether the color is displayed in Freeview, or marked as
+        grey.
+
+        Parameters
+        ----------
+        rgb: sequence of 3 integters
+            red, green and blue components of the color to checksum.
+
+        Returns
+        -------
+        Checksum of rgb values.
+
+        """
         return rgb[0] + 256 * rgb[1] + 256 * 256 * rgb[2]
 
-    def annot_to_lut(self, annot_path,
-                     lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT), add_string=''):
+    _default_lut_path = os.path.join(os.environ['FREESURFER_HOME'],
+                                     DEFAULT_LUT)
+
+    def annot_to_lut(self,
+                     annot_path,
+                     lut_path=_default_lut_path,
+                     subject=None,
+                     prefix=''):
         """
-        This function creates from an annotation a new lut_file, or adds new entries to an existing lut file.
-        In the latter case, new entries have labels greater than the maximum alredy existing label inside the lut file.
-        :param annot_path: path to annotation
-        :param lut_path: path to an existing or new lut file
-        :param add_string: an optional string to be added at the beginning of each name (i.e., "ctx-lh-")
-        :return:
+        This function creates from an annotation a new lut_file, or adds new
+        entries to an existing lut file. In the latter case, new entries have
+        labels greater than the maximum alredy existing label inside the lut
+        file.
+
+        Parameters
+        ----------
+        annot_path : str, os.PathLike
+            path to annotation.
+        lut_path : str, os.PathLike
+            path to existing or new LUT file.
+        subject : str, optional
+            subject name if provided, otherwise env var $SUBJECT is used
+        prefiw : str, optional
+            prefix for region names (i.e., "ctx-lh-")
+
         """
         annotation = IOUtils.read_annotation(annot_path)
+        subject = subject or os.environ['SUBJECT']
         # If this is an already existing lut file:
         if os.path.isfile(lut_path):
             #...find the maximum label in it and add 1
@@ -82,28 +114,29 @@ class AnnotationService(object):
             if add_lbl == 0:
                 # TODO: we should include an environment variable for
                 # freesurfer version, and print it here
-                fd.write('%s\n' %
-                         ("#$Id: " + lut_path + " " + str(datetime.now())))
-                fd.write('\n')
-                fd.write('%s\t%s\t%s%s%s%s\n' %
-                         ("#No.", "Label Name: ", "R   ", "G   ", "B   ", "A   "))
+                fd.write("#$Id: %s %s\n\n" % (lut_path, datetime.now()))
+                fd.write('#No.\tLabel Name: \tR   G   B   A   \n')
             else:
                 fd.write('\n')
-            # Leave one line blank
-            fd.write('\n')
-            fd.write('%s\n' % ("#Patient: " + os.environ['SUBJECT']))
-            fd.write('%s\n' %
-                     ("#User: " + os.path.split(os.path.expanduser('~'))[-1]))
-            fd.write('%s\n' % ("#Annotation path: " + annot_path))
-            fd.write('%s\n' % ("#Time: " + str(datetime.now())))
-            fd.write('\n')
+            fd.write("""
+#Patient: {subject}
+#User: {user}
+#Annotation path: {annot_path}
+#Time: {time}
+
+""".format(
+                subject=subject,
+                user=os.path.split(os.path.expanduser('~'))[-1],
+                annot_path=annot_path,
+                time=datetime.now())
+            )
             # TODO: align columns
             # NOTE!!! that the fourth and fifth columns of color_table are not
             # used in the lut file!!!
             for name, (r, g, b, dummy1, dummy2), lbl in \
                     zip(annotation.region_names, annotation.regions_color_table, list(range(len(annotation.region_names)))):
                 fd.write('%d\t%s\t%d %d %d %d\n' %
-                         (lbl + add_lbl, add_string + name, r, g, b, 0))
+                         (lbl + add_lbl, prefix + name, r, g, b, 0))
 
     def lut_to_annot_names_ctab(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT),
                                 labels=None):
@@ -158,7 +191,7 @@ class AnnotationService(object):
                     labels = labels + list(range(1000, 1036))
                 elif h == 'rh':
                     labels = labels + list(range(2000, 2036))
-        return labels, len(labels)
+        return labels
 
     def gen_new_parcel_annots(self, parcel_labels, base_name, base_ctab):
         """

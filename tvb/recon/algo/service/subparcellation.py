@@ -536,7 +536,7 @@ class SubparcellationService(object):
         # Read the indexes of vertices neighboring tracts' ends voxels:
         con_verts_idx = numpy.load(con_verts_idx)
         # Set the target labels:
-        labels, n_in_labels = self.annotation_service.read_input_labels(
+        labels = self.annotation_service.read_input_labels(
             labels=labels, ctx=ctx)
         if con_sim_aff > 0:
             # Load voxel connectivity dissimilarity/distance matrix:
@@ -742,4 +742,4 @@ class SubparcellationService(object):
             region_mapping, region_color_table, region_names))
         #...and write or append the lut file
         self.annotation_service.annot_to_lut(
-            out_annot_path, lut_path=out_lut_path, add_string=add_string)
+            out_annot_path, lut_path=out_lut_path, prefix=add_string)

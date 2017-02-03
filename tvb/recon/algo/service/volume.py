@@ -23,8 +23,9 @@ class VolumeService(object):
         retain their label, inner voxels get the label 0, and the input file is overwritten by the output.
         """
 
-        labels, number_of_labels = self.annotation_service.read_input_labels(
+        labels = self.annotation_service.read_input_labels(
             labels=labels, ctx=ctx)
+        number_of_labels = len(labels)
         # Set the labels for the surfaces
         if labels_surf is None:
             labels_surf = labels
@@ -35,8 +36,9 @@ class VolumeService(object):
                 labels_surf = numpy.repeat(
                     labels_inner, number_of_labels).tolist()
             elif len(labels_surf) != number_of_labels:
-                self.logger.warning("Output labels for surface voxels are neither of length 1 nor of length equal to "
-                                    "the one of target labels")
+                self.logger.warning(
+                    "Output labels for surface voxels are neither of length "
+                    "1 nor of length equal to the one of target labels.")
                 return
             else:
                 labels_surf = labels_surf.tolist()
@@ -47,8 +49,9 @@ class VolumeService(object):
             labels_inner = numpy.repeat(
                 labels_inner, number_of_labels).tolist()
         elif len(labels_inner) != number_of_labels:
-            self.logger.warning("Output labels for inner voxels are neither of length 1 nor of length equal to the one "
-                                "of the target labels")
+            self.logger.warning(
+                "Output labels for inner voxels are neither of length 1 nor "
+                "of length equal to the one of the target labels.")
             return
         else:
             labels_inner = labels_inner.tolist()
@@ -57,8 +60,8 @@ class VolumeService(object):
         volume = IOUtils.read_volume(in_vol_path)
 
         # Neigbors' grid sharing a face
-        border_grid = numpy.c_[numpy.identity(
-            3), -numpy.identity(3)].T.astype('i')
+        eye3 = numpy.identity(3)
+        border_grid = numpy.c_[eye3, -eye3].T.astype('i')
         n_border = 6
 
         out_volume = Volume(numpy.array(volume.data),
@@ -131,8 +134,9 @@ class VolumeService(object):
         """
 
         # Set the target labels:
-        labels, number_of_labels = self.annotation_service.read_input_labels(
+        labels = self.annotation_service.read_input_labels(
             labels=labels, ctx=ctx)
+        number_of_labels = len(labels)
         # Set the labels for the selected voxels
         if labels_mask is None:
             labels_mask = labels
