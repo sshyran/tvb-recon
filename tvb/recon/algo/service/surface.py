@@ -5,12 +5,12 @@ import os
 import gdist
 import numpy
 import scipy
-from tvb.recon.io.factory import IOUtils
-from tvb.recon.logger import get_logger
-from tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
-from tvb.recon.io.volume import VolumeIO
-from tvb.recon.model.surface import Surface
-from tvb.recon.model.annotation import Annotation
+from .tvb.recon.io.factory import IOUtils
+from .tvb.recon.logger import get_logger
+from .tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
+from .tvb.recon.io.volume import VolumeIO
+from .tvb.recon.model.surface import Surface
+from .tvb.recon.model.annotation import Annotation
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, shortest_path
 from sklearn.metrics.pairwise import paired_distances
@@ -139,8 +139,8 @@ class SurfaceService(object):
                                   verts_mask[surface.triangles[:, 2]]].all(axis=1)
         triangles_out = numpy.array(surface.triangles[triangles_mask, :])
         verts_out_inds, = numpy.where(verts_mask)
-        for triang_idx in xrange(triangles_out.shape[0]):
-            for vertex_idx in xrange(3):
+        for triang_idx in range(triangles_out.shape[0]):
+            for vertex_idx in range(3):
                 triangles_out[triang_idx, vertex_idx], = \
                     numpy.where(triangles_out[triang_idx, vertex_idx] == verts_out_inds)
         if output=='surface':
@@ -228,7 +228,7 @@ class SurfaceService(object):
         :return:
         """
         if (surface is None) and connectivity is None:
-            print "Error: neither a surface, nor a connectivity matrix in the input!"
+            print("Error: neither a surface, nor a connectivity matrix in the input!")
             return 0
         elif connectivity is None:
             n_verts=surface.vertices.shape[0]
@@ -295,9 +295,9 @@ class SurfaceService(object):
     def __prepare_grid(self, vertex_neighbourhood):
         # Prepare grid if needed for possible use:
         if vertex_neighbourhood > 0:
-            grid = numpy.meshgrid(range(-vertex_neighbourhood, vertex_neighbourhood + 1, 1),
-                                  range(-vertex_neighbourhood, vertex_neighbourhood + 1, 1),
-                                  range(-vertex_neighbourhood, vertex_neighbourhood + 1, 1), indexing='ij')
+            grid = numpy.meshgrid(list(range(-vertex_neighbourhood, vertex_neighbourhood + 1, 1)),
+                                  list(range(-vertex_neighbourhood, vertex_neighbourhood + 1, 1)),
+                                  list(range(-vertex_neighbourhood, vertex_neighbourhood + 1, 1)), indexing='ij')
             grid = numpy.c_[
                 numpy.array(grid[0]).flatten(), numpy.array(grid[1]).flatten(), numpy.array(grid[2]).flatten()]
             n_grid = grid.shape[0]
@@ -332,7 +332,7 @@ class SurfaceService(object):
 
         # Initialize the output mask:
         verts_out_mask = numpy.repeat([False], surface.vertices.shape[0])
-        for label_index in xrange(len(region_mapping_indexes)):
+        for label_index in range(len(region_mapping_indexes)):
 
             self.logger.info("%s", add_string + annotation.region_names[label_index])
 
@@ -366,7 +366,7 @@ class SurfaceService(object):
                 verts_indices_of_label = numpy.delete(verts_indices_of_label, verts_keep)
                 ijk = numpy.delete(ijk, verts_keep, axis=0)
 
-                for vertex_index in xrange(verts_indices_of_label.size):
+                for vertex_index in range(verts_indices_of_label.size):
                     # Generate the specific grid centered at the voxel ijk
                     ijk_grid = grid + numpy.tile(ijk[vertex_index, :], (n_grid, 1))
 
@@ -394,8 +394,8 @@ class SurfaceService(object):
         faces_out = surface.triangles[face_out_mask]
 
         # The old vertices' indexes of faces have to be transformed to the new vrtx_out_inds:
-        for iF in xrange(faces_out.shape[0]):
-            for vertex_index in xrange(3):
+        for iF in range(faces_out.shape[0]):
+            for vertex_index in range(3):
                 faces_out[iF, vertex_index], = numpy.where(faces_out[iF, vertex_index] == verts_out_indices)
 
         surface.vertices = verts_out
@@ -436,7 +436,7 @@ class SurfaceService(object):
         v2n = numpy.argmin(cdist(verts, voxxzy, 'euclidean'), axis=1)
         # Assign to each vertex the integer identity of the nearest voxel node.
         v2n = vox[v2n]
-        print "...surface component's vertices correspond to " + \
-              str(numpy.size(numpy.unique(v2n))) + " distinct voxel nodes"
+        print("...surface component's vertices correspond to " + \
+              str(numpy.size(numpy.unique(v2n))) + " distinct voxel nodes")
         affinity = con[v2n - 1, :][:, v2n - 1]
         return affinity

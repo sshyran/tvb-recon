@@ -3,9 +3,9 @@
 import nibabel
 import numpy
 import h5py
-from tvb.recon.logger import get_logger
-from tvb.recon.model.surface import Surface
-from tvb.recon.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
+from .tvb.recon.logger import get_logger
+from .tvb.recon.model.surface import Surface
+from .tvb.recon.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
 from nibabel.freesurfer.io import read_geometry, write_geometry
 from nibabel.gifti import GiftiDataArray
 from nibabel.gifti import GiftiImage
@@ -93,10 +93,10 @@ class GiftiSurfaceIO(ABCSurfaceIO):
         nibabel.save(gifti_image, file_path)
 
     def read_transformation_matrix_from_metadata(self, image_metadata):
-        matrix_from_metadata = [[0, 0, 0, 0] for _ in xrange(4)]
+        matrix_from_metadata = [[0, 0, 0, 0] for _ in range(4)]
 
-        for i in xrange(3):
-            for j in xrange(4):
+        for i in range(3):
+            for j in range(4):
                 matrix_from_metadata[i][j] = float(
                     image_metadata[TRANSFORM_MATRIX_GIFTI_KEYS[i][j]])
 
@@ -110,8 +110,8 @@ class GiftiSurfaceIO(ABCSurfaceIO):
                            [0.0, 1.0, 0.0, 0.0],
                            [0.0, 0.0, 1.0, 0.0]]
 
-        for i in xrange(3):
-            for j in xrange(4):
+        for i in range(3):
+            for j in range(4):
                 image_metadata[TRANSFORM_MATRIX_GIFTI_KEYS[i][j]] = str(identity_matrix[i][j])
 
 
@@ -147,10 +147,10 @@ class FreesurferIO(ABCSurfaceIO):
                        volume_info=surface.get_main_metadata())
 
     def read_transformation_matrix_from_metadata(self, image_metadata):
-        matrix_from_metadata = [[0, 0, 0, 0] for _ in xrange(4)]  # or numpy.zeros((4,4))
+        matrix_from_metadata = [[0, 0, 0, 0] for _ in range(4)]  # or numpy.zeros((4,4))
 
         for i, fs_key in enumerate(TRANSFORM_MATRIX_FS_KEYS):
-            for j in xrange(3):
+            for j in range(3):
                 matrix_from_metadata[i][j] = image_metadata[fs_key][j]
         matrix_from_metadata[3][3] = 1
         matrix_from_metadata = numpy.transpose(matrix_from_metadata)

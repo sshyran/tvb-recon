@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import h5py
-from tvb.recon.model.annotation import Annotation
+from .tvb.recon.model.annotation import Annotation
 from nibabel.freesurfer.io import read_annot, write_annot
 
 

@@ -83,7 +83,7 @@ class Surface(object):
         x_array = [0] * len(contours)
         y_array = [0] * len(contours)
 
-        for s in xrange(len(contours)):
+        for s in range(len(contours)):
             x_array[s] = contours[s][:, X_Y_INDEX[projection][0]]
             y_array[s] = contours[s][:, X_Y_INDEX[projection][1]]
 
@@ -102,7 +102,7 @@ class Surface(object):
         """
         :return: array of triangle normal vectors
         """
-        normals = [[0, 0, 0] for _ in xrange(len(self.triangles))]
+        normals = [[0, 0, 0] for _ in range(len(self.triangles))]
 
         for i, tri in enumerate(self.triangles):
             u = self.vertices[tri[1]] - self.vertices[tri[0]]
@@ -118,7 +118,7 @@ class Surface(object):
 
         vf = self.vertices[self.triangles]
         fn = numpy.cross(vf[:, 1] - vf[:, 0], vf[:, 2] - vf[:, 0])
-        vf = [set() for _ in xrange(len(self.vertices))]
+        vf = [set() for _ in range(len(self.vertices))]
         for i, fi in enumerate(self.triangles):
             for j in fi:
                 vf[j].add(i)

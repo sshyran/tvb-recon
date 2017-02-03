@@ -11,7 +11,7 @@ import matplotlib
 matplotlib.use(os.environ.get('MPLBACKEND', 'Agg'))
 
 import pylab
-from tvb.recon.model.surface import Surface
+from .tvb.recon.model.surface import Surface
 
 class SensorService(object):
     def gen_head_model(self, subjects_dir, subject):
@@ -41,7 +41,7 @@ class SensorService(object):
         hm_geom = hm_base + '.geom'
         with open(hm_geom, 'w') as fd:
             fd.write(hm_temp)
-        print ('%s written.' % (hm_geom,))
+        print(('%s written.' % (hm_geom,)))
 
         hm_cond = hm_base + '.cond'
         with open(hm_cond, 'w') as fd:
@@ -52,7 +52,7 @@ class SensorService(object):
     Brain       1
     Skull       0.03
     """)
-        print ('%s written.' % (hm_cond,))
+        print(('%s written.' % (hm_cond,)))
 
     def gen_dipole_triplets(self, pos):
         pos3 = numpy.repeat(pos, 3, axis=0)
@@ -89,7 +89,7 @@ class SensorService(object):
         Bf = (numpy.exp(-2 * numpy.pi * 1j * bxi * f) * bn * bw).sum(axis=-1)
         i_peak = numpy.argmax(numpy.abs(Bf))
         theta = numpy.angle(Bf[i_peak])
-        print("[periodic_xyz_for_object]", val, 1 / f[i_peak][0], theta)
+        print(("[periodic_xyz_for_object]", val, 1 / f[i_peak][0], theta))
         xi_o = -theta / (2 * numpy.pi * f[i_peak])
         xi_pos = numpy.r_[xi_o: xi.max(): w[i_peak]]
         xi_neg = numpy.r_[-xi_o: -xi.min(): w[i_peak]]

@@ -44,8 +44,8 @@ if __name__ == "__main__":
             transformation_matrices.append(
                 numpy.array(generic_io.read_transformation_matrix(os.path.expandvars(transform_matrix_path))))
 
-        for i in xrange(len(surface.vertices)):
-            for j in xrange(len(transformation_matrices)):
+        for i in range(len(surface.vertices)):
+            for j in range(len(transformation_matrices)):
                 if len(transformation_matrices[j]) > 3:
                     vertex_coords = numpy.array(
                         [surface.vertices[i][0], surface.vertices[i][1], surface.vertices[i][2], 1])
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     else:
         main_metadata = surface.get_main_metadata()
         transform_matrix = surface_io.read_transformation_matrix_from_metadata(main_metadata)
-        for i in xrange(len(surface.vertices)):
+        for i in range(len(surface.vertices)):
             vertex_coords = numpy.array([surface.vertices[i][0], surface.vertices[i][1], surface.vertices[i][2], 1])
             new_vertex_coords = vertex_coords.dot(transform_matrix)
             surface.vertices[i] = new_vertex_coords[:3]

@@ -21,7 +21,7 @@ def test_read_lut_by_name():
     labels, names, colors = service.read_lut(lut_path=lut_path, key_mode='name')
     assert isinstance(labels, OrderedDict)
     assert isinstance(colors, OrderedDict)
-    assert names == labels.keys() == colors.keys() == ['Unknown', 'Left-Cerebral-Exterior',
+    assert names == list(labels.keys()) == list(colors.keys()) == ['Unknown', 'Left-Cerebral-Exterior',
                                                        'Left-Cerebral-White-Matter', 'Left-Thalamus-Proper',
                                                        'Left-Caudate', 'ctx-lh-unknown', 'ctx-lh-bankssts',
                                                        'ctx-rh-unknown', 'ctx-rh-bankssts']
@@ -33,7 +33,7 @@ def test_read_lut_by_label():
     labels, names, colors = service.read_lut(lut_path=lut_path, key_mode='label')
     assert isinstance(names, OrderedDict)
     assert isinstance(colors, OrderedDict)
-    assert labels == names.keys() == colors.keys() == [0, 1, 2, 10, 11, 1000, 1001, 2000, 2001]
+    assert labels == list(names.keys()) == list(colors.keys()) == [0, 1, 2, 10, 11, 1000, 1001, 2000, 2001]
 
 
 def test_rgb_to_fs_magic_number():

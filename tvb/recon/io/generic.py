@@ -2,10 +2,10 @@
 
 import os
 import numpy
-from tvb.recon.model.constants import CC_POINT_FILE
+from .tvb.recon.model.constants import CC_POINT_FILE
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:  # Py 3
     from io import BytesIO as StringIO
 
@@ -22,7 +22,7 @@ class GenericIO(object):
             for line in file_ref:
                 if line.startswith(line_flag):
                     line = line.replace(line_flag, "").strip()
-                    cc_point = map(float, line.split())
+                    cc_point = list(map(float, line.split()))
                     break
         cc_point.append(1)
         return cc_point

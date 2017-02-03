@@ -3,7 +3,7 @@
 import os
 import numpy
 from collections import OrderedDict
-from tvb.recon.io.factory import IOUtils
+from .tvb.recon.io.factory import IOUtils
 from datetime import datetime
 
 DEFAULT_LUT = 'FreeSurferColorLUT_INS_test.txt'
@@ -92,15 +92,15 @@ class AnnotationService(object):
             #TODO: align columns
             #NOTE!!! that the fourth and fifth columns of color_table are not used in the lut file!!!
             for name, (r, g, b, dummy1, dummy2), lbl in \
-                    zip(annotation.region_names, annotation.regions_color_table,range(len(annotation.region_names))):
+                    zip(annotation.region_names, annotation.regions_color_table,list(range(len(annotation.region_names)))):
                 fd.write('%d\t%s\t%d %d %d %d\n' % (lbl+add_lbl, add_string+name, r, g, b, 0))
 
     def lut_to_annot_names_ctab(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT),
                                 labels=None):
         _, names_dict, colors = self.read_lut(lut_path=lut_path)
         if labels is None:
-            labels = names_dict.keys()
-        elif isinstance(labels, basestring):
+            labels = list(names_dict.keys())
+        elif isinstance(labels, str):
             labels = numpy.array(labels.split()).astype('i').tolist()
         else:
             labels = numpy.array(labels).astype('i').tolist()
@@ -134,18 +134,18 @@ class AnnotationService(object):
 
     def read_input_labels(self, labels=None, ctx=None):
         if labels is not None:
-            if isinstance(labels, basestring):
+            if isinstance(labels, str):
                 # Set the target labels
                 labels = numpy.array(labels.split()).astype('i').tolist()
         else:
             labels = []
-        if isinstance(ctx, basestring):
+        if isinstance(ctx, str):
             ctx = ctx.split()
             for h in ctx:
                 if h == 'lh':
-                    labels = labels + range(1000, 1036)
+                    labels = labels + list(range(1000, 1036))
                 elif h == 'rh':
-                    labels = labels + range(2000, 2036)
+                    labels = labels + list(range(2000, 2036))
         return labels, len(labels)
 
     def gen_new_parcel_annots(self, parcel_labels, base_name, base_ctab):
@@ -175,7 +175,7 @@ class AnnotationService(object):
         step = dist / (n_parcels - 1)
         dist = step * n_parcels
         # Assign colors
-        ctab_lbl[:, ic] = numpy.array(range(base_ctab[0, ic], base_ctab[0, ic] + dist, step), dtype='int')
+        ctab_lbl[:, ic] = numpy.array(list(range(base_ctab[0, ic], base_ctab[0, ic] + dist, step)), dtype='int')
         # Fix 0 and 255 as min and max RGB values
         ctab_lbl[:, :3][ctab_lbl[:, :3] < 0] = 0
         ctab_lbl[:, :3][ctab_lbl[:, :3] > 255] = 255

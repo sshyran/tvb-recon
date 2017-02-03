@@ -39,9 +39,9 @@ def write_off(fname, v, f, overwrite=False):
                 fd.write('%f %f %f\n' % (x, y, z))
             for i, j, k in f:
                 fd.write('3 %d %d %d\n' % (i, j, k))
-        print('%s written' % (fname, ))
+        print(('%s written' % (fname, )))
     else:
-        print('%s exists, use overwrite=True to overwrite.' % (fname, ))
+        print(('%s exists, use overwrite=True to overwrite.' % (fname, )))
 
 
 def remesh_off(remesher_path, ref_fname, out_fname, overwrite=False):
@@ -49,7 +49,7 @@ def remesh_off(remesher_path, ref_fname, out_fname, overwrite=False):
     if not os.path.exists(out_fname) or overwrite:
         os.system('%s %s %s' % (remesh_path, ref_fname, out_fname))
     else:
-        print('%s exists, use overwrite=True to overwrite.' % (out_fname, ))
+        print(('%s exists, use overwrite=True to overwrite.' % (out_fname, )))
 
 
 def read_off(fname):
@@ -58,9 +58,9 @@ def read_off(fname):
     with open(fname, 'r') as fd:
         fd.readline()
         nv, nf, _ = [int(i) for i in fd.readline().strip().split()]
-        for _ in xrange(nv):
+        for _ in range(nv):
             vl.append([float(f) for f in fd.readline().strip().split()])
-        for _ in xrange(nf):
+        for _ in range(nf):
             fl.append([int(i) for i in fd.readline().strip().split()[1:]])
     vl = numpy.array(vl)
     fl = numpy.array(fl)

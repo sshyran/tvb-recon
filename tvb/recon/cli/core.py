@@ -29,7 +29,7 @@ class FlagsMeta(type):
 
     def __new__(cls: type, name: str, bases: Tuple[type],
                 attrs: Dict[str, object]) -> type:
-        for key, value in attrs.items():
+        for key, value in list(attrs.items()):
             if not key.startswith('_'):
                 value: str
                 attrs[key] = Flag(key, value)
@@ -52,7 +52,7 @@ class EnvMeta(type):
 
     def __new__(cls: type, name: str, bases: Tuple[type],
                 attrs: Dict[str, object]) -> type:
-        for key, value in attrs.items():
+        for key, value in list(attrs.items()):
             if not key.startswith('_'):
                 value: str
                 attrs[key] = EnvVar(key, value)

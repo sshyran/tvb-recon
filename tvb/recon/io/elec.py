@@ -23,7 +23,7 @@ class ElectrodeParser(object):
                 else:
                     raise Exception('unknown header line: %r' % (line,))
             # parse positions
-            for line, _ in zip(lines, xrange(contents['number_positions'])):
+            for line, _ in zip(lines, range(contents['number_positions'])):
                 contents['positions'].append(
                     [float(coord) for coord in line.strip().split()])
             # parse labels

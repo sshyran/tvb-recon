@@ -3,11 +3,11 @@
 import os
 import numpy
 import scipy.ndimage
-from tvb.recon.logger import get_logger
-from tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
-from tvb.recon.io.factory import IOUtils
-from tvb.recon.model.volume import Volume
-from tvb.recon.model.constants import NPY_EXTENSION
+from .tvb.recon.logger import get_logger
+from .tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
+from .tvb.recon.io.factory import IOUtils
+from .tvb.recon.model.volume import Volume
+from .tvb.recon.model.constants import NPY_EXTENSION
 
 class VolumeService(object):
     logger = get_logger(__name__)
@@ -61,12 +61,12 @@ class VolumeService(object):
         # Initialize output indexes
         out_ijk = []
 
-        for label_index in xrange(number_of_labels):
+        for label_index in range(number_of_labels):
             current_label = labels[label_index]
             # Get the indexes of all voxels of this label:
             label_volxels_i, label_voxels_j, label_voxels_k = numpy.where(volume.data == current_label)
             # and for each voxel
-            for voxel_index in xrange(label_volxels_i.size):
+            for voxel_index in range(label_volxels_i.size):
                 # indexes of this voxel:
                 current_voxel_i, current_voxel_j, current_voxel_k = \
                     label_volxels_i[voxel_index], label_voxels_j[voxel_index], label_voxels_k[voxel_index]
@@ -163,7 +163,7 @@ class VolumeService(object):
             ijk2ijk = volume.affine_matrix.dot(numpy.dot(xyz2xyz, numpy.linalg.inv(mask_vol.affine_matrix)))
 
         # Construct a grid template of voxels +/- vn voxels around each ijk voxel, sharing at least a corner
-        grid = numpy.meshgrid(range(-vn, vn + 1, 1), range(-vn, vn + 1, 1), range(-vn, vn + 1, 1), indexing='ij')
+        grid = numpy.meshgrid(list(range(-vn, vn + 1, 1)), list(range(-vn, vn + 1, 1)), list(range(-vn, vn + 1, 1)), indexing='ij')
         grid = numpy.c_[numpy.array(grid[0]).flatten(), numpy.array(grid[1]).flatten(), numpy.array(grid[2]).flatten()]
         n_grid = grid.shape[0]
 
@@ -173,12 +173,12 @@ class VolumeService(object):
         out_ijk = []
 
         # For each target label:
-        for label_index in xrange(number_of_labels):
+        for label_index in range(number_of_labels):
             current_label = labels[label_index]
             # Get the indexes of all voxels of this label:
             label_voxels_i, label_voxels_j, label_voxels_k = numpy.where(volume.data == current_label)
 
-            for voxel_index in xrange(label_voxels_i.size):
+            for voxel_index in range(label_voxels_i.size):
                 current_voxel_i, current_voxel_j, current_voxel_k = \
                     label_voxels_i[voxel_index], label_voxels_j[voxel_index], label_voxels_k[voxel_index]
                 # TODO if necessary: deal with voxels at the edge of the image, such as brain stem ones...
@@ -190,7 +190,7 @@ class VolumeService(object):
                 ijk = numpy.round(ijk2ijk.dot(numpy.array([current_voxel_i, current_voxel_j, current_voxel_k, 1]))[:3]).astype('i')
 
                 # Make sure this point is within image limits
-                for cc in xrange(3):
+                for cc in range(3):
                     if ijk[cc] < 0:
                         ijk[cc] = 0
 

@@ -43,8 +43,8 @@ class Volume(object):
         x_axis_coords = numpy.zeros_like(slice_data)
         y_axis_coords = numpy.zeros_like(slice_data)
 
-        for i in xrange(self.dimensions[slice_index_1]):
-            for j in xrange(self.dimensions[slice_index_2]):
+        for i in range(self.dimensions[slice_index_1]):
+            for j in range(self.dimensions[slice_index_2]):
                 ijk_ras[slice_index_1] = i
                 ijk_ras[slice_index_2] = j
 

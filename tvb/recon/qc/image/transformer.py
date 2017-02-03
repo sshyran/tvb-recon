@@ -30,7 +30,7 @@ class ImageTransformer(object):
             x = subprocess.call(
                 ['mri_convert', '--out_orientation', 'RAS', '--out_type', 'nii', '--input_volume', volume_path,
                  '--output_volume', output_volume_path])
-            print x
+            print(x)
             self.created_files.append(output_volume_path)
             return output_volume_path
         except subprocess.CalledProcessError:
@@ -44,7 +44,7 @@ class ImageTransformer(object):
 
         try:
             x = subprocess.call(['mris_convert', '--to-scanner', surface, surface_new_path])
-            print x
+            print(x)
             self.created_files.append(surface_new_path)
             return surface_new_path
         except subprocess.CalledProcessError:
@@ -72,7 +72,7 @@ class ImageTransformer(object):
         if use_gifti:
             gii = GIFTI_EXTENSION
 
-        white_pial_surfaces_path = [hemi + "." + surface_type + resampled_surface + gii for hemi in "rh", "lh" for
+        white_pial_surfaces_path = [hemi + "." + surface_type + resampled_surface + gii for hemi in ("rh", "lh") for
                                         surface_type in "pial", "white"]
 
         new_surfaces_list = [self.center_surface(os.path.expandvars(os.path.join(surfaces_path, surface))) for surface

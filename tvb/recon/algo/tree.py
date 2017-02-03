@@ -9,7 +9,7 @@ import numpy
 
 def make_tree(dict_tree):
     tree=dict()
-    nodes=numpy.sort(dict_tree.keys())
+    nodes=numpy.sort(list(dict_tree.keys()))
     nodes=nodes[::-1]
     root=nodes[0]
     tree[str(root)]=Node(str(root))

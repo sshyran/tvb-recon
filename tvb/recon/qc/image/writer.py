@@ -100,5 +100,5 @@ class ImageWriter(object):
             pyplot.clf()
             pyplot.pcolormesh(x_axis_coords, y_axis_coords, matrix_background, cmap=self.volume_cmaps[0])
         color_index = surface_index % len(self.contour_colors)
-        for contour in xrange(len(surface_x_array)):
+        for contour in range(len(surface_x_array)):
             pyplot.plot(surface_x_array[contour][:], surface_y_array[contour][:], self.contour_colors[color_index])

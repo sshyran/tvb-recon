@@ -169,10 +169,10 @@ class ImageProcessor(object):
                 self.logger.info("The volume center point has been used for %s snapshot of %s.", projection,
                                  aparc_aseg_volume_path)
 
-            for i in xrange(aparc_aseg_matrix.shape[0]):
-                for j in xrange(aparc_aseg_matrix.shape[1]):
+            for i in range(aparc_aseg_matrix.shape[0]):
+                for j in range(aparc_aseg_matrix.shape[1]):
                     if aparc_aseg_matrix[i][j] > 0:
-                        if fs_to_conn_indices_mapping.has_key(aparc_aseg_matrix[i][j]):
+                        if aparc_aseg_matrix[i][j] in fs_to_conn_indices_mapping:
                             aparc_aseg_matrix[i][j] = conn_measure[
                                 fs_to_conn_indices_mapping.get(aparc_aseg_matrix[i][j])]
                         else:
