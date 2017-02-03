@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import os
-import numpy
+import numpy as np
 from tvb.recon.io.factory import IOUtils
 from tvb.recon.io.generic import GenericIO
 from tvb.recon.logger import get_logger
@@ -158,24 +158,40 @@ class ImageProcessor(object):
             self.writer.save_figure(
                 self.generate_file_name(projection, snapshot_name))
 
-    def show_aparc_aseg_with_new_values(self, aparc_aseg_volume_path, region_values_path, background_volume_path,
-                                        use_cc_point, fs_to_conn_indices_mapping_path=FS_TO_CONN_INDICES_MAPPING_PATH,
-                                        snapshot_name=SNAPSHOT_NAME):
+    def show_aparc_aseg_with_new_values(
+            self, aparc_aseg_volume_path, region_values_path,
+            background_volume_path, use_cc_point,
+            fs_to_conn_indices_mapping_path=FS_TO_CONN_INDICES_MAPPING_PATH,
+            snapshot_name=SNAPSHOT_NAME):
+        """
+
+        Parameters
+        ----------
+        aparc_aseg_volume_path
+        region_values_path
+        background_volume_path
+        use_cc_point
+        fs_to_conn_indices_mapping_path
+        snapshot_name
+
+        Returns
+        -------
+
+        """
 
         aparc_aseg_volume = IOUtils.read_volume(aparc_aseg_volume_path)
 
         fs_to_conn_indices_mapping = {}
-        with open(fs_to_conn_indices_mapping_path) as fs_to_conn_indices_mapping_file:
-            for line in fs_to_conn_indices_mapping_file:
-                (key, label, val) = line.split()
-                fs_to_conn_indices_mapping[float(key)] = float(val)
+        with open(fs_to_conn_indices_mapping_path, 'r') as fd:
+            for line in fd.readlines():
+                key, _, val = line.strip().split()
+                fs_to_conn_indices_mapping[int(key)] = int(val)
 
-        conn_measure = numpy.zeros(len(fs_to_conn_indices_mapping))
-        idx = 0
-        with open(region_values_path) as region_values_file:
-            for line in region_values_file:
-                conn_measure[idx] = float(line.strip())
-                idx += 1
+        len_fs_conn = len(fs_to_conn_indices_mapping)
+
+        conn_measure = np.loadtxt(region_values_path)
+        npad = len_fs_conn - conn_measure.size
+        conn_measure = np.pad( conn_measure, (0, npad), 'constant')
 
         if use_cc_point:
             ras = self.generic_io.get_ras_coordinates(
@@ -183,45 +199,59 @@ class ImageProcessor(object):
         else:
             ras = aparc_aseg_volume.get_center_point()
 
-        if background_volume_path != '':
+        background_volume = None
+        if background_volume_path:
             background_volume = IOUtils.read_volume(background_volume_path)
 
         for projection in PROJECTIONS:
+            self._aparc_aseg_projection(
+                aparc_aseg_volume, aparc_aseg_volume_path, projection, ras,
+                fs_to_conn_indices_mapping,
+                background_volume, background_volume_path,
+                snapshot_name, conn_measure
+            )
+
+    def _aparc_aseg_projection(
+            self, aparc_aseg_volume, aparc_aseg_volume_path, projection, ras,
+            fs_to_conn_indices_mapping,
+            background_volume, background_volume_path, snapshot_name,
+            conn_measure):
+
+        try:
+            slice = aparc_aseg_volume.slice_volume(projection, ras)
+        except IndexError:
+            new_ras = aparc_aseg_volume.get_center_point()
+            slice = aparc_aseg_volume.slice_volume( projection, new_ras)
+            msg = "The volume center point has been used for %s snapshot of %s."
+            self.logger.info(msg, projection, aparc_aseg_volume_path)
+
+        x_axis_coords, y_axis_coords, aparc_aseg_matrix  = slice
+
+        for i, row in enumerate(aparc_aseg_matrix):
+            for j, el in enumerate(row):
+                if el > 0:
+                    if el in fs_to_conn_indices_mapping:
+                        idx = fs_to_conn_indices_mapping.get(el)
+                        new_val = conn_measure[int(idx)]
+                        aparc_aseg_matrix[i, j] = new_val
+                    else:
+                        aparc_aseg_matrix[i, j] = -1
+
+        if background_volume_path == '':
+            self.writer.write_matrix(x_axis_coords, y_axis_coords, aparc_aseg_matrix,
+                                     self.generate_file_name(projection, snapshot_name), 'hot')
+        else:
             try:
-                x_axis_coords, y_axis_coords, aparc_aseg_matrix = aparc_aseg_volume.slice_volume(
+                bx_axis_coords, by_axis_coords, bvolume_matrix = background_volume.slice_volume(
                     projection, ras)
             except IndexError:
                 new_ras = aparc_aseg_volume.get_center_point()
-                x_axis_coords, y_axis_coords, aparc_aseg_matrix = aparc_aseg_volume.slice_volume(
+                bx_axis_coords, by_axis_coords, bvolume_matrix = background_volume.slice_volume(
                     projection, new_ras)
-                self.logger.info("The volume center point has been used for %s snapshot of %s.", projection,
-                                 aparc_aseg_volume_path)
+                self.logger.info("The volume center point has been used for %s snapshot of %s and %s.", projection,
+                                 aparc_aseg_volume_path, background_volume_path)
 
-            for i in range(aparc_aseg_matrix.shape[0]):
-                for j in range(aparc_aseg_matrix.shape[1]):
-                    if aparc_aseg_matrix[i][j] > 0:
-                        if aparc_aseg_matrix[i][
-                                j] in fs_to_conn_indices_mapping:
-                            aparc_aseg_matrix[i][j] = conn_measure[
-                                fs_to_conn_indices_mapping.get(aparc_aseg_matrix[i][j])]
-                        else:
-                            aparc_aseg_matrix[i][j] = -1
-
-            if background_volume_path == '':
-                self.writer.write_matrix(x_axis_coords, y_axis_coords, aparc_aseg_matrix,
-                                         self.generate_file_name(projection, snapshot_name), 'hot')
-            else:
-                try:
-                    bx_axis_coords, by_axis_coords, bvolume_matrix = background_volume.slice_volume(
-                        projection, ras)
-                except IndexError:
-                    new_ras = aparc_aseg_volume.get_center_point()
-                    bx_axis_coords, by_axis_coords, bvolume_matrix = background_volume.slice_volume(
-                        projection, new_ras)
-                    self.logger.info("The volume center point has been used for %s snapshot of %s and %s.", projection,
-                                     aparc_aseg_volume_path, background_volume_path)
-
-                self.writer.write_2_matrices(bx_axis_coords, by_axis_coords, bvolume_matrix, x_axis_coords,
-                                             y_axis_coords,
-                                             aparc_aseg_matrix,
-                                             self.generate_file_name(projection, snapshot_name))
+            self.writer.write_2_matrices(bx_axis_coords, by_axis_coords, bvolume_matrix, x_axis_coords,
+                                         y_axis_coords,
+                                         aparc_aseg_matrix,
+                                         self.generate_file_name(projection, snapshot_name))

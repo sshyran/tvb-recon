@@ -1,12 +1,22 @@
 # -*- coding: utf-8 -*-
 
+import enum
+
+
 SNAPSHOTS_DIRECTORY_ENVIRON_VAR = 'FIGS'
 SNAPSHOT_NUMBER_ENVIRON_VAR = 'SNAPSHOT_NUMBER'
 SURFACES_DIRECTORY_ENVIRON_VAR = 'SURF'
 
-SAGITTAL = 'sagittal'
-CORONAL = 'coronal'
-AXIAL = 'axial'
+
+class Projections(enum.Enum):
+    sagittal = 'sagittal'
+    coronal = 'coronal'
+    axial = 'axial'
+
+
+SAGITTAL = Projections.sagittal.value
+CORONAL = Projections.coronal.value
+AXIAL = Projections.axial.value
 
 PROJECTIONS = [SAGITTAL, CORONAL, AXIAL]
 
