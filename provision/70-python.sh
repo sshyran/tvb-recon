@@ -8,6 +8,14 @@ export PREFIX=${PREFIX:-"/work/env"}
 mkdir -p $PREFIX/src
 pushd $PREFIX/src
 
+    # this is awkward. but, it avoids having to know where the script is
+    cat > soname-bzip.patch <<EOF
+38c38
+< 	\$(CC) -shared -Wl,-soname -Wl,libbz2.so.1.0 -o libbz2.so.1.0.6 \$(OBJS)
+---
+> 	\$(CC) -shared -o libbz2.so.1.0.6 \$(OBJS)
+EOF
+
     if [[ ! -z $(which jupyter) ]]
     then
         echo "[70-python.sh] jupyter found, not setting up Python env."
@@ -36,6 +44,7 @@ pushd $PREFIX/src
         pushd ${pkg}*
         if [[ $pkg == "bzip" ]]
         then
+            patch Makefile-libbz2_so ../soname-bzip.patch
             make -j$j -f Makefile-libbz2_so
             make -j$j install PREFIX=$PREFIX
             cp libbz2.so* $PREFIX/lib
