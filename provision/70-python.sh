@@ -53,16 +53,16 @@ py_pkgs="$py_pkgs gdist pytest pytest-cov autopep8"
 for pkg in $py_pkgs
 do
     echo "pip installing $pkg"
-    $prefix/bin/pip3 install $pkg
+    $PREFIX/bin/pip3 install $pkg
 done
 
 if [[ -d /vagrant ]]
 then
-    $prefix/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
+    $PREFIX/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
 
     # consider focusing on jupyter/notebook for visualizations are required
 
     # finally set up recon tools package for work
     echo TODO pushd /vagrant
-    echo TODO $prefix/bin/python setup.py develop
+    echo TODO $PREFIX/bin/python setup.py develop
 fi
