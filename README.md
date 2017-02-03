@@ -2,6 +2,4 @@
 
 Tools for building full brain network models from standard structural MR scans.
 
-_Currently doing some restructuring; build is currently expected to fail_.
-
-[![Build Status](https://travis-ci.org/ins-amu/bnm-recon-tools.svg?branch=master)](https://travis-ci.org/ins-amu/bnm-recon-tools) [![Coverage Status](https://coveralls.io/repos/github/ins-amu/bnm-recon-tools/badge.svg)](https://coveralls.io/github/ins-amu/bnm-recon-tools)
+[![Build Status](https://travis-ci.org/the-virtual-brain/tvb-recon.svg?branch=master)](https://travis-ci.org/the-virtual-brain/tvb-recon) [![Coverage Status](https://coveralls.io/repos/github/the-virtual-brain/tvb-recon/badge.svg)](https://coveralls.io/github/the-virtual-brain/tvb-recon)
