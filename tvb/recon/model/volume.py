@@ -16,7 +16,8 @@ class Volume(object):
     def __init__(self, data, affine_matrix, header):
         self.data = data  # 3D array
         self.dimensions = data.shape  # array with the length of each data dimension
-        self.affine_matrix = affine_matrix  # matrix containing voxel to ras transformation
+        # matrix containing voxel to ras transformation
+        self.affine_matrix = affine_matrix
         self.header = header
 
     def get_center_point(self):
@@ -39,7 +40,8 @@ class Volume(object):
 
         slice_index_1, slice_index_2 = X_Y_INDEX[projection]
 
-        slice_data = numpy.zeros((self.dimensions[slice_index_1], self.dimensions[slice_index_2]))
+        slice_data = numpy.zeros(
+            (self.dimensions[slice_index_1], self.dimensions[slice_index_2]))
         x_axis_coords = numpy.zeros_like(slice_data)
         y_axis_coords = numpy.zeros_like(slice_data)
 

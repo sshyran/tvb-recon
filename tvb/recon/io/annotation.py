@@ -23,7 +23,8 @@ class AnnotationIO(ABCAnnotationIO):
     """
 
     def read(self, annotation_path):
-        region_mapping, regions_color_table, region_names = read_annot(annotation_path)
+        region_mapping, regions_color_table, region_names = read_annot(
+            annotation_path)
         return Annotation(region_mapping, regions_color_table, region_names)
 
     def write(self, out_annotation_path, annotation):

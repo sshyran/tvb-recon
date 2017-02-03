@@ -36,7 +36,6 @@ class BaseOmCLI(BaseCLI):
         pass
 
 
-
 class om_assemble(BaseOmCLI):
     """
     The om_assemble command from the om package.

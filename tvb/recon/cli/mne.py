@@ -36,7 +36,6 @@ class BaseMneCLI(BaseCLI):
         pass
 
 
-
 class mne_watershed_bem(BaseMneCLI):
     """
     The mne_watershed_bem command from the mne package.

@@ -1,7 +1,9 @@
 # XXX use MNE as data model for such things
 # XXX MNE probably has such a parser anyway
 
+
 class ElectrodeParser(object):
+
     def parse_asa_electrode_file(self, fname):
         "Parse an ASA electrode format file."
         contents = {'positions': [], 'labels': []}

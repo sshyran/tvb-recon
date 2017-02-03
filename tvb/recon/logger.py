@@ -20,7 +20,8 @@ def get_logger(parent_module):
     We do not no fancy things, but we want to keep all logging done from a central place,
     in case we need to refactor in the future.
     """
-    log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    log_formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     _ensure_log_folder_exists()
 
     file_handler = logging.FileHandler(LOG_FILE)

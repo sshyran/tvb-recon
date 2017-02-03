@@ -186,4 +186,3 @@ def invert_transform(in_mat, out_mat):
         convert_xfm.Flags.omat, out_mat,
         convert_xfm.Flags.inverse, in_mat
     ]
-

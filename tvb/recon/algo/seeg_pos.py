@@ -3,6 +3,8 @@ import nibabel
 import scipy.ndimage
 
 # XXX
+
+
 def seeg_pos():
     # dilated image for labeling
     d4 = nibabel.load('elec_bin_d4.nii')

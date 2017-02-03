@@ -30,7 +30,8 @@ def test_parse_fs_centered_surface():
 
 
 def test_parse_centered_fs_surface():
-    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh-centered.pial")
+    file_path = get_data_file(
+        TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh-centered.pial")
     surf = IOUtils.read_surface(file_path, False)
     assert surf.center_ras == [0, 0, 0]
 
@@ -48,13 +49,15 @@ def test_parse_not_surface():
 
 
 def test_parse_gifti_surface():
-    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
+    file_path = get_data_file(
+        TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
     surf = IOUtils.read_surface(file_path, False)
     assert len(surf.triangles) == 327680
 
 
 def test_parse_gifti_centered_surface():
-    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
+    file_path = get_data_file(
+        TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
     surf = IOUtils.read_surface(file_path, True)
     assert len(surf.triangles) == 327680
 
@@ -85,7 +88,8 @@ def test_write_fs_surface():
 
 
 def test_write_gifti_surface():
-    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
+    file_path = get_data_file(
+        TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
     original_surface = IOUtils.read_surface(file_path, False)
     triangles_number = len(original_surface.triangles)
 
@@ -100,8 +104,10 @@ def test_read_transformation_matrix_from_fs_metadata():
     file_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
     surface_io = IOUtils.surface_io_factory(file_path)
     surf = surface_io.read(file_path, False)
-    matrix = surface_io.read_transformation_matrix_from_metadata(surf.get_main_metadata())
-    assert matrix.tolist() == [[-1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]]
+    matrix = surface_io.read_transformation_matrix_from_metadata(
+        surf.get_main_metadata())
+    assert matrix.tolist() == [[-1, 0, 0, 0],
+                               [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]]
 
 
 def test_write_transformation_matrix_fs_metadata():
@@ -109,29 +115,37 @@ def test_write_transformation_matrix_fs_metadata():
     surface_io = IOUtils.surface_io_factory(file_path)
     surf = surface_io.read(file_path, False)
     surface_io.write_transformation_matrix(surf.get_main_metadata())
-    matrix = surface_io.read_transformation_matrix_from_metadata(surf.get_main_metadata())
-    assert matrix.tolist() == [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+    matrix = surface_io.read_transformation_matrix_from_metadata(
+        surf.get_main_metadata())
+    assert matrix.tolist() == [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [
+        0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
 
 
 def test_read_transformation_matrix_from_gifti_metadata():
-    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
+    file_path = get_data_file(
+        TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
     surface_io = IOUtils.surface_io_factory(file_path)
     surf = surface_io.read(file_path, False)
-    matrix = surface_io.read_transformation_matrix_from_metadata(surf.get_main_metadata())
+    matrix = surface_io.read_transformation_matrix_from_metadata(
+        surf.get_main_metadata())
     assert matrix == [[-1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]]
 
 
 def test_write_transformation_matrix_gifti_metadata():
-    file_path = get_data_file(TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
+    file_path = get_data_file(
+        TEST_MODIF_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial.gii")
     surface_io = IOUtils.surface_io_factory(file_path)
     surf = surface_io.read(file_path, False)
     surface_io.write_transformation_matrix(surf.get_main_metadata())
-    matrix = surface_io.read_transformation_matrix_from_metadata(surf.get_main_metadata())
-    assert matrix == [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+    matrix = surface_io.read_transformation_matrix_from_metadata(
+        surf.get_main_metadata())
+    assert matrix == [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [
+        0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
 
 
 def test_write_write_brain_visa_surf():
-    surface_path = get_data_file(TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
+    surface_path = get_data_file(
+        TEST_FS_SUBJECT, TEST_SURFACE_FOLDER, "lh.pial")
     out_path = get_temporary_files_path("lh.pial.tri")
 
     surface = IOUtils.read_surface(surface_path, False)

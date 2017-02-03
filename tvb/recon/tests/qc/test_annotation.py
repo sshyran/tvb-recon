@@ -14,7 +14,8 @@ def teardown_module():
 
 
 def test_parse_annotation():
-    file_path = get_data_file(TEST_SUBJECT, TEST_ANNOT_FOLDER, "lh.aparc.annot")
+    file_path = get_data_file(
+        TEST_SUBJECT, TEST_ANNOT_FOLDER, "lh.aparc.annot")
     annot = IOUtils.read_annotation(file_path)
     assert annot.region_names == ['unknown', 'bankssts', 'caudalanteriorcingulate', 'caudalmiddlefrontal',
                                   'corpuscallosum', 'cuneus', 'entorhinal', 'fusiform', 'inferiorparietal',
@@ -48,7 +49,8 @@ def test_parse_h5_annotation():
 
 
 def test_write_annotation():
-    file_path = get_data_file(TEST_SUBJECT, TEST_ANNOT_FOLDER, "lh.aparc.annot")
+    file_path = get_data_file(
+        TEST_SUBJECT, TEST_ANNOT_FOLDER, "lh.aparc.annot")
     annotation = IOUtils.read_annotation(file_path)
 
     out_annotation_path = get_temporary_files_path("lh-test.aparc.annot")

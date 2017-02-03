@@ -22,8 +22,10 @@ class TVBService(object):
 
         lh_surf_path = os.path.join(subjects_dir, subject, 'surf', 'lh.pial')
         rh_surf_path = os.path.join(subjects_dir, subject, 'surf', 'rh.pial')
-        lh_annot_path = os.path.join(subjects_dir, subject, 'label', 'lh.aparc.annot')
-        rh_annot_path = os.path.join(subjects_dir, subject, 'label', 'rh.aparc.annot')
+        lh_annot_path = os.path.join(
+            subjects_dir, subject, 'label', 'lh.aparc.annot')
+        rh_annot_path = os.path.join(
+            subjects_dir, subject, 'label', 'rh.aparc.annot')
 
         lh_surface = IOUtils.read_surface(lh_surf_path, False)
         rh_surface = IOUtils.read_surface(rh_surf_path, False)
@@ -34,5 +36,6 @@ class TVBService(object):
         surface, region_mapping = self.surface_service.merge_lh_rh(lh_surface, rh_surface, lh_annot.region_mapping,
                                                                    rh_annot.region_mapping)
 
-        numpy.savetxt('%s_ctx_roi_map.txt' % (subject,), region_mapping.flat[:], '%i')
+        numpy.savetxt('%s_ctx_roi_map.txt' %
+                      (subject,), region_mapping.flat[:], '%i')
         TVBWriter().write_surface_zip('%s_pial_surf.zip' % (subject,), surface)

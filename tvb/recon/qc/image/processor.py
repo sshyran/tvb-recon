@@ -11,59 +11,73 @@ from tvb.recon.qc.image.writer import ImageWriter
 
 
 class ImageProcessor(object):
+
     def __init__(self, snapshots_directory, snapshot_count=0):
         self.generic_io = GenericIO()
         self.writer = ImageWriter(snapshots_directory)
         self.snapshot_count = snapshot_count
         self.logger = get_logger(__name__)
 
-    def generate_file_name(self, current_projection, snapshot_name=SNAPSHOT_NAME):
-        file_name = snapshot_name + "_" + current_projection + "_" + str(self.snapshot_count)
+    def generate_file_name(self, current_projection,
+                           snapshot_name=SNAPSHOT_NAME):
+        file_name = snapshot_name + "_" + \
+            current_projection + "_" + str(self.snapshot_count)
         return file_name
 
     def read_t1_affine_matrix(self):
-        t1_volume = IOUtils.read_volume(os.path.join(os.environ[MRI_DIRECTORY], os.environ[T1_RAS_VOLUME]))
+        t1_volume = IOUtils.read_volume(os.path.join(
+            os.environ[MRI_DIRECTORY], os.environ[T1_RAS_VOLUME]))
         return t1_volume.affine_matrix
 
-    def show_single_volume(self, volume_path, use_cc_point, snapshot_name=SNAPSHOT_NAME):
+    def show_single_volume(self, volume_path, use_cc_point,
+                           snapshot_name=SNAPSHOT_NAME):
 
         volume = IOUtils.read_volume(volume_path)
 
         if use_cc_point:
-            ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
+            ras = self.generic_io.get_ras_coordinates(
+                self.read_t1_affine_matrix())
         else:
             ras = volume.get_center_point()
 
         for projection in PROJECTIONS:
             try:
-                x_axis_coords, y_axis_coords, volume_matrix = volume.slice_volume(projection, ras)
+                x_axis_coords, y_axis_coords, volume_matrix = volume.slice_volume(
+                    projection, ras)
             except IndexError:
                 new_ras = volume.get_center_point()
-                x_axis_coords, y_axis_coords, volume_matrix = volume.slice_volume(projection, new_ras)
+                x_axis_coords, y_axis_coords, volume_matrix = volume.slice_volume(
+                    projection, new_ras)
                 self.logger.info("The volume center point has been used for %s snapshot of %s.", projection,
                                  volume_path)
 
             self.writer.write_matrix(x_axis_coords, y_axis_coords, volume_matrix,
                                      self.generate_file_name(projection, snapshot_name))
 
-    def overlap_2_volumes(self, background_path, overlay_path, use_cc_point, snapshot_name=SNAPSHOT_NAME):
+    def overlap_2_volumes(self, background_path, overlay_path,
+                          use_cc_point, snapshot_name=SNAPSHOT_NAME):
 
         background_volume = IOUtils.read_volume(background_path)
         overlay_volume = IOUtils.read_volume(overlay_path)
 
         if use_cc_point:
-            ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
+            ras = self.generic_io.get_ras_coordinates(
+                self.read_t1_affine_matrix())
         else:
             ras = background_volume.get_center_point()
 
         for projection in PROJECTIONS:
             try:
-                x, y, background_matrix = background_volume.slice_volume(projection, ras)
-                x1, y1, overlay_matrix = overlay_volume.slice_volume(projection, ras)
+                x, y, background_matrix = background_volume.slice_volume(
+                    projection, ras)
+                x1, y1, overlay_matrix = overlay_volume.slice_volume(
+                    projection, ras)
             except IndexError:
                 new_ras = background_volume.get_center_point()
-                x, y, background_matrix = background_volume.slice_volume(projection, new_ras)
-                x1, y1, overlay_matrix = overlay_volume.slice_volume(projection, new_ras)
+                x, y, background_matrix = background_volume.slice_volume(
+                    projection, new_ras)
+                x1, y1, overlay_matrix = overlay_volume.slice_volume(
+                    projection, new_ras)
                 self.logger.info("The volume center point has been used for %s snapshot of %s and %s.", projection,
                                  background_path, overlay_path)
 
@@ -78,27 +92,35 @@ class ImageProcessor(object):
         volume_overlay_2 = IOUtils.read_volume(overlay_2_path)
 
         if use_cc_point:
-            ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
+            ras = self.generic_io.get_ras_coordinates(
+                self.read_t1_affine_matrix())
         else:
             ras = volume_background.get_center_point()
 
         for projection in PROJECTIONS:
             try:
-                x, y, background_matrix = volume_background.slice_volume(projection, ras)
-                x1, y1, overlay_1_matrix = volume_overlay_1.slice_volume(projection, ras)
-                x2, y2, overlay_2_matrix = volume_overlay_2.slice_volume(projection, ras)
+                x, y, background_matrix = volume_background.slice_volume(
+                    projection, ras)
+                x1, y1, overlay_1_matrix = volume_overlay_1.slice_volume(
+                    projection, ras)
+                x2, y2, overlay_2_matrix = volume_overlay_2.slice_volume(
+                    projection, ras)
             except IndexError:
                 new_ras = volume_background.get_center_point()
-                x, y, background_matrix = volume_background.slice_volume(projection, new_ras)
-                x1, y1, overlay_1_matrix = volume_overlay_1.slice_volume(projection, new_ras)
-                x2, y2, overlay_2_matrix = volume_overlay_2.slice_volume(projection, new_ras)
+                x, y, background_matrix = volume_background.slice_volume(
+                    projection, new_ras)
+                x1, y1, overlay_1_matrix = volume_overlay_1.slice_volume(
+                    projection, new_ras)
+                x2, y2, overlay_2_matrix = volume_overlay_2.slice_volume(
+                    projection, new_ras)
                 self.logger.info("The volume center point has been used for %s snapshot of %s, %s and %s.", projection,
                                  background_path, overlay_1_path, overlay_2_path)
 
             self.writer.write_3_matrices(x, y, background_matrix, x1, y1, overlay_1_matrix, x2, y2, overlay_2_matrix,
                                          self.generate_file_name(projection, snapshot_name))
 
-    def overlap_surface_annotation(self, surface_path, annotation, snapshot_name=SNAPSHOT_NAME):
+    def overlap_surface_annotation(
+            self, surface_path, annotation, snapshot_name=SNAPSHOT_NAME):
         annotation = IOUtils.read_annotation(annotation)
         surface = IOUtils.read_surface(surface_path, False)
         self.writer.write_surface_with_annotation(surface, annotation,
@@ -109,7 +131,8 @@ class ImageProcessor(object):
         volume = IOUtils.read_volume(volume_background)
 
         if use_cc_point:
-            ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
+            ras = self.generic_io.get_ras_coordinates(
+                self.read_t1_affine_matrix())
         else:
             ras = volume.get_center_point()
 
@@ -127,11 +150,13 @@ class ImageProcessor(object):
 
             clear_flag = True
             for surface_index, surface in enumerate(surfaces):
-                surf_x_array, surf_y_array = surface.cut_by_plane(projection, ras)
+                surf_x_array, surf_y_array = surface.cut_by_plane(
+                    projection, ras)
                 self.writer.write_matrix_and_surfaces(x, y, background_matrix, surf_x_array, surf_y_array,
                                                       surface_index, clear_flag)
                 clear_flag = False
-            self.writer.save_figure(self.generate_file_name(projection, snapshot_name))
+            self.writer.save_figure(
+                self.generate_file_name(projection, snapshot_name))
 
     def show_aparc_aseg_with_new_values(self, aparc_aseg_volume_path, region_values_path, background_volume_path,
                                         use_cc_point, fs_to_conn_indices_mapping_path=FS_TO_CONN_INDICES_MAPPING_PATH,
@@ -153,7 +178,8 @@ class ImageProcessor(object):
                 idx += 1
 
         if use_cc_point:
-            ras = self.generic_io.get_ras_coordinates(self.read_t1_affine_matrix())
+            ras = self.generic_io.get_ras_coordinates(
+                self.read_t1_affine_matrix())
         else:
             ras = aparc_aseg_volume.get_center_point()
 
@@ -162,17 +188,20 @@ class ImageProcessor(object):
 
         for projection in PROJECTIONS:
             try:
-                x_axis_coords, y_axis_coords, aparc_aseg_matrix = aparc_aseg_volume.slice_volume(projection, ras)
+                x_axis_coords, y_axis_coords, aparc_aseg_matrix = aparc_aseg_volume.slice_volume(
+                    projection, ras)
             except IndexError:
                 new_ras = aparc_aseg_volume.get_center_point()
-                x_axis_coords, y_axis_coords, aparc_aseg_matrix = aparc_aseg_volume.slice_volume(projection, new_ras)
+                x_axis_coords, y_axis_coords, aparc_aseg_matrix = aparc_aseg_volume.slice_volume(
+                    projection, new_ras)
                 self.logger.info("The volume center point has been used for %s snapshot of %s.", projection,
                                  aparc_aseg_volume_path)
 
             for i in range(aparc_aseg_matrix.shape[0]):
                 for j in range(aparc_aseg_matrix.shape[1]):
                     if aparc_aseg_matrix[i][j] > 0:
-                        if aparc_aseg_matrix[i][j] in fs_to_conn_indices_mapping:
+                        if aparc_aseg_matrix[i][
+                                j] in fs_to_conn_indices_mapping:
                             aparc_aseg_matrix[i][j] = conn_measure[
                                 fs_to_conn_indices_mapping.get(aparc_aseg_matrix[i][j])]
                         else:
@@ -183,10 +212,12 @@ class ImageProcessor(object):
                                          self.generate_file_name(projection, snapshot_name), 'hot')
             else:
                 try:
-                    bx_axis_coords, by_axis_coords, bvolume_matrix = background_volume.slice_volume(projection, ras)
+                    bx_axis_coords, by_axis_coords, bvolume_matrix = background_volume.slice_volume(
+                        projection, ras)
                 except IndexError:
                     new_ras = aparc_aseg_volume.get_center_point()
-                    bx_axis_coords, by_axis_coords, bvolume_matrix = background_volume.slice_volume(projection, new_ras)
+                    bx_axis_coords, by_axis_coords, bvolume_matrix = background_volume.slice_volume(
+                        projection, new_ras)
                     self.logger.info("The volume center point has been used for %s snapshot of %s and %s.", projection,
                                      aparc_aseg_volume_path, background_volume_path)
 

@@ -8,6 +8,7 @@ from .tvb.recon.model.constants import GIFTI_EXTENSION, H5_EXTENSION
 
 
 class IOUtils(object):
+
     @staticmethod
     def __get_extension(file_path):
         _, extension = os.path.splitext(file_path)

@@ -40,10 +40,14 @@ def parse_arguments():
                         help="By specifying this argument, the Corpus Callosum point will be used when taking the snapshots.",
                         action="store_true")
 
-    subcommand_1_vol = subparsers.add_parser(arg_1vol, help='Display a single volume')
-    subcommand_2_vols = subparsers.add_parser(arg_2vols, help='Display 2 volumes overlapped')
-    subcommand_3_vols = subparsers.add_parser(arg_3vols, help='Display 3 volumes overlapped')
-    subcommand_surf_annot = subparsers.add_parser(arg_surf_annot, help='Display a surface with annotations')
+    subcommand_1_vol = subparsers.add_parser(
+        arg_1vol, help='Display a single volume')
+    subcommand_2_vols = subparsers.add_parser(
+        arg_2vols, help='Display 2 volumes overlapped')
+    subcommand_3_vols = subparsers.add_parser(
+        arg_3vols, help='Display 3 volumes overlapped')
+    subcommand_surf_annot = subparsers.add_parser(
+        arg_surf_annot, help='Display a surface with annotations')
     subcommand_vol_surf = subparsers.add_parser(arg_vol_surf,
                                                 help='Display a surface overlapped on a volume. '
                                                      'The flag --center_surface can be used with this sub-command.')
@@ -70,14 +74,16 @@ def parse_arguments():
 
     subcommand_vol_2surf.add_argument("background")
     subcommand_vol_2surf.add_argument("-resampled_surface_name", default='')
-    subcommand_vol_2surf.add_argument("-gifti", help="Use gifti white and pial surfaces", action="store_true")
+    subcommand_vol_2surf.add_argument(
+        "-gifti", help="Use gifti white and pial surfaces", action="store_true")
 
     subcommand_conn_measure.add_argument("aparc_aseg_volume")
     subcommand_conn_measure.add_argument("region_values")
     subcommand_conn_measure.add_argument("-fs_to_conn_mapping", default=FS_TO_CONN_INDICES_MAPPING_PATH,
                                          help='Specify a mapping file. File data/mapping_FS_88.txt is used by default. '
                                               'This contains the mapping from Freesurfer labels to connectivity indices.')
-    subcommand_conn_measure.add_argument("-background", default='', help='Specify a background volume')
+    subcommand_conn_measure.add_argument(
+        "-background", default='', help='Specify a background volume')
 
     return parser.parse_args()
 
@@ -99,7 +105,8 @@ def check_files_for_cc_exist():
 
     t1_path = os.path.join(mri_directory, t1_name)
     if not os.path.exists(t1_path):
-        message = "File %s does not exist. Please change %s value to %s path." % (t1_path, MRI_DIRECTORY, T1_RAS_VOLUME)
+        message = "File %s does not exist. Please change %s value to %s path." % (
+            t1_path, MRI_DIRECTORY, T1_RAS_VOLUME)
         logger.error(message)
         raise Exception(message)
 
@@ -131,10 +138,12 @@ if __name__ == "__main__":
     if args.use_cc_point:
         check_files_for_cc_exist()
 
-    imageProcessor = ImageProcessor(snapshots_directory=snapshots_directory, snapshot_count=snapshot_count)
+    imageProcessor = ImageProcessor(
+        snapshots_directory=snapshots_directory, snapshot_count=snapshot_count)
 
     if args.subcommand == arg_1vol:
-        volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.volume))
+        volume_path = imageTransformer.transform_single_volume(
+            os.path.expandvars(args.volume))
         imageProcessor.show_single_volume(os.path.expandvars(volume_path), args.use_cc_point,
                                           snapshot_name=args.snapshot_name)
 
@@ -146,10 +155,12 @@ if __name__ == "__main__":
 
     elif args.subcommand == arg_3vols:
         background, overlay1, overlay2 = imageTransformer.transform_3_volumes(os.path.expandvars(args.background),
-                                                                              os.path.expandvars(args.overlay1),
+                                                                              os.path.expandvars(
+                                                                                  args.overlay1),
                                                                               os.path.expandvars(args.overlay2))
         imageProcessor.overlap_3_volumes(os.path.expandvars(background), os.path.expandvars(overlay1),
-                                         os.path.expandvars(overlay2), args.use_cc_point,
+                                         os.path.expandvars(
+                                             overlay2), args.use_cc_point,
                                          snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_surf_annot:
@@ -165,21 +176,27 @@ if __name__ == "__main__":
     elif args.subcommand == arg_vol_white_pial:
         surfaces_path = os.environ[SURFACES_DIRECTORY_ENVIRON_VAR]
         background, surfaces_paths_list = imageTransformer.transform_volume_white_pial(
-            os.path.expandvars(args.background), os.path.expandvars(args.resampled_surface_name),
+            os.path.expandvars(args.background), os.path.expandvars(
+                args.resampled_surface_name),
             os.path.expandvars(surfaces_path), args.gifti)
         imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths_list),
                                                args.center_surface, args.use_cc_point, snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_connectivity_measure:
-        aparc_aseg_volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.aparc_aseg_volume))
+        aparc_aseg_volume_path = imageTransformer.transform_single_volume(
+            os.path.expandvars(args.aparc_aseg_volume))
         background_volume_path = args.background
         if background_volume_path != '':
-            background_volume_path = imageTransformer.transform_single_volume(os.path.expandvars(args.background))
+            background_volume_path = imageTransformer.transform_single_volume(
+                os.path.expandvars(args.background))
         imageProcessor.show_aparc_aseg_with_new_values(os.path.expandvars(aparc_aseg_volume_path),
-                                                       os.path.expandvars(args.region_values),
-                                                       os.path.expandvars(background_volume_path),
+                                                       os.path.expandvars(
+                                                           args.region_values),
+                                                       os.path.expandvars(
+                                                           background_volume_path),
                                                        args.use_cc_point,
-                                                       os.path.expandvars(args.fs_to_conn_mapping),
+                                                       os.path.expandvars(
+                                                           args.fs_to_conn_mapping),
                                                        snapshot_name=args.snapshot_name)
 
     try:

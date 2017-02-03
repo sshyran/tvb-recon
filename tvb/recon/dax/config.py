@@ -40,7 +40,8 @@ class RC(Enum):
 LOGGER = get_logger(__name__)
 
 
-# TODO: see the rest of File(...) usages (output files not referenced towards rc.txt)
+# TODO: see the rest of File(...) usages (output files not referenced
+# towards rc.txt)
 
 class SubtypeConfiguration(object):
     T1 = "t1"
@@ -63,6 +64,7 @@ class SubtypeConfiguration(object):
 
 
 class MRIConfiguration(object):
+
     def __init__(self):
         self.aseg_mgz_file = File("aparc+aseg.mgz")
         self.t1_mgz_file = File("t1.mgz")
@@ -75,7 +77,9 @@ class MRIConfiguration(object):
 
 
 class DiffusionConfiguration(SubtypeConfiguration):
-    def __init__(self, folder_path, file_format="", is_reversed=False, scan_direction="ap", threads="2"):
+
+    def __init__(self, folder_path, file_format="",
+                 is_reversed=False, scan_direction="ap", threads="2"):
         super(DiffusionConfiguration, self).__init__(folder_path, file_format=file_format,
                                                      prefix=SubtypeConfiguration.DWI)
         self.is_dwi_reversed = is_reversed
@@ -102,13 +106,15 @@ class Configuration(object):
         self.subject_name = Env.SUBJECT.value
         self.number_of_threads = Env.THREADS.value
 
-        self.t1 = SubtypeConfiguration(RC.T1.value, props[ConfigKey.T1_INPUT_FRMT], prefix=SubtypeConfiguration.T1)
+        self.t1 = SubtypeConfiguration(
+            RC.T1.value, props[ConfigKey.T1_INPUT_FRMT], prefix=SubtypeConfiguration.T1)
         self.t2 = SubtypeConfiguration(RC.T2.value, props[ConfigKey.T2_INPUT_FRMT],
                                        bool(props[ConfigKey.T2_FLAG]), SubtypeConfiguration.T2)
         self.flair = SubtypeConfiguration(RC.FLAIR.value, props[ConfigKey.FLAIR_INPUT_FRMT],
                                           bool(props[ConfigKey.FLAIR_FLAG]), SubtypeConfiguration.FLAIR)
         self.diffusion = DiffusionConfiguration(RC.DWI.value, props[ConfigKey.DWI_INPUT_FRMT],
-                                                bool(props[ConfigKey.DWI_IS_REVERSED]),
+                                                bool(
+                                                    props[ConfigKey.DWI_IS_REVERSED]),
                                                 props[ConfigKey.DWI_SCAN_DIRECTION], Env.THREADS_MRTRIX.value)
         self.mri = MRIConfiguration()
 
@@ -117,13 +123,15 @@ class Configuration(object):
         result_dict = dict()
         with open(config_file) as f:
             for line in f:
-                if line.startswith("#") or len(line) < 3 or line.index("=") < 0:
+                if line.startswith("#") or len(
+                        line) < 3 or line.index("=") < 0:
                     continue
                 key_str, value = line.split("=")
                 try:
                     key = ConfigKey(key_str)
                 except KeyError:
-                    raise Exception('Invalid property key %r in file %r.' % (key_str, config_file))
+                    raise Exception(
+                        'Invalid property key %r in file %r.' % (key_str, config_file))
                 result_dict[key] = value.strip()
         LOGGER.debug("Read patient configuration %s" % result_dict)
         return result_dict

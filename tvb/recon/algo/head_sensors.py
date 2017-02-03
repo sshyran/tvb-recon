@@ -69,15 +69,15 @@ def read_off(fname):
 
 def make_cap_mask(vl, a=0.8, s=1.3, thresh=-0.3):
     "Make vertex-wise mask for cap assuming RAS coordinates."
-    nvl = (vl - vl.min(axis=0))/vl.ptp(axis=0)
-    capmask = (nvl[:, 1]*a - nvl[:, 2]*s) < thresh
+    nvl = (vl - vl.min(axis=0)) / vl.ptp(axis=0)
+    capmask = (nvl[:, 1] * a - nvl[:, 2] * s) < thresh
     return capmask
 
 
 def xyz2rgb(vl):
     "Map XYZ coordinates to RGB space."
     nv = vl.shape[0]
-    nvl = (vl - vl.min(axis=0))/vl.ptp(axis=0)
+    nvl = (vl - vl.min(axis=0)) / vl.ptp(axis=0)
     vcrgb = numpy.c_[nvl, numpy.ones((nv, 1))]
     return vcrgb
 
@@ -122,7 +122,8 @@ assert numpy.unique(vcl).size == n_sens
 
 # TODO label sensor by nearest aparc name
 
-# on EEG cap and MEG helmet, avg pos and vtx norm to get sensor positions and normals
+# on EEG cap and MEG helmet, avg pos and vtx norm to get sensor positions
+# and normals
 eegpo = sens_xyz_ori(vc * eeg_scl, fc, vcl)
 megpo = sens_xyz_ori(vc * meg_scl, fc, vcl)
 
@@ -134,17 +135,21 @@ numpy.savetxt(meg_fname, megpo)
 if plot:
     app = mkQApp()
     gvw = pyqtgraph.opengl.GLViewWidget()
-    hs = pyqtgraph.opengl.GLMeshItem(meshdata=pyqtgraph.opengl.MeshData(vl, fl, vertexColors=xyz2rgb(vl)), drawEdges=True)
-    cap = pyqtgraph.opengl.GLMeshItem(meshdata=pyqtgraph.opengl.MeshData(vc*eeg_scl, fc), color=(0, 0, 1.0, 1.0), drawEdges=True)
+    hs = pyqtgraph.opengl.GLMeshItem(meshdata=pyqtgraph.opengl.MeshData(
+        vl, fl, vertexColors=xyz2rgb(vl)), drawEdges=True)
+    cap = pyqtgraph.opengl.GLMeshItem(meshdata=pyqtgraph.opengl.MeshData(
+        vc * eeg_scl, fc), color=(0, 0, 1.0, 1.0), drawEdges=True)
     hc = numpy.c_[numpy.random.rand(n_sens, 3), numpy.ones((n_sens, 1))][vcl]
-    helmet = pyqtgraph.opengl.GLMeshItem(meshdata=pyqtgraph.opengl.MeshData(vc*meg_scl, fc, vertexColors=hc), #color=(1, 0, 0.0, 1.0),
-            drawEdges=True)
-    lh = pyqtgraph.opengl.GLMeshItem(meshdata=pyqtgraph.opengl.MeshData(*read_geometry(ctx)), drawEdges=True, drawFaces=False)
+    helmet = pyqtgraph.opengl.GLMeshItem(meshdata=pyqtgraph.opengl.MeshData(vc * meg_scl, fc, vertexColors=hc),  # color=(1, 0, 0.0, 1.0),
+                                         drawEdges=True)
+    lh = pyqtgraph.opengl.GLMeshItem(meshdata=pyqtgraph.opengl.MeshData(
+        *read_geometry(ctx)), drawEdges=True, drawFaces=False)
     for item in [hs, cap, helmet, lh]:
         gvw.addItem(item)
     for po in (megpo, eegpo):
         gvw.addItem(pyqtgraph.opengl.GLScatterPlotItem(pos=po[:, :3], size=7))
-        gvw.addItem(pyqtgraph.opengl.GLScatterPlotItem(pos=po[:, :3] + 8*po[:, 3:], size=4, color=(1, 0, 0, 1)))
+        gvw.addItem(pyqtgraph.opengl.GLScatterPlotItem(
+            pos=po[:, :3] + 8 * po[:, 3:], size=4, color=(1, 0, 0, 1)))
     gvw.show()
     gvw.readQImage().save('head_sensors.png')
     app.exec_()

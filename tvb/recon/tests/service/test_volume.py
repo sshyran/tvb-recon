@@ -16,7 +16,8 @@ def teardown_module():
 
 def test_label_vol_from_tdi():
     service = VolumeService()
-    data = numpy.array([[[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]], [[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]]])
+    data = numpy.array([[[0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]], [
+                       [0, 0, 1], [1, 2, 0]], [[2, 1, 3], [3, 1, 0]]])
     volume = Volume(data, [], None)
     labeled_volume = service._label_volume(volume, 0.5)
     assert numpy.array_equal(labeled_volume.data,
@@ -39,13 +40,15 @@ def test_label_with_dilation():
 
     ct_mask_data = numpy.array(
         [[[0, 0, 0], [0, 1, 0], [0, 1, 0]], [[1, 1, 1], [0, 0, 0], [0, 0, 0]], [[0, 0, 1], [0, 0, 0], [0, 0, 1]]])
-    ct_mask_volume = Volume(ct_mask_data, [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], None)
+    ct_mask_volume = Volume(ct_mask_data, [[1, 0, 0, 0], [0, 1, 0, 0], [
+                            0, 0, 1, 0], [0, 0, 0, 1]], None)
     ct_mask_path = get_temporary_files_path("ct_mask.nii.gz")
     IOUtils.write_volume(ct_mask_path, ct_mask_volume)
 
     ct_dil_mask_data = numpy.array(
         [[[0, 0, 0], [1, 1, 1], [0, 1, 0]], [[1, 1, 1], [0, 0, 0], [0, 0, 0]], [[0, 1, 1], [0, 0, 0], [0, 1, 1]]])
-    ct_dil_mask_volume = Volume(ct_dil_mask_data, [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], None)
+    ct_dil_mask_volume = Volume(ct_dil_mask_data, [[1, 0, 0, 0], [
+                                0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], None)
     ct_dil_mask_path = get_temporary_files_path("ct_dil_mask.nii.gz")
     IOUtils.write_volume(ct_dil_mask_path, ct_dil_mask_volume)
 
@@ -65,19 +68,22 @@ def test_remove_zero_connectivity():
     service = VolumeService()
 
     data = numpy.array([[[0, 0, 1], [2, 3, 0]], [[4, 0, 0], [0, 0, 0]]])
-    volume = Volume(data, [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], None)
+    volume = Volume(data, [[1, 0, 0, 0], [0, 1, 0, 0],
+                           [0, 0, 1, 0], [0, 0, 0, 1]], None)
     volume_path = get_temporary_files_path("tdi_lbl.nii.gz")
 
     IOUtils.write_volume(volume_path, volume)
 
-    in_connectivity = numpy.array([[10, 1, 0, 3], [0, 10, 0, 2], [0, 0, 0, 0], [0, 0, 0, 10]])
+    in_connectivity = numpy.array(
+        [[10, 1, 0, 3], [0, 10, 0, 2], [0, 0, 0, 0], [0, 0, 0, 10]])
     connectivity_path = get_temporary_files_path("conn.csv")
     numpy.savetxt(connectivity_path, in_connectivity, fmt='%1d')
 
     tract_lengths_path = get_temporary_files_path("tract_lengths.csv")
     numpy.savetxt(tract_lengths_path, in_connectivity, fmt='%1d')
 
-    service.remove_zero_connectivity_nodes(volume_path, connectivity_path, tract_lengths_path)
+    service.remove_zero_connectivity_nodes(
+        volume_path, connectivity_path, tract_lengths_path)
 
     assert os.path.exists(os.path.splitext(connectivity_path)[0] + ".npy")
     assert os.path.exists(os.path.splitext(tract_lengths_path)[0] + ".npy")

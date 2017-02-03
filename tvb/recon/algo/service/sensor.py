@@ -13,9 +13,12 @@ matplotlib.use(os.environ.get('MPLBACKEND', 'Agg'))
 import pylab
 from .tvb.recon.model.surface import Surface
 
+
 class SensorService(object):
+
     def gen_head_model(self, subjects_dir, subject):
-        surfs_glob = '%s/%s/bem/watershed/*_surface-low.tri' % (subjects_dir, subject)
+        surfs_glob = '%s/%s/bem/watershed/*_surface-low.tri' % (
+            subjects_dir, subject)
         surfs = glob.glob(surfs_glob)
 
         if len(surfs) == 0:
@@ -82,7 +85,8 @@ class SensorService(object):
         u, s, vt = numpy.linalg.svd(xyz, 0)
         xi = u[:, 0] * s[0]
         # histogram and ft to find spacing and offset
-        bn, bxi_ = numpy.histogram(xi, numpy.r_[min(xi) - 0.5: max(xi) + 0.5: bw])
+        bn, bxi_ = numpy.histogram(
+            xi, numpy.r_[min(xi) - 0.5: max(xi) + 0.5: bw])
         bxi = bxi_[:-1] + bw / 2.0
         w = numpy.r_[1.0: 6.0: 1000j]
         f = (1.0 / w)[:, None]
@@ -94,7 +98,8 @@ class SensorService(object):
         xi_pos = numpy.r_[xi_o: xi.max(): w[i_peak]]
         xi_neg = numpy.r_[-xi_o: -xi.min(): w[i_peak]]
         xi_pos = numpy.sort(numpy.r_[-xi_neg, xi_pos[1:]])
-        xyz_pos = numpy.c_[xi_pos, numpy.zeros((len(xi_pos), 2))].dot(vt) + xyz_mean
+        xyz_pos = numpy.c_[xi_pos, numpy.zeros(
+            (len(xi_pos), 2))].dot(vt) + xyz_mean
         if doplot:
             pylab.figure()
             pylab.subplot(2, 1, 1)
@@ -103,7 +108,8 @@ class SensorService(object):
             pylab.plot(w, numpy.abs(Bf))
             pylab.subplot(2, 1, 1)
             cos_arg = 2 * numpy.pi * f[i_peak] * bxi + theta
-            pylab.plot(bxi, numpy.cos(cos_arg) * bn.std() + bn.mean(), 'k--', alpha=0.5)
-            [pylab.axvline(xp, color='r') for xp in xi_pos];
+            pylab.plot(bxi, numpy.cos(cos_arg) * bn.std() +
+                       bn.mean(), 'k--', alpha=0.5)
+            [pylab.axvline(xp, color='r') for xp in xi_pos]
             pylab.show()
         return xyz_pos

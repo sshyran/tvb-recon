@@ -36,7 +36,6 @@ class BaseMtrixCLI(BaseCLI):
         pass
 
 
-
 class fttgen(BaseMtrixCLI):
     """
     The 5ttgen command from the mtrix package.
@@ -166,7 +165,6 @@ class tcksift(BaseMtrixCLI):
 
     """
     exe = 'tcksift'
-
 
 
 def extract_bzero(in_, out):

@@ -11,12 +11,14 @@ from tvb.recon.qc.image.processor import ImageProcessor
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Transform a surface from its native space to another space")
+    parser = argparse.ArgumentParser(
+        description="Transform a surface from its native space to another space")
 
     parser.add_argument("surface_path")
     parser.add_argument("output_path")
     parser.add_argument("-matrix_paths", nargs='+', default=[])
-    parser.add_argument("-ss", help='Create snapshots of the transformed surface', action="store_true")
+    parser.add_argument(
+        "-ss", help='Create snapshots of the transformed surface', action="store_true")
 
     return parser.parse_args()
 
@@ -52,21 +54,25 @@ if __name__ == "__main__":
                 else:
                     vertex_coords = surface.vertices[i]
 
-                new_vertex_coords = transformation_matrices[j].dot(vertex_coords)
+                new_vertex_coords = transformation_matrices[
+                    j].dot(vertex_coords)
                 surface.vertices[i] = new_vertex_coords[:3]
 
     else:
         main_metadata = surface.get_main_metadata()
-        transform_matrix = surface_io.read_transformation_matrix_from_metadata(main_metadata)
+        transform_matrix = surface_io.read_transformation_matrix_from_metadata(
+            main_metadata)
         for i in range(len(surface.vertices)):
-            vertex_coords = numpy.array([surface.vertices[i][0], surface.vertices[i][1], surface.vertices[i][2], 1])
+            vertex_coords = numpy.array([surface.vertices[i][0], surface.vertices[
+                                        i][1], surface.vertices[i][2], 1])
             new_vertex_coords = vertex_coords.dot(transform_matrix)
             surface.vertices[i] = new_vertex_coords[:3]
         surface_io.write_transformation_matrix(main_metadata)
         surface.set_main_metadata(main_metadata)
 
     surface_io.write(surface, output_path)
-    logger.info("The transformed surface has been written to file: %s" % output_path)
+    logger.info(
+        "The transformed surface has been written to file: %s" % output_path)
 
     if args.ss:
         image_processor.writer.write_surface_with_annotation(surface, None,

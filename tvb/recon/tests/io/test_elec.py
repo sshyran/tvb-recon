@@ -7,7 +7,8 @@ from tvb.recon.io.elec import ElectrodeParser
 def test_parse_asa_electrode_file():
     # XXX will need standard place for test & resource data files
     parser = ElectrodeParser()
-    contents = parser.parse_asa_electrode_file(os.path.join('data', 'standard_1005.elc'))
+    contents = parser.parse_asa_electrode_file(
+        os.path.join('data', 'standard_1005.elc'))
     assert contents['reference_label'] == 'avg'
     assert contents['unit_position'] == 'mm'
     assert contents['number_positions'] == 346

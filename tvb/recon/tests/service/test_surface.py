@@ -44,8 +44,10 @@ def test_merge_surfaces():
 
     out_surface = service.merge_surfaces([lh_surface, rh_surface])
 
-    assert len(out_surface.vertices) == len(lh_surface.vertices) + len(rh_surface.vertices)
-    assert len(out_surface.triangles) == len(lh_surface.triangles) + len(rh_surface.triangles)
+    assert len(out_surface.vertices) == len(
+        lh_surface.vertices) + len(rh_surface.vertices)
+    assert len(out_surface.triangles) == len(
+        lh_surface.triangles) + len(rh_surface.triangles)
     #assert len(out_region_mapping) == len(lh_region_mapping) + len(rh_region_mapping)
 
 
@@ -53,13 +55,15 @@ def test_extract_subsurf():
     surface_parser = FreesurferIO()
     annot_parser = AnnotationIO()
     surface_file = get_data_file("freesurfer_fsaverage", "surf", "lh.pial")
-    annot_file = get_data_file("freesurfer_fsaverage", "label", "lh.aparc.annot")
+    annot_file = get_data_file(
+        "freesurfer_fsaverage", "label", "lh.aparc.annot")
     surface = surface_parser.read(surface_file, False)
     verts = surface.vertices
     annot = annot_parser.read(annot_file)
     labels = annot.region_mapping
     verts_mask = labels == 7
-    subsurf_verts, subsurf_faces = service.extract_subsurf(surface, verts_mask, output='verts_triangls')[:2]
+    subsurf_verts, subsurf_faces = service.extract_subsurf(
+        surface, verts_mask, output='verts_triangls')[:2]
     assert subsurf_verts.all() == verts[numpy.where(verts_mask)].all()
     subsurf = service.extract_subsurf(surface, verts_mask, output='surface')
     assert subsurf.vertices.all() == verts[numpy.where(verts_mask)].all()
@@ -71,7 +75,8 @@ def test_aseg_surf_conc_annot():
     out_annot_path = get_temporary_files_path("out_annot")
     labels = "10 11"
     colorLUT = get_data_file("colorLUT.txt")
-    service.aseg_surf_conc_annot(surf_path, out_surf_path, out_annot_path, labels, colorLUT)
+    service.aseg_surf_conc_annot(
+        surf_path, out_surf_path, out_annot_path, labels, colorLUT)
     assert os.path.exists(out_surf_path)
     assert os.path.exists(out_annot_path)
 

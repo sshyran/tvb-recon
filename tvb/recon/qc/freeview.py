@@ -49,10 +49,12 @@ class FreeViewController(object):
             count_number) + projection + suffix + SNAPSHOT_EXTENSION)
 
     def prepare_screenshot(self):
-        matrix = self.generic_io.read_transformation_matrix(self.in_matrix_file)
+        matrix = self.generic_io.read_transformation_matrix(
+            self.in_matrix_file)
         self.logger.info("Read idx2rsa matrix: %s" % matrix)
 
-        vector = self.generic_io.read_cc_point(self.in_point_file, self.point_line_flag)
+        vector = self.generic_io.read_cc_point(
+            self.in_point_file, self.point_line_flag)
         self.logger.info("Read vector: %s" % vector)
 
         a = numpy.array(matrix)
@@ -61,15 +63,18 @@ class FreeViewController(object):
         self.logger.info("Computed RAS vector: %s" % ras_vector)
 
         ras_string = ' '.join(map(str, ras_vector[:-1]))
-        self._write_screenshot_command(self.target_file, self.target_screenshot_name, projection, ras_string)
+        self._write_screenshot_command(
+            self.target_file, self.target_screenshot_name, projection, ras_string)
 
-    def _write_screenshot_command(self, file_path, shot_name, projection, ras_position):
+    def _write_screenshot_command(
+            self, file_path, shot_name, projection, ras_position):
         """
         Open slices.txt file and write the current screen-shot instruction: target_file_name and position
         """
         count_number = int(os.environ[SNAPSHOT_NUMBER_ENVIRON_VAR])
         file_ref = open(file_path, 'wb')
-        png_path = os.path.join(self.folder_figures, shot_name + str(count_number) + projection + SNAPSHOT_EXTENSION)
+        png_path = os.path.join(self.folder_figures, shot_name +
+                                str(count_number) + projection + SNAPSHOT_EXTENSION)
         file_ref.write("-ras %s -ss %s" % (ras_position, png_path))
         file_ref.write(" -quit")
         file_ref.close()
@@ -78,7 +83,8 @@ class FreeViewController(object):
 
 if __name__ == '__main__':
     # TODO images are moved if opened with -ras option and maybe they should be re-centered.
-    # TODO calls to this file should be reviewed and avoid computing RAS vector every time a call is made.
+    # TODO calls to this file should be reviewed and avoid computing RAS
+    # vector every time a call is made.
 
     projection = sys.argv[1]
     controller = FreeViewController()

@@ -8,14 +8,14 @@ from datetime import datetime
 
 DEFAULT_LUT = 'FreeSurferColorLUT_INS_test.txt'
 
+
 class AnnotationService(object):
 
     def default_lut(self):
         return DEFAULT_LUT
 
-
-    #TODO: an annotation merging function, similar to the one for merging surfaces
-
+    # TODO: an annotation merging function, similar to the one for merging
+    # surfaces
 
     def read_lut(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT),
                  key_mode='label'):
@@ -34,7 +34,8 @@ class AnnotationService(object):
                     ii += 1
                     labels.append(label)
                     names[labels[ii]] = temp[1]
-                    colors[labels[ii]] = [int(temp[2]), int(temp[3]), int(temp[4]), int(temp[5])]
+                    colors[labels[ii]] = [int(temp[2]), int(
+                        temp[3]), int(temp[4]), int(temp[5])]
                 except:
                     pass
         elif key_mode == 'name':
@@ -48,7 +49,8 @@ class AnnotationService(object):
                     ii += 1
                     names.append(temp[1])
                     labels[names[ii]] = label
-                    colors[names[ii]] = [int(temp[2]), int(temp[3]), int(temp[4]), int(temp[5])]
+                    colors[names[ii]] = [int(temp[2]), int(
+                        temp[3]), int(temp[4]), int(temp[5])]
                 except:
                     pass
         return labels, names, colors
@@ -67,33 +69,41 @@ class AnnotationService(object):
         :return:
         """
         annotation = IOUtils.read_annotation(annot_path)
-        #If this is an already existing lut file:
+        # If this is an already existing lut file:
         if os.path.isfile(lut_path):
             #...find the maximum label in it and add 1
-            add_lbl= 1+numpy.max(self.read_lut(lut_path=lut_path, key_mode='label')[0])
+            add_lbl = 1 + \
+                numpy.max(self.read_lut(
+                    lut_path=lut_path, key_mode='label')[0])
         else:
             #...else, set it to 0
-            add_lbl=0
+            add_lbl = 0
         with open(lut_path, 'a') as fd:
-            if add_lbl==0:
-                #TODO: we should include an environment variable for freesurfer version, and print it here
-                fd.write('%s\n' % ("#$Id: " + lut_path + " " +str(datetime.now())))
+            if add_lbl == 0:
+                # TODO: we should include an environment variable for
+                # freesurfer version, and print it here
+                fd.write('%s\n' %
+                         ("#$Id: " + lut_path + " " + str(datetime.now())))
                 fd.write('\n')
-                fd.write('%s\t%s\t%s%s%s%s\n' % ("#No.", "Label Name: ", "R   ", "G   ", "B   ", "A   "))
+                fd.write('%s\t%s\t%s%s%s%s\n' %
+                         ("#No.", "Label Name: ", "R   ", "G   ", "B   ", "A   "))
             else:
                 fd.write('\n')
             # Leave one line blank
             fd.write('\n')
             fd.write('%s\n' % ("#Patient: " + os.environ['SUBJECT']))
-            fd.write('%s\n' % ("#User: " + os.path.split(os.path.expanduser('~'))[-1]))
-            fd.write('%s\n' % ("#Annotation path: "+annot_path))
-            fd.write('%s\n' % ("#Time: " +str(datetime.now())))
+            fd.write('%s\n' %
+                     ("#User: " + os.path.split(os.path.expanduser('~'))[-1]))
+            fd.write('%s\n' % ("#Annotation path: " + annot_path))
+            fd.write('%s\n' % ("#Time: " + str(datetime.now())))
             fd.write('\n')
-            #TODO: align columns
-            #NOTE!!! that the fourth and fifth columns of color_table are not used in the lut file!!!
+            # TODO: align columns
+            # NOTE!!! that the fourth and fifth columns of color_table are not
+            # used in the lut file!!!
             for name, (r, g, b, dummy1, dummy2), lbl in \
-                    zip(annotation.region_names, annotation.regions_color_table,list(range(len(annotation.region_names)))):
-                fd.write('%d\t%s\t%d %d %d %d\n' % (lbl+add_lbl, add_string+name, r, g, b, 0))
+                    zip(annotation.region_names, annotation.regions_color_table, list(range(len(annotation.region_names)))):
+                fd.write('%d\t%s\t%d %d %d %d\n' %
+                         (lbl + add_lbl, add_string + name, r, g, b, 0))
 
     def lut_to_annot_names_ctab(self, lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT),
                                 labels=None):
@@ -109,8 +119,10 @@ class AnnotationService(object):
         for lbl in labels:
             names.append(names_dict[lbl])
             rgb = numpy.array(colors[lbl])[:3].astype('int64')
-            magic_number = self.rgb_to_fs_magic_number(rgb) * numpy.ones((1,), dtype='int64')
-            ctab.append(numpy.concatenate([rgb, numpy.zeros((1,), dtype='int64'), magic_number]))
+            magic_number = self.rgb_to_fs_magic_number(
+                rgb) * numpy.ones((1,), dtype='int64')
+            ctab.append(numpy.concatenate(
+                [rgb, numpy.zeros((1,), dtype='int64'), magic_number]))
         ctab = numpy.asarray(ctab).astype('int64')
         return names, ctab
 
@@ -159,29 +171,32 @@ class AnnotationService(object):
         """
         n_parcels = len(parcel_labels)
         # Names:
-        names_lbl = [base_name + "-" + str(item).zfill(2) for item in parcel_labels]
+        names_lbl = [base_name + "-" + str(item).zfill(2)
+                     for item in parcel_labels]
         # Initialize ctab for these labels
         ctab_lbl = numpy.repeat(base_ctab, n_parcels, axis=0)
         # For the RGB coordinate with the bigger distance to 255 or 0
         # distribute that distance  to nParcs values:
         # Find the maximum and minimum RGB coordinates
         ic = numpy.argsort(base_ctab[0, :3])
-        # Calculate the distances of the maximum RGB coordinate to 0, and of the minimum one to 255,
+        # Calculate the distances of the maximum RGB coordinate to 0, and of
+        # the minimum one to 255,
         x = 255 - base_ctab[0, ic[0]] >= base_ctab[0, ic[2]]
         dist = numpy.where(x, 255 - base_ctab[0, ic[0]], -base_ctab[0, ic[2]])
-        # Pick, out of the two candidates, the coordinate with the longer available range
+        # Pick, out of the two candidates, the coordinate with the longer
+        # available range
         ic = numpy.where(x, ic[0], ic[2])
         # Create the step size to run along that range, and make it to be exact
         step = dist / (n_parcels - 1)
         dist = step * n_parcels
         # Assign colors
-        ctab_lbl[:, ic] = numpy.array(list(range(base_ctab[0, ic], base_ctab[0, ic] + dist, step)), dtype='int')
+        ctab_lbl[:, ic] = numpy.array(
+            list(range(base_ctab[0, ic], base_ctab[0, ic] + dist, step)), dtype='int')
         # Fix 0 and 255 as min and max RGB values
         ctab_lbl[:, :3][ctab_lbl[:, :3] < 0] = 0
         ctab_lbl[:, :3][ctab_lbl[:, :3] > 255] = 255
-        # Calculate the resulting freesurfer magic number for each new RGB triplet
+        # Calculate the resulting freesurfer magic number for each new RGB
+        # triplet
         ctab_lbl[:, 4] = numpy.array([self.rgb_to_fs_magic_number(ctab_lbl[icl, :3])
                                       for icl in range(n_parcels)])
         return (names_lbl, ctab_lbl)
-
-
