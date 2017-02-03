@@ -10,7 +10,7 @@ export SUBJECT='bnm'
 
 # maybe do coverage
 cov=""
-if [[ $COV == "yes" ]]; then cov="--cov=bnm"; fi
+if [[ $COV == "yes" ]]; then cov="--cov=tvb"; fi
 
 # run 'em
 py.test --cov-config .coveragerc $cov $ignores

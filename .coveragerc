@@ -3,8 +3,8 @@
 [run]
 omit =
         *__init__*
-        bnm/recon/dax/*
-        bnm/tests/*
+        tvb/recon/dax/*
+        tvb/recon/tests/*
 
 [report]
 precision = 0
