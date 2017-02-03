@@ -5,4 +5,5 @@ run_tests:
   script:
     - PATH=$(pwd)/env/bin:$PATH COV=yes bash bin/run-tests.sh
   artifacts:
-    - env.log
+    paths:
+      - env.log
