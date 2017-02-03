@@ -3,7 +3,7 @@
 #Configuration common for all processing streams:
 
 #The path to the pipeline code
-#CODE=/Users/dionperd/VirtualVEP/software/bnm-recon-tools/bin
+#CODE=/Users/dionperd/VirtualVEP/software/tvb-recon-tools/bin
 CODE=/Users/dionperd/CBR/software/git/bnm-recon-tools/bin
 export CODE
 echo CODE=$CODE

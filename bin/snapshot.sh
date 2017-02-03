@@ -82,9 +82,9 @@ if [ $# -gt 0 ]; then
 
     else
 
-        #    It needs to have bnm.recon in Python Path
+        #    It needs to have tvb.recon in Python Path
         #   python setup.py develop/install
-        #   source activate bnm-recon
+        #   source activate tvb-recon
         refreshSnapshotNumber
         python -m bnm.recon.qc.snapshot "$@"
 

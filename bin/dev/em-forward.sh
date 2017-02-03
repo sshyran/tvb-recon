@@ -60,7 +60,7 @@ EOF
 done
 
 # build head matrix
-python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.gen_head_model()"
+python -c "import tvb.recon.algo.reconutils; tvb.recon.algo.reconutils.gen_head_model()"
 
 #pushd ${SUBJECTS_DIR}/${SUBJECT}/bem
 om_assemble -HM head_model.geom head_model.cond head.mat # 2m32s
@@ -70,11 +70,11 @@ om_minverser head.mat head-inv.mat # 3m30s
 # convert cortical surfaces format
 for h in rh lh; do
     cp ../surf/$h.pial.fsaverage5 ./cortical-$h
-    python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.convert_fs_to_brain_visa('cortical-$h')"
+    python -c "import tvb.recon.algo.reconutils; tvb.recon.algo.reconutils.convert_fs_to_brain_visa('cortical-$h')"
 done
 
 # make source model for subcortical NOT DONE YET
-python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.gen_subcort_sources()"
+python -c "import tvb.recon.algo.reconutils; tvb.recon.algo.reconutils.gen_subcort_sources()"
 om_assemble -DipSourceMat head_model.{geom,cond} $subcortical.{dip,dsm}
 # XXX consider using fiber orientation as proxy for source orientation
 

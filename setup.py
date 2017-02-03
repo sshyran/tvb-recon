@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Prepare bnm Python package for setup.
+Prepare tvb Python package for setup.
 """
 
 import shutil
@@ -22,7 +22,7 @@ requirements = (
 )
 
 setup(
-    name="bnm",
+    name="tvb",
     description="Brain Network Models - Reconstruction tool from structural MR scans",
     packages=find_packages(),
     version="0.1",
@@ -31,4 +31,4 @@ setup(
     install_requires=requirements,
 )
 
-shutil.rmtree('bnm.egg-info', True)
+shutil.rmtree('tvb.egg-info', True)

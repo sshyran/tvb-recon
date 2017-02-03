@@ -22,7 +22,7 @@ do
     for sensors in SEEG EEG MEG
     do
         #TODO
-        python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.parc_gain('$MRI/$vol','./$sensors')"
+        python -c "import tvb.recon.algo.reconutils; tvb.recon.algo.reconutils.parc_gain('$MRI/$vol','./$sensors')"
     done
 done
 

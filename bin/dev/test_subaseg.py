@@ -10,7 +10,7 @@ import os
 
 #ASEG_LIST="8 10 11 12 13 16 17 18 26 47 49 50 51 52 53 54 58"
 #ASEG_SURF="/Users/dionperd/CBR/VEP/JUNG/JUNG/aseg_surf"
-import bnm.recon.algo.service.subparcelation as subaparc
+import tvb.recon.algo.service.subparcelation as subaparc
 import nibabel
 import numpy as np
 
@@ -48,8 +48,8 @@ subaparc_service.connectivity_geodesic_subparc(surf_path, annot_path, con_verts_
                                       cras_path=cras_path, ref_vol_path=ref_vol_path, consim_path=consim_path,
                                       in_lut_path=in_lut_path, out_lut_path=out_lut_path)
 
-# import bnm.recon.algo.reconutils
-# #import bnm.recon.algo.service.surface as surface
+# import tvb.recon.algo.reconutils
+# #import tvb.recon.algo.service.surface as surface
 # #surfaceSurface=surface.SurfaceService()
 # h = 'lh'
 # vol = 'aparc+aseg'
@@ -59,5 +59,5 @@ subaparc_service.connectivity_geodesic_subparc(surf_path, annot_path, con_verts_
 # out_surf_path = SEGMENT + '/' + h + '.white-mask'
 # add_string= 'ctx-' + h + '-'
 # lut_path=FREESURFER_HOME+'/FreeSurferColorLUT.txt'
-# bnm.recon.algo.reconutils.sample_vol_on_surf(surf_path, ref_vol_path, annot_path, out_surf_path, CRAS_PATH,
+# tvb.recon.algo.reconutils.sample_vol_on_surf(surf_path, ref_vol_path, annot_path, out_surf_path, CRAS_PATH,
 #                                              add_string=add_string, vertex_neighbourhood=int(SURF_VN), add_lbl=[2,41], lut_path=lut_path)

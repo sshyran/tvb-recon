@@ -142,7 +142,7 @@ python -m $SNAPSHOT --snapshot_name CT-mask-dilation-in-t1 3vols CT-in-t1.nii.gz
 
 # label dil mask and apply to mask
 # XXX reported number of electrodes should match implantation schema
-python -c "import bnm.recon.algo.reconutils; bnm.recon.algo.reconutils.label_with_dilation('CT-mask.nii.gz', 'CT-dil-mask.nii.gz', 'CT-lab-mask.nii.gz')"
+python -c "import tvb.recon.algo.reconutils; tvb.recon.algo.reconutils.label_with_dilation('CT-mask.nii.gz', 'CT-dil-mask.nii.gz', 'CT-lab-mask.nii.gz')"
 
 #Visual checks (screenshot)
 # XXX check that labels have different colors, in mrview if possible
