@@ -2,8 +2,14 @@
 
 import glob
 import numpy
+import os
 import matplotlib
-matplotlib.use('Qt5Agg')
+
+# ensure default behavior is headless. If you want, e.g. Qt5Agg, use the
+# MPLBACKEND environment variable.
+# cf. http://matplotlib.org/faq/environment_variables_faq.html
+matplotlib.use(os.environ.get('MPLBACKEND', 'Agg'))
+
 import pylab
 from bnm.recon.model.surface import Surface
 

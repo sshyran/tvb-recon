@@ -168,7 +168,10 @@ class SubparcellationService(object):
         v2n = numpy.argmin(cdist(verts, voxxzy, 'euclidean'), axis=1)
         #Assign to each vertex the integer identity of the nearest voxel node.
         v2n = vox[v2n]
-        print "Surface component's vertices correspond to " + str(numpy.size(numpy.unique(v2n))) + " distinct voxel nodes"
+
+        print("Surface component's vertices correspond to " + str(numpy.size(
+            numpy.unique(v2n))) + " distinct voxel nodes")
+
         # Convert connectivity similarity to a distance matrix
         # affinity = 1 - con[v2n - 1, :][:, v2n - 1]
         # (inverting cosine similarity to arccos distance)
@@ -273,7 +276,7 @@ class SubparcellationService(object):
         nL = 0
         # For every annotation name:
         for iL in range(len(annotation.region_names)):
-            print str(iL) + ". " + annotation.region_names[iL]
+            print(str(iL) + ". " + annotation.region_names[iL])
             # Get the mask of the respective vertices
             iVmask = annotation.region_mapping == iL
             # ...and their indexes
@@ -289,7 +292,7 @@ class SubparcellationService(object):
                 # and change the output indices
                 out_lab[iV] = nL
                 nL += 1
-                print "Added "+annotation.region_names[iL]+" as it stands..."
+                print("Added "+annotation.region_names[iL]+" as it stands...")
                 continue
             # Get the vertices and faces of this label:
             (verts_lbl, faces_lbl) = self.surface_service.extract_subsurf(surface.vertices, surface.triangles, iVmask)
@@ -299,7 +302,8 @@ class SubparcellationService(object):
             iV_con = numpy.in1d(iV, con_verts_idx)
             # Calculate total area only of "con" surface:
             lbl_area = self.compute_surface_area(verts_lbl, faces_lbl, iV_con)
-            print annotation.region_names[iL]+" total area = " + str(lbl_area) + " mm2"
+            print(annotation.region_names[iL]+" total area = " + str(
+                lbl_area) + " mm2")
             # If no further parcellation is needed
             if lbl_area < 1.5*parc_area:
                 # Just add this label to the new annotation as it stands:
@@ -308,33 +312,37 @@ class SubparcellationService(object):
                 # and change the output indices
                 out_lab[iV] = nL
                 nL += 1
-                print "Added " + annotation.region_names[iL] + " as it stands because its connectivity area is less than 1.5 times the target average parcel area"
+                print("Added " + annotation.region_names[iL] + " as it stands because its connectivity area is less than 1.5 times the target average parcel area")
                 continue
             # Get all different (dis)connected components
             nComponents, components, comp_area = self.connected_surface_components(verts_lbl,faces_lbl, dist,mask=iV_con)
             nComponents=len(comp_area)
-            print str(nComponents)+" connected components in total of "+comp_area+"mm2 area, respectively"
+            print(str(nComponents)+" connected components in total of "
+                                   ""+comp_area+"mm2 area, respectively")
             nParcels=0
             parcels=-numpy.ones(components.shape,dtype='i')
             too_small_parcels=dict()
             for iC in range(nComponents):
                 iCompVerts = components == iC
                 nCompVerts=numpy.sum(iCompVerts)
-                print "Treating connected surface component "+str(iC)+" of area "+str(comp_area[iC])+"mm2"
+                print("Treating connected surface component "+str(iC)+" of "
+                                                                      "area "+str(comp_area[iC])+"mm2")
                 if comp_area[iC]<=1.5*parc_area:
                     if comp_area[iC]>=0.1*[parc_area]:
                         parcels[iCompVerts] = nParcels
                         nParcels+=1
-                        print "Directly assigned to parcel "+str(nParcels)+","
-                        print "because its area is within the limits of [0.1, 1.5] times the target average parcel area"
+                        print("Directly assigned to parcel "+str(nParcels)+",")
+                        print("because its area is within the limits of [0.1, 1.5] times the target average parcel area")
                     else:
-                        print "Too small surface component, i.e., less than 0.1 times the target average parcel area."
-                        print "It will inherit the identity of the closest parcel in terms of euclidean distance."
+                        print("Too small surface component, i.e., less than "
+                              "0.1 times the target average parcel area.")
+                        print("It will inherit the identity of the closest "
+                              "parcel in terms of euclidean distance.")
                         too_small_parcels[iC]=iCompVerts
                 else:
-                    print "Clustering will run for this surface component"
+                    print("Clustering will run for this surface component")
                     if structural_connectivity_constraint:
-                        print "Forming the structural connectivity constraint matrix..."
+                        print("Forming the structural connectivity constraint matrix...")
                         connectivity = dist[iCompVerts, :][:, iCompVerts].astype('single')
                         connectivity[connectivity>0.0] = 1.0
                     else:
@@ -342,22 +350,24 @@ class SubparcellationService(object):
                     # Initialize affinity matrix with zeros
                     affinity = numpy.zeros((nCompVerts, nCompVerts)).astype('single')
                     if con_sim_aff>0:
-                        print "Computing the connectivity similarity affinity matrix..."
+                        print("Computing the connectivity similarity affinity matrix...")
                         #...for this component, first normalized in [0,1] and then weighted by con_sim_aff:
                         affinity+=con_sim_aff*self.compute_consim_affinity(verts_lbl[iCompVerts,:],vox,voxxzy,con,cras).astype('single')
                     if geod_dist_aff>0:
-                        print "Computing the geodesic distance affinity matrix..."
+                        print("Computing the geodesic distance affinity "
+                              "matrix...")
                         # ...normalized in [0,1], and add it to the affinity metric with the correct weight
                         affinity += geod_dist_aff*self.compute_geodesic_dist_affinity(dist[iCompVerts, :][:, iCompVerts].todense()).astype('single')
-                    print "Running clustering..."
+                    print("Running clustering...")
                     clusters=self.run_clustering(affinity,parc_area,connectivity=connectivity)
                     clusters_labels=numpy.unique(clusters)
                     nClusters=len(clusters_labels)
                     parcels[iCompVerts] = clusters_labels+nParcels
                     nParcels+=nClusters
-                    print str(nClusters) + ' parcels created for this component'
+                    print(str(nClusters) + ' parcels created for this '
+                                           'component')
             parcel_labels=range(nParcels)
-            print "Dealing now with too small surface components..."
+            print("Dealing now with too small surface components...")
             for (iC,iCompVerts) in too_small_parcels.items():
                 comp_to_parcel_mindist=1000.0 #this is 1 meter long!
                 assign_to_parcel=-1
@@ -368,7 +378,8 @@ class SubparcellationService(object):
                         comp_to_parcel_mindist=temp_dist
                         assign_to_parcel=iP
                 parcels[iCompVerts]=assign_to_parcel
-                print "Component "+str(iC)+" assigned to parcel "+str(assign_to_parcel)+" with a minimum euclidean distance of "+ str(comp_to_parcel_mindist)+"mm"
+                print("Component "+str(iC)+" assigned to parcel "+str(
+                    assign_to_parcel)+" with a minimum euclidean distance of "+ str(comp_to_parcel_mindist)+"mm")
             # Create the new annotation for these sub-labels:
             (names_lbl,ctab_lbl)=self.gen_new_parcel_annots(parcel_labels,annotation.region_names[iL],annotation.regions_color_table[iL, numpy.newaxis])
             # Add the new label names
@@ -380,15 +391,17 @@ class SubparcellationService(object):
             out_lab[iV] = nL + parcels
             for iP in range(nParcels):
                 iParcVerts=parcels==iP
-                print 'parcel '+names_lbl[iP]+ 'of connectivity area ' + self.compute_surface_area(verts_lbl,faces_lbl,mask=numpy.logical_and(iParcVerts,iV_con)) + 'mm2'
-                print "and of total area "+ self.compute_surface_area(verts_lbl,faces_lbl,mask=iParcVerts) + 'mm2'
+                print('parcel '+names_lbl[iP]+ 'of connectivity area ' +
+                      self.compute_surface_area(verts_lbl,faces_lbl,mask=numpy.logical_and(iParcVerts,iV_con)) + 'mm2')
+                print("and of total area "+ self.compute_surface_area(
+                    verts_lbl,faces_lbl,mask=iParcVerts) + 'mm2')
             nL += nParcels
-        print "Write output annotation file"
+        print("Write output annotation file")
         # Stack everything together
         out_ctab = numpy.vstack(out_ctab)
         out_names = numpy.hstack(out_names)
         # ...and write the annotation to a file
         if out_annot_path is None:
             out_annot_path = os.path.splitext(annot_path)[0] + str(parc_area) + ".annot"
-        print out_annot_path
+        print(out_annot_path)
         IOUtils.write_annotation(out_annot_path, Annotation(out_lab, out_ctab, out_names))
