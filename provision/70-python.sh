@@ -4,6 +4,23 @@
 set -eu
 set -o pipefail
 
+# if on macos check for ssl header, suggest install
+if [[ "$(uname)" == "Darwin" ]]
+then
+    echo "[70-python.sh] uname is Darwin, checking for openssl headers.."
+    if [[ -f /usr/local/opt/openssl/include/openssl/ssl.h ]]
+    then
+        echo "[70-python.sh] openssl headers present, good to go."
+        export LDFLAGS="-L/usr/local/opt/openssl/lib $LDFLAGS"
+        export CFLAGS="-I/usr/local/opt/openssl/include $CFLAGS"
+        echo "[70-python.sh] LDFLAGS=$LDFLAGS"
+        echo "[70-python.sh] CFLAGS=$CFLAGS"
+    else
+        echo "[70-python.sh] openssl headers not found."
+        echo "[70-python.sh] consider \`brew install openssl\`."
+    fi
+fi
+
 export PREFIX=${PREFIX:-"/work/env"}
 mkdir -p $PREFIX/src
 pushd $PREFIX/src
