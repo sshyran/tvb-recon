@@ -1,0 +1,7 @@
+
+before_script:
+  - PREFIX=$(pwd)/env bash provision/70-python.sh
+
+test_cov:
+    script:
+      - PATH=$(pwd)/env/bin:$PATH COV=yes bash bin/run-tests.sh
