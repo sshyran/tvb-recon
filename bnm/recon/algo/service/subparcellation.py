@@ -5,19 +5,21 @@ import numpy
 import scipy
 from scipy.spatial.distance import pdist, cdist, squareform
 from sklearn.cluster import AgglomerativeClustering
-from sklearn.manifold import SpectralEmbedding
-#from scipy.cluster import hierarchy
-#import bnm.recon.algo.tree as tree
-from bnm.recon.io.factory import IOUtils
-from bnm.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
-from bnm.recon.algo.service.surface import SurfaceService
-from bnm.recon.algo.service.volume import VolumeService
-from bnm.recon.model.annotation import Annotation
+from ...io.factory import IOUtils
+from ...algo.service.annotation import AnnotationService, DEFAULT_LUT
+from ...algo.service.surface import SurfaceService
+from ...algo.service.volume import VolumeService
+from ...model.annotation import Annotation
 
+
+# TODO should be parameters to relevant methods
 MIN_PARC_AREA_RATIO = 0.5
 MAX_PARC_AREA_RATIO = 1.5
 
+
+# TODO these should be broken out into smaller classes and functions
 class SubparcellationService(object):
+
     def __init__(self):
         self.annotation_service = AnnotationService()
         self.surface_service = SurfaceService()
@@ -246,7 +248,8 @@ class SubparcellationService(object):
             #i.e., wihtout having points that are closer to one cluster, but not connected to it.
             if numpy.all(n_assigned==0):
                 if connectivity is None:
-                    print "ERROR: 0 assignement although there are no connectivity constraints"
+                    print("ERROR: 0 assignement although there are no "
+                          "connectivity constraints")
                     return clusters
                 #...for each cluster
                 for ic in ics:
@@ -260,7 +263,7 @@ class SubparcellationService(object):
                         n_assigned[ic]=1
             #If there is still no assignment, meaning that these points are fully disconnected, through an error:
             if numpy.all(n_assigned == 0):
-                print "ERROR: fully disconnected points"
+                print("ERROR: fully disconnected points")
                 return clusters
             #Update the stopping criterion
             n_remaining = numpy.sum(clusters == -1)
@@ -348,13 +351,16 @@ class SubparcellationService(object):
                                                          area_mask=numpy.logical_and(surface.area_mask,curr_verts_mask))
             if clustering_mode == 'agglomerative':
                 curr_n_clusters = numpy.round(curr_area/parc_area).astype('i')
-                print "     Iteration " + str(iter) + "...aiming at clustering a white tract area of " \
-                      +str(curr_area) +" mm2 in "+ str(curr_n_clusters) + "  clusters..."
+                print("     Iteration " + str(iter) + "...aiming at "
+                                                      "clustering a white tract area of "
+                      +str(curr_area) +" mm2 in "+ str(curr_n_clusters) + "  "
+                                                                          "clusters...")
                 curr_clusters=self.agglomerative_clustering(curr_affinity, n_clusters=curr_n_clusters,
                                                             connectivity=curr_connectivity)
             elif clustering_mode == 'divisive':
-                print "     Iteration " + str(iter) + "...aiming at clustering a white tract area of " \
-                      +str(curr_area) +" mm2 in 2 clusters..."
+                print("     Iteration " + str(iter) + "...aiming at "
+                                                      "clustering a white tract area of "
+                      +str(curr_area) +" mm2 in 2 clusters...")
                 curr_clusters=self.divisive_clustering(curr_affinity, connectivity=curr_connectivity,
                                                 surface=self.surface_service.extract_subsurf(surface, curr_verts_mask))
             #and loop through the respective labels...
@@ -389,13 +395,15 @@ class SubparcellationService(object):
                     #...add it to the queue for further clustering:
                     verts2cluster.append(numpy.array(subcluster_mask))
                     curr_too_big += 1
-            print " ...returned " + str(curr_accept) + " accepted, " \
-                      +  str(curr_too_small) + " too small, and " + str(curr_too_big) + " too big clusters"
+            print(" ...returned " + str(curr_accept) + " accepted, "
+                      +  str(curr_too_small) + " too small, and " + str(
+                curr_too_big) + " too big clusters")
         #If any too small clusters, prepare the distance matrix:
         if n_too_small > 0:
-            print " ...Assigning now " + str(n_too_small) + " too small clusters to the closest clusters in affinity space..."
+            print(" ...Assigning now " + str(n_too_small) + " too small "
+                                                            "clusters to the closest clusters in affinity space...")
             if connectivity is not None:
-                print "...subject to structural connectivity constraints..."
+                print("...subject to structural connectivity constraints...")
                 connectivity_temp = connectivity.todense()
                 connectivity_temp[connectivity == 0] = 100.0
             #...and loop over them:
@@ -421,7 +429,8 @@ class SubparcellationService(object):
                 clusters[too_small[i_small_cluster]] = assign_to_cluster
             del connectivity_temp
         clusters_areas=[]
-        print " ...Finally, checking that all clusters are fully connected and calculating final white tract areas..."
+        print(" ...Finally, checking that all clusters are fully connected "
+              "and calculating final white tract areas...")
         for i_cluster in clusters_labels:
             (n_components, _, comp_area) = \
                 self.surface_service.connected_surface_components(surface=surface, connectivity=connectivity,
@@ -513,7 +522,7 @@ class SubparcellationService(object):
         n_out_labels = int(0)
         # For every annotation name:
         for i_label in range(len(annotation.region_names)):
-            print str(i_label) + ". " + annotation.region_names[i_label]
+            print(str(i_label) + ". " + annotation.region_names[i_label])
             # Get the mask of the respective vertices
             ind_verts_mask = annotation.region_mapping == i_label
             # ...and their indexes
@@ -529,7 +538,8 @@ class SubparcellationService(object):
                 # and change the output indices
                 region_mapping[ind_verts] = n_out_labels
                 n_out_labels += 1
-                print "Added "+annotation.region_names[i_label]+" as it stands..."
+                print("Added "+annotation.region_names[i_label]+" as it "
+                                                                "stands...")
                 continue
             # Get the vertices and faces of this label:
             label_surface = self.surface_service.extract_subsurf(surface, ind_verts_mask)
@@ -540,7 +550,8 @@ class SubparcellationService(object):
             label_surface.area_mask = numpy.in1d(ind_verts, con_verts_idx)
             # Calculate total area on_out_labels of "con" surface:
             lbl_area = self.surface_service.compute_surface_area(label_surface)
-            print annotation.region_names[i_label]+" total connectivity area = " + str(lbl_area) + " mm2"
+            print(annotation.region_names[i_label]+" total connectivity area "
+                                                   "= " + str(lbl_area) + " mm2")
             # If no further parcellation is needed
             if lbl_area < 1.5*parc_area:
                 # Just add this label to the new annotation as it stands:
@@ -549,47 +560,52 @@ class SubparcellationService(object):
                 # and change the output indices
                 region_mapping[ind_verts] = n_out_labels
                 n_out_labels += 1
-                print "Added " + annotation.region_names[i_label] + \
-                    " as it stands because its connectivity area is less than 1.5 times the target value"
+                print("Added " + annotation.region_names[i_label] +
+                    " as it stands because its connectivity area is less than 1.5 times the target value")
                 continue
             # Get all different (dis)connected components
             n_components, components, comp_area = \
                 self.surface_service.connected_surface_components(surface=label_surface, connectivity=dist)
             n_components=len(comp_area)
-            print str(n_components)+" connected components in total of "\
-                  +str(comp_area)+" mm2 connectivity area, respectively"
+            print(str(n_components)+" connected components in total of "
+                  +str(comp_area)+" mm2 connectivity area, respectively")
             n_parcels=int(0)
             parcels=-numpy.ones(components.shape,dtype='i')
             too_small_parcels=[]
             for i_comp in range(n_components):
                 i_comp_verts = components == i_comp
                 n_comp_verts=numpy.sum(i_comp_verts)
-                print "...Treating connected surface component "+str(i_comp)\
-                      +" of connectivity area "+str(comp_area[i_comp])+" mm2"
+                print("...Treating connected surface component "+str(i_comp)
+                      +" of connectivity area "+str(comp_area[i_comp])+" mm2")
                 if comp_area[i_comp]<=MAX_PARC_AREA_RATIO*parc_area:
                     if comp_area[i_comp]>=0.1*[parc_area]:
                         parcels[i_comp_verts] = n_parcels
                         n_parcels+=1
-                        print "...Directly assigned to parcel "+str(n_parcels)+","
-                        print "...because its connectivity area is within the limits of ["+ \
-                        str(MIN_PARC_AREA_RATIO)+ ", " + str(MAX_PARC_AREA_RATIO)+"] times the target value"
+                        print("...Directly assigned to parcel "+str(
+                            n_parcels)+",")
+                        print("...because its connectivity area is within the limits of ["+
+                        str(MIN_PARC_AREA_RATIO)+ ", " + str(
+                            MAX_PARC_AREA_RATIO)+"] times the target value")
                     else:
-                        print "...Too small surface component, i.e., less than 0.1 times the target average parcel area."
-                        print "...It will inherit the identity of the closest parcel in terms of euclidean distance."
+                        print("...Too small surface component, i.e., "
+                              "less than 0.1 times the target average parcel area.")
+                        print("...It will inherit the identity of the closest parcel in terms of euclidean distance.")
                         too_small_parcels.append(i_comp_verts)
                 else:
-                    print "...Clustering will run for surface component " + str(i_comp) \
-                          + " of region " + annotation.region_names[i_label]
+                    print("...Clustering will run for surface component " + str(i_comp)
+                          + " of region " + annotation.region_names[i_label])
                     # Extract the sub-surface of this component
                     component_surface = self.surface_service.extract_subsurf(label_surface, i_comp_verts)
                     if structural_connectivity_constraint:
-                        print "...Forming the structural connectivity constraint matrix..."
+                        print("...Forming the structural connectivity "
+                              "constraint matrix...")
                         connectivity = dist[i_comp_verts, :][:, i_comp_verts].astype('single')
                         connectivity[connectivity>0.0] = 1.0
                     else:
                         connectivity = None
                     if con_sim_aff>0:
-                        print "...Computing the connectivity dissimilarity affinity matrix..."
+                        print("...Computing the connectivity dissimilarity "
+                              "affinity matrix...")
                         affinity=\
                           self.surface_service.compute_consim_affinity(component_surface.vertices, vox, voxxzy, con, cras).astype('single')
                         # Convert cosine distance to cosine
@@ -603,28 +619,30 @@ class SubparcellationService(object):
                     else:
                         # Initialize affinity matrix with zeros
                         affinity = numpy.zeros((n_comp_verts, n_comp_verts)).astype('single')
-                    print "...Computing the geodesic distance affinity matrix..."
+                    print("...Computing the geodesic distance affinity "
+                          "matrix...")
                     if geod_dist_aff>0:
                         # Compute geodesic distance normalized in [0,1] and
                         # add it to the affinity metric with the correct weight
                         affinity += geod_dist_aff*self.surface_service.compute_geodesic_dist_affinity(
                             dist[i_comp_verts, :][:, i_comp_verts].todense(), norm='max').astype('single')
                     n_clusters = numpy.round(comp_area[i_comp] / parc_area).astype('i')
-                    print "...Running clustering, aiming at approximately "+str(n_clusters)+" clusters of " \
-                          + str(parc_area)+" mm2 connectivity area..."
+                    print("...Running clustering, aiming at approximately "+str(n_clusters)+" clusters of " \
+                          + str(parc_area)+" mm2 connectivity area...")
                     (clusters, n_clusters, clusters_labels, clusters_areas)=self.run_clustering(affinity,parc_area,
                                                                     component_surface, clustering_mode=clustering_mode,
                                                                     connectivity=connectivity)
-                    print "..." + str(n_clusters) + \
-                          ' parcels finally created for component ' + str(i_comp) \
-                          + " of region " + annotation.region_names[i_label] \
-                          + " with connectivity areas " + str(clusters_areas) + ", respectively"
+                    print("..." + str(n_clusters) +
+                          ' parcels finally created for component ' + str(i_comp)
+                          + " of region " + annotation.region_names[i_label]
+                          + " with connectivity areas " + str(clusters_areas)
+                          + ", respectively")
                     parcels[i_comp_verts] = clusters+n_parcels
                     n_parcels+=int(n_clusters)
             parcel_labels=range(n_parcels)
             for i_comp_verts in too_small_parcels:
-                print "...Dealing now with too small surface components..." \
-                      + " of region " + annotation.region_names[i_label]
+                print("...Dealing now with too small surface components..."
+                      + " of region " + annotation.region_names[i_label])
                 comp_to_parcel_mindist=1000.0 #this is 1 meter long!
                 assign_to_parcel=-1
                 for ip in parcel_labels:
@@ -635,8 +653,9 @@ class SubparcellationService(object):
                         comp_to_parcel_mindist=temp_dist
                         assign_to_parcel=ip
                 parcels[i_comp_verts]=assign_to_parcel
-                print "...Component "+str(i_comp)+" assigned to parcel "+str(assign_to_parcel)\
-                      +" with a minimum euclidean distance of "+ str(comp_to_parcel_mindist)+" mm"
+                print("...Component "+str(i_comp)+" assigned to parcel "+str(assign_to_parcel)
+                      +" with a minimum euclidean distance of "+ str(
+                    comp_to_parcel_mindist)+" mm")
             if n_parcels==1:
                 region_names.append(annotation.region_names[i_label])
                 region_color_table.append(annotation.regions_color_table[i_label, numpy.newaxis])
@@ -656,10 +675,11 @@ class SubparcellationService(object):
                 i_parc_verts=parcels==i_parcel
                 parc_area_con=self.surface_service.compute_surface_area(label_surface,
                                                   area_mask=numpy.logical_and(i_parc_verts,label_surface.area_mask))
-                print '...parcel '+names_lbl[i_parcel]+ ' of connectivity area ' + str(parc_area_con) + ' mm2'
+                print('...parcel '+names_lbl[i_parcel]+ ' of connectivity '
+                                                        'area ' + str(parc_area_con) + ' mm2')
                 parc_area_tot = self.surface_service.compute_surface_area(label_surface,area_mask=i_parc_verts)
-                print "...and of total area " + str(parc_area_tot)  + ' mm2'
-        print "Write output annotation file"
+                print("...and of total area " + str(parc_area_tot)  + ' mm2')
+        print("Write output annotation file")
         # Stack everything together
         region_color_table = numpy.vstack(region_color_table)
         region_names = numpy.hstack(region_names)

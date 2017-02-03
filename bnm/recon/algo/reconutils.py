@@ -3,7 +3,7 @@ import sys
 import warnings
 from bnm.recon.algo.service.surface import SurfaceService
 from bnm.recon.algo.service.volume import VolumeService
-from bnm.recon.algo.service.subparcelation import SubparcellationService
+from bnm.recon.algo.service.subparcellation import SubparcellationService
 from bnm.recon.algo.service.sensor import SensorService
 from bnm.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
 
