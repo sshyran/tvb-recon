@@ -23,9 +23,10 @@ class AnnotationIO(ABCAnnotationIO):
     """
 
     def read(self, annotation_path):
-        region_mapping, regions_color_table, region_names = read_annot(
-            annotation_path)
-        return Annotation(region_mapping, regions_color_table, region_names)
+
+        mapping, color_table, names = read_annot( annotation_path)
+        names = [name.decode('ascii') for name in names]
+        return Annotation(mapping, color_table, names)
 
     def write(self, out_annotation_path, annotation):
         write_annot(out_annotation_path, annotation.region_mapping, annotation.regions_color_table,
