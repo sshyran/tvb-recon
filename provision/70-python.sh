@@ -15,7 +15,6 @@ else
 fi
 
 j=6
-prefix=/work/env
 
 zver=1.2.11
 zlib_url=http://zlib.net/zlib-$zver.tar.gz
@@ -36,10 +35,10 @@ do
     if [[ $pkg == "bzip" ]]
     then
         make -j$j -f Makefile-libbz2_so
-        make -j$j install PREFIX=$prefix
+        make -j$j install PREFIX=$PREFIX
         cp libbz2.so* $PREFIX/lib
     else
-        ./configure --prefix=$prefix
+        ./configure --prefix=$PREFIX
         make -j$j
         make install
     fi
