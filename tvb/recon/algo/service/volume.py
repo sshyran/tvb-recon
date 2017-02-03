@@ -3,11 +3,11 @@
 import os
 import numpy
 import scipy.ndimage
-from .tvb.recon.logger import get_logger
-from .tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
-from .tvb.recon.io.factory import IOUtils
-from .tvb.recon.model.volume import Volume
-from .tvb.recon.model.constants import NPY_EXTENSION
+from tvb.recon.logger import get_logger
+from tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
+from tvb.recon.io.factory import IOUtils
+from tvb.recon.model.volume import Volume
+from tvb.recon.model.constants import NPY_EXTENSION
 
 
 class VolumeService(object):

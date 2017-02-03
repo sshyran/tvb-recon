@@ -2,8 +2,8 @@
 
 import nibabel
 import h5py
-from .tvb.recon.logger import get_logger
-from .tvb.recon.model.volume import Volume
+from tvb.recon.logger import get_logger
+from tvb.recon.model.volume import Volume
 
 
 class ABCVolumeIO(object):

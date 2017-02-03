@@ -3,9 +3,9 @@
 import nibabel
 import numpy
 import h5py
-from .tvb.recon.logger import get_logger
-from .tvb.recon.model.surface import Surface
-from .tvb.recon.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
+from tvb.recon.logger import get_logger
+from tvb.recon.model.surface import Surface
+from tvb.recon.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
 from nibabel.freesurfer.io import read_geometry, write_geometry
 from nibabel.gifti import GiftiDataArray
 from nibabel.gifti import GiftiImage

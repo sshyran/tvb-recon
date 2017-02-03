@@ -2,7 +2,7 @@
 
 import os
 import numpy
-from .tvb.recon.model.constants import CC_POINT_FILE
+from tvb.recon.model.constants import CC_POINT_FILE
 
 try:
     from io import StringIO

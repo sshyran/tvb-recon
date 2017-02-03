@@ -3,7 +3,7 @@
 import os
 import numpy
 from collections import OrderedDict
-from .tvb.recon.io.factory import IOUtils
+from tvb.recon.io.factory import IOUtils
 from datetime import datetime
 
 DEFAULT_LUT = 'FreeSurferColorLUT_INS_test.txt'

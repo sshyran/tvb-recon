@@ -11,7 +11,7 @@ import matplotlib
 matplotlib.use(os.environ.get('MPLBACKEND', 'Agg'))
 
 import pylab
-from .tvb.recon.model.surface import Surface
+from tvb.recon.model.surface import Surface
 
 
 class SensorService(object):

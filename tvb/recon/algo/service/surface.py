@@ -5,12 +5,12 @@ import os
 import gdist
 import numpy
 import scipy
-from .tvb.recon.io.factory import IOUtils
-from .tvb.recon.logger import get_logger
-from .tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
-from .tvb.recon.io.volume import VolumeIO
-from .tvb.recon.model.surface import Surface
-from .tvb.recon.model.annotation import Annotation
+from tvb.recon.io.factory import IOUtils
+from tvb.recon.logger import get_logger
+from tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
+from tvb.recon.io.volume import VolumeIO
+from tvb.recon.model.surface import Surface
+from tvb.recon.model.annotation import Annotation
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, shortest_path
 from sklearn.metrics.pairwise import paired_distances

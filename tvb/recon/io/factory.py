@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import os
-from .tvb.recon.io.annotation import H5AnnotationIO, AnnotationIO
-from .tvb.recon.io.surface import GiftiSurfaceIO, FreesurferIO, H5SurfaceIO
-from .tvb.recon.io.volume import VolumeIO, H5VolumeIO
-from .tvb.recon.model.constants import GIFTI_EXTENSION, H5_EXTENSION
+from tvb.recon.io.annotation import H5AnnotationIO, AnnotationIO
+from tvb.recon.io.surface import GiftiSurfaceIO, FreesurferIO, H5SurfaceIO
+from tvb.recon.io.volume import VolumeIO, H5VolumeIO
+from tvb.recon.model.constants import GIFTI_EXTENSION, H5_EXTENSION
 
 
 class IOUtils(object):
