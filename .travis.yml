@@ -2,7 +2,6 @@
 language: python
 os:
   - linux
-  - osx
 install:
   - bash provision/05-ssl-dev.sh
   - PREFIX=$(pwd)/env bash provision/70-python.sh
