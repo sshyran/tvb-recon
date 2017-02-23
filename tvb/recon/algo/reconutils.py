@@ -119,7 +119,7 @@ def node_connectivity_metric(
 
 
 def periodic_xyz_for_object(lab, val, aff, bw=0.1, doplot=False):
-    sensorService.periodic_xyz_for_object(lab, val, aff, bw, doplot)
+    return sensorService.periodic_xyz_for_object(lab, val, aff, bw, doplot)
 
 
 if __name__ == '__main__':

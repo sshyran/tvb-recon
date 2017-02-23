@@ -42,7 +42,7 @@ mri_binarize --i CT_in_T1.nii.gz --o masked_CT.nii --min $threshold --mask mask.
 mri_binarize --i masked_CT.nii --o dilated_CT.nii --min 0.5 --dilate 4 --erode 2
 
 # label dilated mask and apply to mask
-python <<EOF
+python3 <<EOF
 from tvb.recon.algo.reconutils import label_with_dilation
 label_with_dilation("masked_CT.nii", "dilated_CT.nii", "labeled_CT.nii")
 EOF
@@ -57,6 +57,7 @@ cat > schema.txt <<EOF
 1 GCA'
 etc
 EOF
+# labels w/o names will be ignored
 
 # find contact positions
 python<<EOF
