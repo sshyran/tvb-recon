@@ -6,6 +6,7 @@ CLI information for fs.
 
 import os
 import enum
+from typing import Union
 from .core import BaseCLI, BaseEnv, BaseFlags
 
 
@@ -84,6 +85,14 @@ class mri_binarize(BaseFsCLI):
 
     """
     exe = 'mri_binarize'
+    
+    class Flags(BaseFsCLI.Flags):
+        in_file = '--i'
+        out_file = '--o'
+        min_value = '--min'
+        mask_file = '--mask'
+        dilate = '--dilate'
+        erode = '--erode'
 
 
 class mri_convert(BaseFsCLI):
@@ -243,7 +252,6 @@ def reconstruct(subjid: str,
     return args
 
 
-
 def convert(in_, out,
             out_ori: mri_convert.OutOri=None,
             resamp_type: mri_convert.ResampleType=None):
@@ -264,3 +272,29 @@ def convert(in_, out,
         args += [cmd.Flags.resample_type, resamp_type]
     args += [in_, out]
     return args
+
+
+# TODO in/out typed Union[Volume, VolFile] 
+def binarize(in_file: str, out_file: str,
+             min_val: Union[int, float, NoneType]=None,
+             erode: int=0,
+             dilate: int=0,
+             mask_file: Union[str, NoneType]=None,
+            ):
+    "Binarize image, possibly with dilation or erosion."
+    cmd = mri_binarize
+    args = [
+        cmd.exe,
+        cmd.Flags.in_file, in_file,
+        cmd.Flags.out_file, out_file,
+     
+    if min_val is not None:
+        args += [cmd.Flags.min_val, str(min_val)]
+    if erode > 0:
+        args += [cmd.Flags.erode, str(erode)]
+    if dilate > 0:
+        args += [cmd.Flags.dilate, str(dilate)]
+    if mask_file is not None:
+        args += [cmd.Flags.mask_file, mask_file]
+    return args
+        
