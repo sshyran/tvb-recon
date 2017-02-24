@@ -15,14 +15,16 @@ fi
 
 git clone https://github.com/openmeeg/openmeeg
 
-pushd openmeeg
+pushd openmeeg/OpenMEEG
 
 mkdir build && cd build
-cmake -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release \
+cmake -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Release \
     -DENABLE_PYTHON=OFF -DCMAKE_INSTALL_PREFIX=$PREFIX \
+    -DBLASLAPACK_IMPLEMENTATION="OpenBLAS" \
     -DBUILD_DOCUMENTATION=OFF -DBUILD_TUTORIALS=OFF ..
 
-make -j6
+make -j
+make test
 make install
 
 popd

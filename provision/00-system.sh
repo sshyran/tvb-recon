@@ -20,7 +20,8 @@ wget -O- http://neuro.debian.net/lists/xenial.de-m.full | sudo tee /etc/apt/sour
 apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
 apt-get update
 
-apt-get install -y cmake tcsh libeigen3-dev liblapack-dev libblas-dev libssl-dev fsl-complete
+apt-get install -y cmake tcsh libeigen3-dev liblapack-dev libblas-dev libssl-dev fsl-complete \
+	libhdf5-dev zlib1g-dev libmatio-dev libopenblas-dev
 
 # setup work partition
 if [[ -d $PREFIX ]]
