@@ -88,7 +88,7 @@ class SensorService(object):
         bn, bxi_ = numpy.histogram(
             xi, numpy.r_[min(xi) - 0.5: max(xi) + 0.5: bw])
         bxi = bxi_[:-1] + bw / 2.0
-        w = numpy.r_[1.0: 6.0: 1000j]
+        w = numpy.r_[2.0: 6.0: 1000j]
         f = (1.0 / w)[:, None]
         Bf = (numpy.exp(-2 * numpy.pi * 1j * bxi * f) * bn * bw).sum(axis=-1)
         i_peak = numpy.argmax(numpy.abs(Bf))
