@@ -4,7 +4,7 @@ import os
 import numpy
 from tvb.recon.algo.service.surface import SurfaceService
 from tvb.recon.io.factory import IOUtils
-from tvb.recon.io.tvb import TVBWriter
+from tvb.recon.io.tvb_writer import TVBWriter
 
 
 class TVBService(object):

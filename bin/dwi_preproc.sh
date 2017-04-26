@@ -3,29 +3,33 @@
 #DWI preprocessing
 
 #Push dir to dwi folder
+if [ ! -d $DMR ]
+then
+    mkdir $DMR
+fi
 pushd $DMR
 
 if [ "$DWI_REVERSED" = "no" ]
 then
 
     #Convert dicoms or nifti to .mif
-    mrconvert $DWI ./dwi_raw.mif
+    mrconvert $DWI ./dwi_raw.mif -force
 
     #Preprocess with eddy correct (no topup applicable here)
     #ap direction doesn’t matter in this case if NOT reversed
-    dwipreproc $DWI_PE_DIR ./dwi_raw.mif ./dwi.mif -rpe_none -nthreads $MRTRIX_THRDS
+    dwipreproc $DWI_PE_DIR ./dwi_raw.mif ./dwi.mif -rpe_none -nthreads $MRTRIX_THRDS -force
 
 else
     if [ "$DWI_INPUT_FRMT" = "dicom" ]
     then
         #ELSEIF reversed:
-        mrchoose 0 mrconvert $DATA/DWI ./dwi_raw.mif
-        mrchoose 1 mrconvert $DATA/DWI ./dwi_raw_re.mif
+        mrchoose 0 mrconvert $DATA/DWI ./dwi_raw.mif -force
+        mrchoose 1 mrconvert $DATA/DWI ./dwi_raw_re.mif -force
     else
-        mronvert $DATA/DWI/dwi_raw.nii.gz ./dwi_raw.mif
-        mronvert $DATA/DWI/dwi_raw_re.nii.gz ./dwi_raw_re.mif
+        mronvert $DATA/DWI/dwi_raw.nii.gz ./dwi_raw.mif -force
+        mronvert $DATA/DWI/dwi_raw_re.nii.gz ./dwi_raw_re.mif -force
     fi
-    dwipreproc $DWI_PE_DIR ./dwi_raw.mif ./dwi.mif -rpe_pair ./dwi_raw.mif ./dwi_raw_re.mif -nthreads $MRTRIX_THRDS
+    dwipreproc $DWI_PE_DIR ./dwi_raw.mif ./dwi.mif -rpe_pair ./dwi_raw.mif ./dwi_raw_re.mif -nthreads $MRTRIX_THRDS -force
 fi
 
 #Create brain mask

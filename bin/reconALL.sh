@@ -36,9 +36,9 @@ fi
 
 #Visual checks (screeshots) for brain, pial, white,
 mri_convert $MRI/T1.mgz $MRI/T1-in-surf.nii.gz
-if [ ! -d SNAPSHOTS_DIRECTORY_ENVIRON_VAR ]
+if [ ! -d $SNAPSHOTS_DIRECTORY_ENVIRON_VAR ]
 then
-    mkdir SNAPSHOTS_DIRECTORY_ENVIRON_VAR
+    mkdir $SNAPSHOTS_DIRECTORY_ENVIRON_VAR
 fi
 #source $SNAPSHOT vol_white_pial $MRI/T1-in-surf.nii.gz
 python -m $SNAPSHOT --snapshot_name t1_white_pial --center_surface vol_white_pial $MRI/T1-in-surf.nii.gz

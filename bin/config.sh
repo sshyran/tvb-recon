@@ -19,10 +19,10 @@ export PYTHONPATH
 echo PYTHONPATH=$PYTHONPATH
 
 #Subject codename, to be the name of the respective folder as well
-SUBJECT=TVB1
+SUBJECT=TVB2
 export SUBJECT
 echo SUBJECT=$SUBJECT
-
+cd
 #Maybe make a copy of freesurfer subjects’ directory for each subject
 # copy target to avoid modifying it
 #CURRENT_SUBJECTS_DIR=/Users/dionperd/VEP/CC/$SUBJECT
@@ -54,13 +54,13 @@ export SUBJ_DIR
 echo SUBJ_DIR=$SUBJ_DIR
 
 #The path to screenshots folder
-SNAPSHOTS_DIRECTORY_ENVIRON_VAR=$SUBJECTS_DIR/snapshots
-export SNAPSHOTS_DIRECTORY_ENVIRON_VAR
-if [ ! -d SNAPSHOTS_DIRECTORY_ENVIRON_VAR ]
+FIGS=$SUBJECTS_DIR/snapshots
+export FIGS
+if [ ! -d $FIGS ]
 then
-    mkdir SNAPSHOTS_DIRECTORY_ENVIRON_VAR
+    mkdir $FIGS
 fi
-echo SNAPSHOTS_DIRECTORY_ENVIRON_VAR=$SNAPSHOTS_DIRECTORY_ENVIRON_VAR
+echo FIGS=$FIGS
 
 
 #INPUTS:
@@ -151,19 +151,19 @@ echo LABEL=$LABEL
 #aseg surfs folder location:
 ASEG_SURFS=$SUBJ_DIR/surf/aseg_surfs
 export ASEG_SURFS
-if [ ! -d $ASEG_SURFS ]
-then
-    mkdir $ASEG_SURFS
-fi
+#if [ ! -d $ASEG_SURFS ]
+#then
+#    mkdir $ASEG_SURFS
+#fi
 echo ASEG_SURFS=$ASEG_SURFS
 
 #Cortical and sub-cortical segmentation folder:
 SEGMENT=$SUBJ_DIR/segment
 export SEGMENT
-if [ ! -d $SEGMENT ]
-then
-    mkdir $SEGMENT
-fi
+#if [ ! -d $SEGMENT ]
+#then
+#    mkdir $SEGMENT
+#fi
 echo SEGMENT=$SEGMENT
 
 DEFAULT_APARC="aparc"
@@ -232,10 +232,10 @@ then
     #The path to tdi mask folder
     TDI=$SEGMENT/tdi
     export TDI
-    if [ ! -d $TDI ]
-    then
-        mkdir $TDI
-    fi
+    #if [ ! -d $TDI ]
+    #then
+    #    mkdir $TDI
+    #fi
     echo TDI=$TDI
 
     #tdi threshold for volumes in terms of number of tracks
@@ -249,10 +249,10 @@ then
     #The path to gwi mask folder
     GWI=$SEGMENT/gwi
     export GWI
-    if [ ! -d $GWI ]
-    then
-        mkdir $GWI
-    fi
+    #if [ ! -d $GWI ]
+    #then
+    #    mkdir $GWI
+    #fi
     echo GWI=$GWI
 
     #masking of volumes using grey-white matter interfaces
@@ -320,10 +320,10 @@ echo TRGSUBJECT=$TRGSUBJECT
 
 #dmr folder location:
 DMR=$SUBJ_DIR/dmr
-if [ ! -d $DMR ]
-then
-mkdir $DMR
-fi
+#if [ ! -d $DMR ]
+#then
+#    mkdir $DMR
+#fi
 export DMR
 echo DMR=$DMR
 
@@ -408,21 +408,21 @@ echo CT_ELEC_INTENSITY_TH=$CT_ELEC_INTENSITY_TH
 #SEEG
 #TODO: quite similar for EEG and MEG...
 #SEEG folder location:
-SEEG=$SUBJ_DIR/seeg
-export SEEG
-if [ ! -d $SEEG ]
-then
-mkdir $SEEG
-fi
-echo SEEG=$SEEG
+SEEG_FOLDER=$SUBJ_DIR/seeg
+export SEEG_FOLDER
+#if [ ! -d $SEEG_FOLDER ]
+#then
+#    mkdir $SEEG_FOLDER
+#fi
+echo SEEG_FOLDER=$SEEG_FOLDER
 
 #SEEG sensor file location:
-SEEG_FILE=$SEEG/SEEG_sensors.txt
+SEEG_FILE=$SEEG_FOLDER/SEEG_sensors.txt
 export SEEG_FILE
 echo SEEG_FILE=$SEEG_FILE
 
 #SEEG sensors' positions location:
-SEEG_XZY=$SEEG/seeg_xyz.txt
+SEEG_XZY=$SEEG_FOLDER/seeg_xyz.txt
 export SEEG_XZY
 echo SEEG_XZY=$SEEG_XZY
 

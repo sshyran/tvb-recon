@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ ! -d $ASEG_SURFS ]
+then
+    mkdir $ASEG_SURFS
+fi
+
 TMP=$ASEG_SURFS/tmp
 if [ ! -d $TMP ]
 then
