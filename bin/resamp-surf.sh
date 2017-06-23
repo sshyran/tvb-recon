@@ -47,7 +47,7 @@ else
     #If we are inside the freesurfer home folder, we need to make a copy to protect the original
     if [ $SUBJECTS_DIR = $FREESURFER_HOME/subjects ]
     then
-        cp -r $FREESURFER_HOME/subjects/$TRGSUBJECT $SUBJECTS_DIR/$SUBJECT-$TRGSUBJECT§
+        cp -r $FREESURFER_HOME/subjects/$TRGSUBJECT $SUBJECTS_DIR/$SUBJECT-$TRGSUBJECT
         export TRGSUBJECT=$SUBJECT-$TRGSUBJECT
         echo "TRGSUBJECT="
         echo TRGSUBJECT
@@ -92,7 +92,7 @@ do
     mris_decimate -d $DECIM_FACTOR $SURF/$h.aseg $SURF/$h.aseg-$TRGSUBJECT
 done
 #Screenshot:
-python -m $SNAPSHOT --center_surface --snapshot_name resamp_aseg_t1_$TRGSUBJECT vol_surf $MRI/T1.nii.gz $SURF/{lh,rh}.aseg $SURF/{lh,rh}.aseg-$TRGSUBJECT
+python -m $SNAPSHOT --center_surface --snapshot_name resamp_aseg_t1_$TRGSUBJECT vol_surf $MRI/T1.nii.gz $SURF/lh.aseg $SURF/rh.aseg $SURF/lh.aseg-$TRGSUBJECT $SURF/rh.aseg-$TRGSUBJECT
 
 # clean up but NOT before all annotations have been also downsampled!
 #rm -r $trg
