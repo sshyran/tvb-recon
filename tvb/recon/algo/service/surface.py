@@ -300,7 +300,7 @@ class SurfaceService(object):
             if os.path.exists(this_surf_path):
                 ind_l, = numpy.where(label_indices == label_index)
                 out_annotation.add_region_names_and_colors(
-                    numpy.array(label_names)[ind_l],
+                    label_names[int(ind_l)],
                     color_table[ind_l, :])
                 label_number += 1
                 surfaces.append(IOUtils.read_surface(this_surf_path, False))
