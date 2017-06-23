@@ -61,7 +61,7 @@ def create_tvb_dataset(subj_dir: os.PathLike,
 
 
 if __name__ == "__main__":
-    subject_dir, source_lut, out_surf = sys.argv[1:]
+    subject_dir, out_surf = sys.argv[1:]
 
     create_tvb_dataset(
         subject_dir,
