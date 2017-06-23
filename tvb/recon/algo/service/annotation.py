@@ -29,8 +29,8 @@ def default_lut_path():
     return os.path.join(here, '..', '..', '..', '..', 'data',
                         'FreeSurferColorLUT.txt')
 
-class AnnotationService(object):
 
+class AnnotationService(object):
     def default_lut(self):
         return DEFAULT_LUT
 
@@ -58,6 +58,8 @@ class AnnotationService(object):
                         temp[3]), int(temp[4]), int(temp[5])]
                 except:
                     pass
+            return labels, names, colors
+
         elif key_mode == 'name':
             labels = OrderedDict()
             colors = OrderedDict()
@@ -73,7 +75,7 @@ class AnnotationService(object):
                         temp[3]), int(temp[4]), int(temp[5])]
                 except:
                     pass
-        return labels, names, colors
+            return labels, names, colors
 
     def rgb_to_fs_magic_number(self, rgb):
         """
@@ -121,12 +123,12 @@ class AnnotationService(object):
         # If this is an already existing lut file:
         lut_path = lut_path or default_lut_path()
         if os.path.isfile(lut_path):
-            #...find the maximum label in it and add 1
+            # ...find the maximum label in it and add 1
             add_lbl = 1 + \
-                numpy.max(self.read_lut(
-                    lut_path=lut_path, key_mode='label')[0])
+                      numpy.max(self.read_lut(
+                          lut_path=lut_path, key_mode='label')[0])
         else:
-            #...else, set it to 0
+            # ...else, set it to 0
             add_lbl = 0
         with open(lut_path, 'a') as fd:
             if add_lbl == 0:
@@ -152,7 +154,8 @@ class AnnotationService(object):
             # NOTE!!! that the fourth and fifth columns of color_table are not
             # used in the lut file!!!
             for name, (r, g, b, dummy1, dummy2), lbl in \
-                    zip(annotation.region_names, annotation.regions_color_table, list(range(len(annotation.region_names)))):
+                    zip(annotation.region_names, annotation.regions_color_table,
+                        list(range(len(annotation.region_names)))):
                 fd.write('%d\t%s\t%d %d %d %d\n' %
                          (lbl + add_lbl, prefix + name, r, g, b, 0))
 
@@ -189,11 +192,23 @@ class AnnotationService(object):
             labels.append(labels_dict[add_string + name])
         return labels
 
-    def annot_to_conn_conf(self, annot_path, conn_conf_path):
-        annotation = IOUtils.read_annotation(annot_path)
+    def annot_to_conn_conf(self, annot_path, type, conn_conf_path, first_idx=0):
+        annotation_lh = IOUtils.read_annotation(os.path.join(annot_path, "lh." + type + ".annot"))
+        annotation_rh = IOUtils.read_annotation(os.path.join(annot_path, "rh." + type + ".annot"))
         with open(conn_conf_path, 'w') as fd:
-            for id, name in enumerate(annotation.region_names):
-                fd.write('%d\t%s\n' % (id, name))
+            for id, name in enumerate(annotation_lh.region_names):
+                if type == "aparc" and name != "unknown":
+                    name = "lh-" + name
+                fd.write('%d\t%s\n' % (id + first_idx, name))
+            first_idx += len(annotation_lh.region_names)
+            for id, name in enumerate(annotation_rh.region_names):
+                if (name == "unknown"):
+                    first_idx -= 1
+                    continue
+                if type == "aparc" and name != "unknown":
+                    name = "rh-" + name
+                fd.write('%d\t%s\n' % (id + first_idx, name))
+        return first_idx + len(annotation_rh.region_names)
 
     def read_input_labels(self, labels=None, ctx=None):
         if labels is not None:
@@ -251,3 +266,58 @@ class AnnotationService(object):
         ctab_lbl[:, 4] = numpy.array([self.rgb_to_fs_magic_number(ctab_lbl[icl, :3])
                                       for icl in range(n_parcels)])
         return (names_lbl, ctab_lbl)
+
+    def generate_cort_and_subcort_lut(self, subj_dir: os.PathLike):
+        cort_lut_file = os.path.join(subj_dir, "TrgCortLUT.txt")
+        subcort_lut_file = os.path.join(subj_dir, "TrgSubcortLUT.txt")
+        idx = self.annot_to_conn_conf(os.path.join(subj_dir, "label"), "aparc", cort_lut_file)
+        self.annot_to_conn_conf(os.path.join(subj_dir, "label"), "aseg", subcort_lut_file, idx)
+
+        return cort_lut_file, subcort_lut_file
+
+    def generate_region_mapping(self, lh_annot, rh_annot, lut_file, type):
+        trg_subcort_names_labels_dict, _, _ = self.read_lut(lut_file, "name")
+
+        lh_region_mapping = []
+        rh_region_mapping = []
+
+        for lbl in lh_annot.region_mapping:
+            if type == "aparc" and lh_annot.region_names[lbl] != "unknown":
+                prefix_lh = "lh-"
+            else:
+                prefix_lh = ""
+            lh_region_mapping.append(trg_subcort_names_labels_dict.get(prefix_lh + lh_annot.region_names[lbl]))
+
+        for lbl in rh_annot.region_mapping:
+            if type == "aparc" and rh_annot.region_names[lbl] != "unknown":
+                prefix_rh = "rh-"
+            else:
+                prefix_rh = ""
+            rh_region_mapping.append(trg_subcort_names_labels_dict.get(prefix_rh + rh_annot.region_names[lbl]))
+
+        region_mapping = lh_region_mapping + rh_region_mapping
+        return region_mapping
+
+    #We could need something like this for aparc+aseg volume
+    # def generate_region_index_mapping_from_luts(self, color_lut_src_file: os.PathLike, subj_dir: os.PathLike):
+    #     _, src_labels_names_dict, _ = self.read_lut(color_lut_src_file, key_mode="label")
+    #
+    #     trg_cort_file, trg_subcort_file = self.generate_cort_and_subcort_lut(subj_dir)
+    #
+    #     trg_cort_names_labels_dict, _, _ = self.read_lut(trg_cort_file, "name")
+    #     trg_subcort_names_labels_dict, _, _ = self.read_lut(trg_subcort_file, "name")
+    #
+    #     trg_cort_names_labels_dict.update(trg_subcort_names_labels_dict)
+    #
+    #     src_to_trg = dict()
+    #     for src_ind, src_name in src_labels_names_dict.items():
+    #         trg_ind = trg_cort_names_labels_dict.get(src_name, None)
+    #         if trg_ind is not None:
+    #             src_to_trg[src_ind] = trg_ind
+    #
+    #     unknown_ind = trg_cort_names_labels_dict.get('Unknown', 0)  # zero as the default unknown area
+    #
+    #     file_dict = open("/WORK/FS/freesurfer/subjects/TVB2C/mapping_fs_custom_lut.txt", "a")
+    #     file_dict.write(str(src_to_trg))
+    #
+    #     return src_to_trg, unknown_ind
