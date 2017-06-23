@@ -2,7 +2,7 @@
 
 import os
 from tvb.recon.io.annotation import H5AnnotationIO, AnnotationIO
-from tvb.recon.io.surface import GiftiSurfaceIO, FreesurferIO, H5SurfaceIO
+from tvb.recon.io.surface import GiftiSurfaceIO, FreesurferIO, H5SurfaceIO, ZipSurfaceIO
 from tvb.recon.io.volume import VolumeIO, H5VolumeIO
 from tvb.recon.model.constants import GIFTI_EXTENSION, H5_EXTENSION
 
@@ -23,6 +23,8 @@ class IOUtils(object):
         else:
             if extension == H5_EXTENSION:
                 return H5SurfaceIO()
+            elif extension == ".zip":
+                return ZipSurfaceIO()
             else:
                 return FreesurferIO()
 

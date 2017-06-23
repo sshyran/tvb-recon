@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+import tempfile
+from zipfile import ZipFile
 
 import nibabel
 import numpy
 import h5py
+import os
 from tvb.recon.logger import get_logger
 from tvb.recon.model.surface import Surface
 from tvb.recon.model.constants import CENTER_RAS_FS_SURF, CENTER_RAS_GIFTI_SURF
@@ -212,3 +215,26 @@ class H5SurfaceIO(ABCSurfaceIO):
         triangles = h5_file['/triangles'][()]
         h5_file.close()
         return Surface(vertices, triangles)
+
+
+class ZipSurfaceIO(ABCSurfaceIO):
+    """
+    This writes contents of surface to txt files and zips them
+    """
+
+    def write(self, surface, filename):
+        tmpdir = tempfile.TemporaryDirectory()
+
+        file_vertices = os.path.join(tmpdir.name, 'vertices.txt')
+        file_triangles = os.path.join(tmpdir.name, 'triangles.txt')
+        file_normals = os.path.join(tmpdir.name, 'normals.txt')
+
+        numpy.savetxt(file_vertices, surface.vertices, fmt='%.6f %.6f %.6f')
+        numpy.savetxt(file_triangles, surface.triangles, fmt='%d %d %d')
+        numpy.savetxt(file_normals, surface.vertex_normals(), fmt='%.6f %.6f %.6f')
+
+        with ZipFile(filename, 'w') as zip_file:
+            zip_file.write(file_vertices, os.path.basename(file_vertices))
+            zip_file.write(file_triangles, os.path.basename(file_triangles))
+            zip_file.write(file_normals, os.path.basename(file_normals))
+
