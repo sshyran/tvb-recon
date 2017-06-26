@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import subprocess
 
 import sys
 
@@ -11,6 +12,7 @@ from tvb.recon.model.mapping import Mapping
 
 def create_tvb_dataset(cort_surf_direc: os.PathLike,
                        label_direc: os.PathLike,
+                       mri_direc: os.PathLike,
                        out_surfaces_dir: os.PathLike = None):
     annotation_io = IOUtils.annotation_io_factory("lh.aparc.annot")
     annot_cort_lh = annotation_io.read(os.path.join(label_direc, "lh.aparc.annot"))
@@ -43,8 +45,11 @@ def create_tvb_dataset(cort_surf_direc: os.PathLike,
         with open(os.path.join(out_surfaces_dir, "region_mapping_subcort.txt"), "w") as f:
             for rm_val in mapping.subcort_region_mapping:
                 f.write("%s\n" % rm_val)
-        io_utils = IOUtils()
 
+        subprocess.call(
+            ["mri_info", "--vox2ras", os.path.join(mri_direc, "T1.mgz"), "--o", os.path.join(out_surf, "vox2ras.txt")])
+
+        io_utils = IOUtils()
         surf_subcort_filename = "surface_subcort.zip"
         surface_io = io_utils.surface_io_factory(surf_subcort_filename)
         surface_io.write(full_subcort_surface, os.path.join(out_surfaces_dir, surf_subcort_filename))
@@ -69,5 +74,6 @@ if __name__ == "__main__":
     create_tvb_dataset(
         os.path.join(subject_dir, "surf"),
         os.path.join(subject_dir, "label"),
+        os.path.join(subject_dir, "mri"),
         out_surf
     )
