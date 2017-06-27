@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import numpy
 from tvb.recon.model.annotation import Annotation
 
 
@@ -89,6 +89,13 @@ class Mapping(object):
                 region_mapping.append(subcort_inv_lut_dict.get(annot.region_names[lbl]))
 
         self.subcort_region_mapping = region_mapping
+
+    def is_cortical_region_mapping(self):
+        return list(numpy.ones(len(self.cort_lut_dict), dtype=int)) + list(numpy.zeros(len(self.subcort_lut_dict),
+                                                                             dtype=int))
+
+    def get_all_regions(self):
+        return list(self.cort_lut_dict.keys()) + list(self.subcort_lut_dict.keys())
 
     # This is useful for aseg_aparc mapping
     def get_index_mapping_for_lut(self, lut_idx_to_name_dict: dict) -> dict:

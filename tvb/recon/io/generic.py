@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import tempfile
+from zipfile import ZipFile
+
 import numpy
 from tvb.recon.model.constants import CC_POINT_FILE
 
@@ -41,3 +44,33 @@ class GenericIO(object):
         string_io = StringIO()
         numpy.savetxt(string_io, out_array, fmt)
         return string_io
+
+    def write_connectivity_zip(self, conn_dir, weigths, tracts, cortical, region_names, centers, areas, orientations):
+        tmpdir = tempfile.TemporaryDirectory()
+
+        file_weigths = os.path.join(tmpdir.name, 'weights.txt')
+        file_tracts = os.path.join(tmpdir.name, 'tract_lengths.txt')
+        file_cortical = os.path.join(tmpdir.name, 'cortical.txt')
+        file_centers = os.path.join(tmpdir.name, 'centers.txt')
+        file_areas = os.path.join(tmpdir.name, 'areas.txt')
+        file_orientations = os.path.join(tmpdir.name, 'average_orientations.txt')
+
+        numpy.savetxt(file_weigths, weigths, fmt='%d')
+        numpy.savetxt(file_tracts, tracts, fmt='%.3f')
+        numpy.savetxt(file_cortical, cortical, fmt='%d')
+
+        with open(str(file_centers), "w") as f:
+            for idx, (val_x, val_y, val_z) in enumerate(centers):
+                f.write("%s %.2f %.2f %.2f\n" % (region_names[idx], val_x, val_y, val_z))
+
+        numpy.savetxt(file_areas, areas, fmt='%.2f')
+        numpy.savetxt(file_orientations, orientations, fmt='%.2f %.2f %.2f')
+
+        filename = os.path.join(conn_dir, "connectivity.zip")
+        with ZipFile(filename, 'w') as zip_file:
+            zip_file.write(file_weigths, os.path.basename(file_weigths))
+            zip_file.write(file_tracts, os.path.basename(file_tracts))
+            zip_file.write(file_cortical, os.path.basename(file_cortical))
+            zip_file.write(file_centers, os.path.basename(file_centers))
+            zip_file.write(file_areas, os.path.basename(file_areas))
+            zip_file.write(file_orientations, os.path.basename(file_orientations))

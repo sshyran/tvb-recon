@@ -82,8 +82,7 @@ class SurfaceService(object):
             elif len(out_surface.center_ras) == 0:
                 out_surface.center_ras = surfaces[i_srf].center_ras
             elif numpy.any(out_surface.center_ras != surfaces[i_srf].center_ras):
-                raise ValueError(
-                    "At least two surfaces have different -non empty- centers in RAS coordinates!")
+                self.logger.warn("At least two surfaces have different -non empty- centers in RAS coordinates!")
             # #TODO: think about how to better merge these fields
             # for attribute in ["vertices_coord_system", "generic_metadata", "vertices_metadata", "triangles_metadata"]:
             #     out_surface_attributes[attribute].append(getattr(surfaces[i_srf],attribute))
@@ -202,7 +201,7 @@ class SurfaceService(object):
         n_e = edges.shape[0]
         # For symmetric output...
         if symmetric:
-            #...create for the moment the "double" edges
+            # ...create for the moment the "double" edges
             edges2 = numpy.r_[edges, edges[:, [1, 0]]]
         if metric is None:
             # For symmetric output...
@@ -217,7 +216,7 @@ class SurfaceService(object):
                 con = con.todense()
         else:
             d = paired_distances(vertices[edges[:, 0]], vertices[
-                                 edges[:, 1]], metric)
+                edges[:, 1]], metric)
             # For symmetric output...
             if symmetric:
                 # double also d...
@@ -307,7 +306,7 @@ class SurfaceService(object):
                 out_annotation.add_region_mapping(
                     label_number * numpy.ones((surfaces[-1].n_vertices,), dtype='int64'))
         out_surface = self.merge_surfaces(surfaces)
-        #out_annotation.regions_color_table = numpy.squeeze(numpy.array(out_annotation.regions_color_table).astype('i'))
+        # out_annotation.regions_color_table = numpy.squeeze(numpy.array(out_annotation.regions_color_table).astype('i'))
 
         IOUtils.write_surface(out_surf_path, out_surface)
         IOUtils.write_annotation(annot_path, out_annotation)
@@ -399,12 +398,12 @@ class SurfaceService(object):
                 for vertex_index in range(verts_indices_of_label.size):
                     # Generate the specific grid centered at the voxel ijk
                     ijk_grid = grid + \
-                        numpy.tile(ijk[vertex_index, :], (n_grid, 1))
+                               numpy.tile(ijk[vertex_index, :], (n_grid, 1))
 
                     # Remove voxels outside the volume
                     indexes_within_limits = numpy.all([(ijk_grid[:, 0] >= 0), (ijk_grid[:, 0] < volume.dimensions[0]),
                                                        (ijk_grid[:, 1] >= 0), (ijk_grid[
-                                                           :, 1] < volume.dimensions[1]),
+                                                                               :, 1] < volume.dimensions[1]),
                                                        (ijk_grid[:, 2] >= 0), (ijk_grid[:, 2] < volume.dimensions[2])],
                                                       axis=0)
                     ijk_grid = ijk_grid[indexes_within_limits, :]
@@ -483,3 +482,43 @@ class SurfaceService(object):
               str(numpy.size(numpy.unique(v2n))) + " distinct voxel nodes")
         affinity = con[v2n - 1, :][:, v2n - 1]
         return affinity
+
+    def compute_areas_for_regions(self, regions: list, surface: Surface, region_mapping: list) -> numpy.array:
+        """Compute the areas of given regions"""
+
+        region_surface_area = numpy.zeros(len(regions))
+        avt = numpy.array(surface.get_vertex_triangles())
+        # NOTE: Slightly overestimates as it counts overlapping border triangles,
+        #       but, not really a problem provided triangle-size << region-size.
+        for i, k in enumerate(regions):
+            regs = list(map(set, avt[numpy.array(region_mapping) == k]))
+            if len(regs) == 0:
+                continue
+            region_triangles = set.union(*regs)
+            if region_triangles:
+                region_surface_area[i] = surface.get_triangle_areas()[list(region_triangles)].sum()
+
+        return region_surface_area
+
+    def compute_orientations_for_regions(self, regions, surface, region_mapping) -> numpy.ndarray:
+        """Compute the orientation of given regions from vertex_normals and region mapping"""
+
+        average_orientation = numpy.zeros((len(regions), 3))
+        vertex_normals = surface.vertex_normals()
+        # Average orientation of the region
+        for i, k in enumerate(regions):
+            orient = vertex_normals[numpy.array(region_mapping) == k, :]
+            if orient.shape[0] > 0:
+                avg_orient = numpy.mean(orient, axis=0)
+                average_orientation[i, :] = avg_orient / numpy.sqrt(numpy.sum(avg_orient ** 2))
+
+        return average_orientation
+
+    def compute_centers_for_regions(self, regions, surface, region_mapping) -> numpy.ndarray:
+        region_centers = numpy.zeros((len(regions), 3))
+        for i, k in enumerate(regions):
+            vert = surface.vertices[numpy.array(region_mapping) == k, :]
+            if vert.shape[0] > 0:
+                region_centers[i, :] = numpy.mean(vert, axis=0)
+
+        return region_centers

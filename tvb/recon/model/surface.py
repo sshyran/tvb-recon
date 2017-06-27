@@ -63,6 +63,7 @@ class Surface(object):
         self.vertices = numpy.r_[self.vertices, new_vertices]
         n_new_vertices = new_vertices.shape[0]
         self.n_vertices += n_new_vertices
+        self.n_triangles += new_triangles.shape[0]
         if len(new_area_mask) == 0:
             new_area_mask = numpy.ones((n_new_vertices,), dtype='bool')
         numpy.r_[self.area_mask, new_area_mask]
@@ -137,3 +138,55 @@ class Surface(object):
             norm /= numpy.sqrt((norm ** 2).sum())
             vn[i] = norm
         return vn
+
+    def get_vertex_triangles(self):
+        vertex_triangles = [[] for _ in range(self.n_vertices)]
+        for k in range(self.n_triangles):
+            vertex_triangles[self.triangles[k, 0]].append(k)
+            vertex_triangles[self.triangles[k, 1]].append(k)
+            vertex_triangles[self.triangles[k, 2]].append(k)
+        return vertex_triangles
+
+    def _get_triangle_normals(self):
+        """Calculates triangle normals."""
+        tri_u = self.vertices[self.triangles[:, 1], :] - self.vertices[self.triangles[:, 0], :]
+        tri_v = self.vertices[self.triangles[:, 2], :] - self.vertices[self.triangles[:, 0], :]
+        tri_norm = numpy.cross(tri_u, tri_v)
+
+        try:
+            triangle_normals = tri_norm / numpy.sqrt(numpy.sum(tri_norm ** 2, axis=1))[:, numpy.newaxis]
+        except FloatingPointError:
+            # TODO: NaN generation would stop execution, however for normals this case could maybe be
+            #  handled in a better way.
+            triangle_normals = tri_norm
+        return triangle_normals
+
+    def _get_triangle_angles(self):
+        """
+        Calculates the inner angles of all the triangles which make up a surface
+        """
+        verts = self.vertices
+        # TODO: Should be possible with arrays, ie not nested loops...
+        # A short profile indicates this function takes 95% of the time to compute normals
+        # (this was a direct translation of some old matlab code)
+        angles = numpy.zeros((self.n_triangles, 3))
+        for tt in range(self.n_triangles):
+            triangle = self.triangles[tt, :]
+            for ta in range(3):
+                ang = numpy.roll(triangle, -ta)
+                angles[tt, ta] = numpy.arccos(numpy.dot(
+                    (verts[ang[1], :] - verts[ang[0], :]) /
+                    numpy.sqrt(numpy.sum((verts[ang[1], :] - verts[ang[0], :]) ** 2, axis=0)),
+                    (verts[ang[2], :] - verts[ang[0], :]) /
+                    numpy.sqrt(numpy.sum((verts[ang[2], :] - verts[ang[0], :]) ** 2, axis=0))))
+
+        return angles
+
+    def get_triangle_areas(self):
+        """Calculates the area of triangles making up a surface."""
+        tri_u = self.vertices[self.triangles[:, 1], :] - self.vertices[self.triangles[:, 0], :]
+        tri_v = self.vertices[self.triangles[:, 2], :] - self.vertices[self.triangles[:, 0], :]
+        tri_norm = numpy.cross(tri_u, tri_v)
+        triangle_areas = numpy.sqrt(numpy.sum(tri_norm ** 2, axis=1)) / 2.0
+        triangle_areas = triangle_areas[:, numpy.newaxis]
+        return triangle_areas
