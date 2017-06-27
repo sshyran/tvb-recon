@@ -3,7 +3,7 @@ import numpy
 from tvb.recon.model.annotation import Annotation
 
 
-class Mapping(object):
+class MappingService(object):
     CORT_TYPE = "aparc"
     SUBCORT_TYPE = "aseg"
 

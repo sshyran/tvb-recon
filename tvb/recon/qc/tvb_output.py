@@ -2,14 +2,13 @@
 
 import os
 import subprocess
-
 import sys
 
 import numpy
+from tvb.recon.algo.service.mapping_service import MappingService
 from tvb.recon.algo.service.surface import SurfaceService
 from tvb.recon.io.factory import IOUtils
 from tvb.recon.io.generic import GenericIO
-from tvb.recon.model.mapping import Mapping
 
 
 def create_tvb_dataset(cort_surf_direc: os.PathLike,
@@ -26,7 +25,7 @@ def create_tvb_dataset(cort_surf_direc: os.PathLike,
     annot_subcort_lh = annotation_io.read(os.path.join(label_direc, "lh.aseg.annot"))
     annot_subcort_rh = annotation_io.read(os.path.join(label_direc, "rh.aseg.annot"))
 
-    mapping = Mapping(annot_cort_lh, annot_cort_rh, annot_subcort_lh, annot_subcort_rh)
+    mapping = MappingService(annot_cort_lh, annot_cort_rh, annot_subcort_lh, annot_subcort_rh)
     mapping.generate_region_mapping_for_cort_annot(annot_cort_lh, annot_cort_rh)
     mapping.generate_region_mapping_for_subcort_annot(annot_subcort_lh, annot_subcort_rh)
 
