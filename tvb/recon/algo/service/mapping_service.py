@@ -38,13 +38,29 @@ class MappingService(object):
 
     def _prepare_cort_lut_dict(self, dict_lh: dict, dict_rh: dict, idx: int) -> dict:
         lut_dict = dict()
+        has_cc_anterior = False
         lut_dict[0] = self.unknown_region
-        lut_dict.update(
-            {idx + key: self.fs_prefix_lh + val for (key, val) in dict_lh.items() if val != self.unknown_region})
+        for (key, val) in dict_lh.items():
+            if (val != self.unknown_region):
+                if (val == "corpuscallosum"):
+                    has_cc_anterior = True
+                    continue
+                if has_cc_anterior:
+                    lut_dict.update({idx + key - 1: self.fs_prefix_lh + val})
+                else:
+                    lut_dict.update({idx + key: self.fs_prefix_lh + val})
 
+        has_cc_anterior = False
         idx += len(lut_dict)
-        lut_dict.update(
-            {idx + key - 1: self.fs_prefix_rh + val for (key, val) in dict_rh.items() if val != self.unknown_region})
+        for (key, val) in dict_rh.items():
+            if (val != self.unknown_region):
+                if (val == "corpuscallosum"):
+                    has_cc_anterior = True
+                    continue
+                if has_cc_anterior:
+                    lut_dict.update({idx + key - 2: self.fs_prefix_rh + val})
+                else:
+                    lut_dict.update({idx + key - 1: self.fs_prefix_rh + val})
 
         return lut_dict
 
@@ -58,7 +74,10 @@ class MappingService(object):
         return lut_dict
 
     def _invert_color_lut(self, color_lut_dict: dict) -> dict:
-        return {val: key for (key, val) in color_lut_dict.items()}
+        inv_dict = {}
+        for (key, val) in color_lut_dict.items():
+            inv_dict.update({val: key})
+        return inv_dict
 
     def generate_region_mapping_for_cort_annot(self, lh_annot: Annotation, rh_annot: Annotation):
         region_mapping = list()
@@ -69,14 +88,20 @@ class MappingService(object):
             if current_region_name == self.unknown_region:
                 region_mapping.append(cort_inv_lut_dict.get(current_region_name))
             else:
-                region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_lh + current_region_name))
+                if (current_region_name == "corpuscallosum"):
+                    region_mapping.append(0)
+                else:
+                    region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_lh + current_region_name))
 
         for lbl in rh_annot.region_mapping:
             current_region_name = rh_annot.region_names[lbl]
             if current_region_name == self.unknown_region:
                 region_mapping.append(cort_inv_lut_dict.get(current_region_name))
             else:
-                region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_rh + current_region_name))
+                if (current_region_name == "corpuscallosum"):
+                    region_mapping.append(0)
+                else:
+                    region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_rh + current_region_name))
 
         self.cort_region_mapping = region_mapping
 
@@ -92,10 +117,16 @@ class MappingService(object):
 
     def is_cortical_region_mapping(self):
         return list(numpy.ones(len(self.cort_lut_dict), dtype=int)) + list(numpy.zeros(len(self.subcort_lut_dict),
-                                                                             dtype=int))
+                                                                                       dtype=int))
 
     def get_all_regions(self):
         return list(self.cort_lut_dict.keys()) + list(self.subcort_lut_dict.keys())
+
+    def get_entire_lut(self):
+        dict = {}
+        dict.update(self.cort_lut_dict)
+        dict.update(self.subcort_lut_dict)
+        return dict
 
     # This is useful for aseg_aparc mapping
     def get_index_mapping_for_lut(self, lut_idx_to_name_dict: dict) -> dict:
