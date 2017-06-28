@@ -128,16 +128,17 @@ class MappingService(object):
         dict.update(self.subcort_lut_dict)
         return dict
 
-    # This is useful for aseg_aparc mapping
-    def get_index_mapping_for_lut(self, lut_idx_to_name_dict: dict) -> dict:
+    def get_mapping_for_aparc_aseg(self, lut_idx_to_name_dict: dict) -> dict:
         trg_names_labels_dict = self._invert_color_lut(self.cort_lut_dict)
         trg_names_labels_dict.update(self._invert_color_lut(self.subcort_lut_dict))
 
         src_to_trg = dict()
-        src_to_trg[0] = 0
         for trg_name, trg_ind in trg_names_labels_dict.items():
-            src_ind = lut_idx_to_name_dict.get(trg_name, None)
-            if src_ind is not None:
-                src_to_trg[src_ind] = trg_ind
+            if trg_name is self.unknown_region:
+                src_to_trg[0] = -1
+            else:
+                src_ind = lut_idx_to_name_dict.get(trg_name, None)
+                if src_ind is not None:
+                    src_to_trg[src_ind] = trg_ind
 
         return src_to_trg

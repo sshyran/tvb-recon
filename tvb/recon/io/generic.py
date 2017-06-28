@@ -74,3 +74,8 @@ class GenericIO(object):
             zip_file.write(file_centers, os.path.basename(file_centers))
             zip_file.write(file_areas, os.path.basename(file_areas))
             zip_file.write(file_orientations, os.path.basename(file_orientations))
+
+    def write_dict_to_txt_file(self, lut_dict, out_file):
+        with open(out_file, "w") as f:
+            for key, val in lut_dict.items():
+                f.write("%s %s\n" % (key, val))
