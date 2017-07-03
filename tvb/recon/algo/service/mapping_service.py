@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy
+from tvb.recon.logger import get_logger
 from tvb.recon.model.annotation import Annotation
 
 
@@ -9,7 +10,11 @@ class MappingService(object):
 
     fs_prefix_lh = "ctx-lh-"
     fs_prefix_rh = "ctx-rh-"
+    unknown_subcort_region = "Unknown"
     unknown_region = "unknown"
+    corpuscallosum_region = "corpuscallosum"
+
+    logger = get_logger(__name__)
 
     def __init__(self, cort_annot_lh: Annotation, cort_annot_rh: Annotation, subcort_annot_lh: Annotation,
                  subcort_annot_rh: Annotation):
@@ -31,36 +36,36 @@ class MappingService(object):
 
     def _get_dict_from_annot(self, annot: Annotation) -> dict:
         annot_dict = dict()
-        for idx, name in enumerate(annot.region_names):
+        vtx_rm = annot.region_mapping
+        vtx_rm_unique_vals = numpy.unique(vtx_rm)
+
+        region_names = annot.region_names
+
+        for unwanted_region in (self.unknown_region, self.corpuscallosum_region):
+            if unwanted_region in region_names and region_names.index(unwanted_region) in vtx_rm_unique_vals:
+                self.logger.warn("This annotation contains vertices for %s" % unwanted_region)
+
+        region_names_to_keep = [region_names[idx] for idx in range(len(region_names)) if idx in vtx_rm_unique_vals]
+
+        outside_range_values = list(set(vtx_rm_unique_vals) - set(range(len(region_names) - 1)))
+        if len(outside_range_values) > 0:
+            self.logger.warn("This annotation contains vertices associated to values outside the interval [ %d, %d]"
+                             % (0, len(region_names) - 1))
+            self.logger.warn("These values are: %s" % outside_range_values)
+            self.logger.info("Vertices mapped to these values will be mapped to %s" % self.unknown_region)
+            region_names_to_keep.append(self.unknown_region)
+
+        for idx, name in enumerate(region_names_to_keep):
             annot_dict[idx] = name
 
         return annot_dict
 
     def _prepare_cort_lut_dict(self, dict_lh: dict, dict_rh: dict, idx: int) -> dict:
         lut_dict = dict()
-        has_cc_anterior = False
-        lut_dict[0] = self.unknown_region
-        for (key, val) in dict_lh.items():
-            if (val != self.unknown_region):
-                if (val == "corpuscallosum"):
-                    has_cc_anterior = True
-                    continue
-                if has_cc_anterior:
-                    lut_dict.update({idx + key - 1: self.fs_prefix_lh + val})
-                else:
-                    lut_dict.update({idx + key: self.fs_prefix_lh + val})
 
-        has_cc_anterior = False
+        lut_dict.update({idx + key: self.fs_prefix_lh + val for (key, val) in dict_lh.items()})
         idx += len(lut_dict)
-        for (key, val) in dict_rh.items():
-            if (val != self.unknown_region):
-                if (val == "corpuscallosum"):
-                    has_cc_anterior = True
-                    continue
-                if has_cc_anterior:
-                    lut_dict.update({idx + key - 2: self.fs_prefix_rh + val})
-                else:
-                    lut_dict.update({idx + key - 1: self.fs_prefix_rh + val})
+        lut_dict.update({idx + key: self.fs_prefix_rh + val for (key, val) in dict_rh.items()})
 
         return lut_dict
 
@@ -85,23 +90,11 @@ class MappingService(object):
 
         for lbl in lh_annot.region_mapping:
             current_region_name = lh_annot.region_names[lbl]
-            if current_region_name == self.unknown_region:
-                region_mapping.append(cort_inv_lut_dict.get(current_region_name))
-            else:
-                if (current_region_name == "corpuscallosum"):
-                    region_mapping.append(0)
-                else:
-                    region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_lh + current_region_name))
+            region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_lh + current_region_name))
 
         for lbl in rh_annot.region_mapping:
             current_region_name = rh_annot.region_names[lbl]
-            if current_region_name == self.unknown_region:
-                region_mapping.append(cort_inv_lut_dict.get(current_region_name))
-            else:
-                if (current_region_name == "corpuscallosum"):
-                    region_mapping.append(0)
-                else:
-                    region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_rh + current_region_name))
+            region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_rh + current_region_name))
 
         self.cort_region_mapping = region_mapping
 
@@ -134,7 +127,7 @@ class MappingService(object):
 
         src_to_trg = dict()
         for trg_name, trg_ind in trg_names_labels_dict.items():
-            if trg_name is self.unknown_region:
+            if trg_name is self.unknown_subcort_region:
                 src_to_trg[0] = -1
             else:
                 src_ind = lut_idx_to_name_dict.get(trg_name, None)
@@ -142,3 +135,7 @@ class MappingService(object):
                     src_to_trg[src_ind] = trg_ind
 
         return src_to_trg
+
+    def get_mapping_for_connectome_generation(self):
+        non_zero_keys_dict = ({key + 1: val for (key, val) in self.get_entire_lut().items()})
+        return non_zero_keys_dict
