@@ -79,3 +79,8 @@ class GenericIO(object):
         with open(out_file, "w") as f:
             for key, val in lut_dict.items():
                 f.write("%s %s\n" % (key, val))
+
+    def write_list_to_txt_file(self, list, out_file):
+        with open(str(out_file), "w") as f:
+            for val in list:
+                f.write("%s\n" % val)

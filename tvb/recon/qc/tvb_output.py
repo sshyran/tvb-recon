@@ -21,12 +21,11 @@ def create_tvb_dataset(cort_surf_direc: os.PathLike,
                        tracts_file: os.PathLike,
                        fs_color_lut: os.PathLike,
                        out_dir: os.PathLike):
-    annotation_io = IOUtils.annotation_io_factory("lh.aparc.annot")
-    annot_cort_lh = annotation_io.read(os.path.join(label_direc, "lh.aparc.annot"))
-    annot_cort_rh = annotation_io.read(os.path.join(label_direc, "rh.aparc.annot"))
+    annot_cort_lh = IOUtils.read_annotation(os.path.join(label_direc, "lh.aparc.annot"))
+    annot_cort_rh = IOUtils.read_annotation(os.path.join(label_direc, "rh.aparc.annot"))
 
-    annot_subcort_lh = annotation_io.read(os.path.join(label_direc, "lh.aseg.annot"))
-    annot_subcort_rh = annotation_io.read(os.path.join(label_direc, "rh.aseg.annot"))
+    annot_subcort_lh = IOUtils.read_annotation(os.path.join(label_direc, "lh.aseg.annot"))
+    annot_subcort_rh = IOUtils.read_annotation(os.path.join(label_direc, "rh.aseg.annot"))
 
     mapping = MappingService(annot_cort_lh, annot_cort_rh, annot_subcort_lh, annot_subcort_rh)
     mapping.generate_region_mapping_for_cort_annot(annot_cort_lh, annot_cort_rh)
@@ -34,35 +33,30 @@ def create_tvb_dataset(cort_surf_direc: os.PathLike,
 
     surface_service = SurfaceService()
 
-    surface_io = IOUtils.surface_io_factory("lh-centered.pial")
-    surf_cort_lh = surface_io.read(os.path.join(cort_surf_direc, "lh-centered.pial"), False)
-    surf_cort_rh = surface_io.read(os.path.join(cort_surf_direc, "rh-centered.pial"), False)
+    surf_cort_lh = IOUtils.read_surface(os.path.join(cort_surf_direc, "lh-centered.pial"), False)
+    surf_cort_rh = IOUtils.read_surface(os.path.join(cort_surf_direc, "rh-centered.pial"), False)
 
     full_cort_surface = surface_service.merge_surfaces([surf_cort_lh, surf_cort_rh])
 
-    surf_subcort_lh = surface_io.read(os.path.join(cort_surf_direc, "lh-centered.aseg"), False)
-    surf_subcort_rh = surface_io.read(os.path.join(cort_surf_direc, "rh-centered.aseg"), False)
+    surf_subcort_lh = IOUtils.read_surface(os.path.join(cort_surf_direc, "lh-centered.aseg"), False)
+    surf_subcort_rh = IOUtils.read_surface(os.path.join(cort_surf_direc, "rh-centered.aseg"), False)
 
     full_subcort_surface = surface_service.merge_surfaces([surf_subcort_lh, surf_subcort_rh])
 
-    with open(str(os.path.join(out_dir, "region_mapping_cort.txt")), "w") as f:
-        for rm_val in mapping.cort_region_mapping:
-            f.write("%s\n" % rm_val)
-    with open(str(os.path.join(out_dir, "region_mapping_subcort.txt")), "w") as f:
-        for rm_val in mapping.subcort_region_mapping:
-            f.write("%s\n" % rm_val)
+    genericIO = GenericIO()
+
+    genericIO.write_list_to_txt_file(mapping.cort_region_mapping, os.path.join(out_dir, "region_mapping_cort.txt"))
+    genericIO.write_list_to_txt_file(mapping.subcort_region_mapping,
+                                     os.path.join(out_dir, "region_mapping_subcort.txt"))
 
     vox2ras_file = os.path.join(out_dir, "vox2ras.txt")
     subprocess.call(["mri_info", "--vox2ras", os.path.join(mri_direc, "T1.nii.gz"), "--o", vox2ras_file])
 
-    io_utils = IOUtils()
     surf_subcort_filename = "surface_subcort.zip"
-    surface_io = io_utils.surface_io_factory(surf_subcort_filename)
-    surface_io.write(full_subcort_surface, os.path.join(out_dir, surf_subcort_filename))
+    IOUtils.write_surface(os.path.join(out_dir, surf_subcort_filename), full_subcort_surface)
 
     surf_cort_filename = "surface_cort.zip"
-    surface_io = io_utils.surface_io_factory(surf_cort_filename)
-    surface_io.write(full_cort_surface, os.path.join(out_dir, surf_cort_filename))
+    IOUtils.write_surface(os.path.join(out_dir, surf_cort_filename), full_cort_surface)
 
     os.remove(vox2ras_file)
 
@@ -89,7 +83,6 @@ def create_tvb_dataset(cort_surf_direc: os.PathLike,
     tracts_matrix = numpy.loadtxt(str(tracts_file), dtype='f', delimiter=' ')
     tracts_matrix += tracts_matrix.T
 
-    genericIO = GenericIO()
     genericIO.write_connectivity_zip(out_dir, weights_matrix, tracts_matrix,
                                      mapping.is_cortical_region_mapping(), region_names, region_centers,
                                      region_areas, region_orientations)
@@ -99,13 +92,12 @@ def create_tvb_dataset(cort_surf_direc: os.PathLike,
     rm_index_dict = mapping.get_mapping_for_aparc_aseg(lut_dict)
 
     aparc_aseg_file = os.path.join(mri_direc, "aparc+aseg.nii.gz")
-    volume_io = IOUtils.volume_io_factory(aparc_aseg_file)
-    aparc_aseg_volume = volume_io.read(aparc_aseg_file)
+    aparc_aseg_volume = IOUtils.read_volume(aparc_aseg_file)
 
     volume_service = VolumeService()
     aparc_aseg_cor_volume = volume_service.change_labels_of_aparc_aseg(aparc_aseg_volume, rm_index_dict,
                                                                        weights_matrix.shape[0])
-    volume_io.write(os.path.join(out_dir, "aparc+aseg-cor.nii.gz"), aparc_aseg_cor_volume)
+    IOUtils.write_volume(os.path.join(out_dir, "aparc+aseg-cor.nii.gz"), aparc_aseg_cor_volume)
 
     shutil.copy2(os.path.join(mri_direc, "T1.nii.gz"), out_dir)
 
