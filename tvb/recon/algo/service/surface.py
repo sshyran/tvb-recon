@@ -77,6 +77,8 @@ class SurfaceService(object):
             out_surface.add_vertices_and_triangles(surfaces[i_srf].vertices,
                                                    surfaces[i_srf].triangles,
                                                    surfaces[i_srf].area_mask)
+            if out_surface.get_main_metadata() is None:
+                out_surface.set_main_metadata(surfaces[i_srf].get_main_metadata())
             if len(surfaces[i_srf].center_ras) == 0:
                 pass
             elif len(out_surface.center_ras) == 0:
