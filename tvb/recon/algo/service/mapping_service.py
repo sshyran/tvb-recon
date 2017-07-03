@@ -47,7 +47,7 @@ class MappingService(object):
 
         region_names_to_keep = [region_names[idx] for idx in range(len(region_names)) if idx in vtx_rm_unique_vals]
 
-        outside_range_values = list(set(vtx_rm_unique_vals) - set(range(len(region_names) - 1)))
+        outside_range_values = list(set(vtx_rm_unique_vals) - set(range(len(region_names))))
         if len(outside_range_values) > 0:
             self.logger.warn("This annotation contains vertices associated to values outside the interval [ %d, %d]"
                              % (0, len(region_names) - 1))
