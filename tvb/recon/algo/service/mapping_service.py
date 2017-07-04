@@ -127,11 +127,13 @@ class MappingService(object):
 
         src_to_trg = dict()
         for trg_name, trg_ind in trg_names_labels_dict.items():
-            if trg_name is self.unknown_subcort_region:
-                src_to_trg[0] = -1
-            else:
-                src_ind = lut_idx_to_name_dict.get(trg_name, None)
-                if src_ind is not None:
+            src_ind = lut_idx_to_name_dict.get(trg_name, None)
+            if src_ind is not None:
+                if trg_name == self.unknown_subcort_region:
+                    self.logger.warn(
+                        "The subcortical surfaces contain the region: %s and it will be mapped to -1 for aparc+aseg" % self.unknown_subcort_region)
+                    src_to_trg[src_ind] = -1
+                else:
                     src_to_trg[src_ind] = trg_ind
 
         return src_to_trg
