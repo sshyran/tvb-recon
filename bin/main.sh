@@ -24,7 +24,7 @@ sh $CODE/gen_aseg_surf.sh
 #->It needs aparc, surfs (pial, white, inflated), annotations and T1.{mgz,nii.gz}, as well as aseg surfs and annotations
 #!!Source in order to be able to export/modify the environment variable $TRGSUBJECT
 source $CODE/resamp-surf.sh
-#<-It returns all surfs and annotations dowsampled
+#<-It returns all surfs and annotations downsampled
 
 #Step 2.1.1: resampling default parcellation annotations
 #->It needs annotations and the environment variable $TRGSUBJECT modified by the previous step
@@ -74,7 +74,7 @@ sh $CODE/connectome_gen_parcel.sh
 sh $CODE/connectome_gen_vol.sh
 #<-It returns vol-counts$STRMLNS_SIFT_NO-v$VOX.{csv,npy} and vol-mean_tract_lengths$STRMLNS_SIFT_NO-v$VOX.{csv,npy}, as well as tdi_ends-v$VOX.nii.gz and tdi_lbl-v$VOX.nii.gz
 
-#Step 2.4: CT scan
+#Step 2.3: CT scan
 #->It needs CT scan (dicoms or niftii) and T1, brain, aparc+aseg
 sh $CODE/seeg-ct.sh
 #<-It returns seeg_xyz.txt

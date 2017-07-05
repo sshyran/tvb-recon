@@ -3,7 +3,8 @@
 #T1 input pre-processing
 if [ "$T1_INPUT_FRMT" = "dicom" ]
 then
-    mri_convert $T1 $T1/t1_raw.nii.gz --out_orientation RAS -rt nearest
+    mrconvert $T1/DICOM/ $T1/t1_raw.nii.gz
+    mri_convert $T1/t1_raw.nii.gz $T1/t1_raw.nii.gz --out_orientation RAS -rt nearest
     T1=$T1/t1_raw.nii.gz
 fi
 #ENDIF
@@ -16,7 +17,8 @@ if [ "$T2_FLAG" = "yes" ]
 then
     if [ "$T2_INPUT_FRMT" = "dicom" ]
     then
-        mrconvert $T2 $T2/t2_raw.nii.gz
+        mrconvert $T2/DICOM/ $T2/t2_raw.nii.gz
+        mri_convert $T2/t2_raw.nii.gz $T2/t2_raw.nii.gz --out_orientation RAS -rt nearest
         T2=$T2/t2_raw.nii.gz
     fi
     recon-all s ${SUBJECT} -T2 $T2 -T2pial -autorecon3 -parallel -openmp $OPENMP_THRDS
@@ -34,6 +36,10 @@ fi
 
 #Visual checks (screeshots) for brain, pial, white,
 mri_convert $MRI/T1.mgz $MRI/T1-in-surf.nii.gz
+if [ ! -d $SNAPSHOTS_DIRECTORY_ENVIRON_VAR ]
+then
+    mkdir $SNAPSHOTS_DIRECTORY_ENVIRON_VAR
+fi
 #source $SNAPSHOT vol_white_pial $MRI/T1-in-surf.nii.gz
 python -m $SNAPSHOT --snapshot_name t1_white_pial --center_surface vol_white_pial $MRI/T1-in-surf.nii.gz
 

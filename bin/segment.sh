@@ -4,6 +4,11 @@
 
 vol=aparc+aseg
 
+if [ ! -d $SEGMENT ]
+then
+    mkdir $SEGMENT
+fi
+
 pushd $SEGMENT
 
 
@@ -12,6 +17,12 @@ pushd $SEGMENT
 
 if [ "$SEGMENT_METHOD" = "tdi" ] || [ "$SEGMENT_METHOD" = "tdi+gwi" ] || [ "$SEGMENT_METHOD" = "tdi*gwi" ];
 then
+
+    if [ ! -d $TDI ]
+    then
+        mkdir $TDI
+    fi
+
     pushd $TDI
 
     if [ -e $DMR/tdi_ends-v1.nii.gz ]
@@ -50,6 +61,10 @@ fi
 
 if [ "$SEGMENT_METHOD" = "gwi" ] || [ "$SEGMENT_METHOD" = "tdi+gwi" ] || [ "$SEGMENT_METHOD" = "tdi*gwi" ];
 then
+    if [ ! -d $GWI ]
+    then
+        mkdir $GWI
+    fi
     pushd $GWI
 
     #Create a mask of vol's white matter

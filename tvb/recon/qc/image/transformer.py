@@ -81,7 +81,7 @@ class ImageTransformer(object):
             gii = GIFTI_EXTENSION
 
         white_pial_surfaces_path = [hemi + "." + surface_type + resampled_surface + gii for hemi in ("rh", "lh") for
-                                    surface_type in "pial", "white"]
+                                    surface_type in ("pial", "white")]
 
         new_surfaces_list = [self.center_surface(os.path.expandvars(os.path.join(surfaces_path, surface))) for surface
                              in white_pial_surfaces_path]

@@ -4,12 +4,12 @@
 
 #The path to the pipeline code
 #CODE=/Users/dionperd/VirtualVEP/software/tvb-recon-tools/bin
-CODE=/Users/dionperd/CBR/software/git/bnm-recon-tools/bin
+CODE=/Users/dionperd/CBR/software/git/tvb-recon/bin
 export CODE
 echo CODE=$CODE
 
 #The path to the snapshot tool
-SNAPSHOT=bnm.recon.qc.snapshot
+SNAPSHOT=tvb.recon.qc.snapshot
 export SNAPSHOT
 echo SNAPSHOT=$SNAPSHOT
 
@@ -19,15 +19,14 @@ export PYTHONPATH
 echo PYTHONPATH=$PYTHONPATH
 
 #Subject codename, to be the name of the respective folder as well
-SUBJECT=JUNG
+SUBJECT=TVB2
 export SUBJECT
 echo SUBJECT=$SUBJECT
-#SUBJECT=JUNG ./script
-
+cd
 #Maybe make a copy of freesurfer subjects’ directory for each subject
 # copy target to avoid modifying it
-#CURRENT_SUBJECTS_DIR=/Users/dionperd/VEP/$SUBJECT
-CURRENT_SUBJECTS_DIR=/Users/dionperd/CBR/VEP/$SUBJECT
+#CURRENT_SUBJECTS_DIR=/Users/dionperd/VEP/CC/$SUBJECT
+CURRENT_SUBJECTS_DIR=/Users/dionperd/CBR/VEP/CC/$SUBJECT
 if [ ! -d $CURRENT_SUBJECTS_DIR ]
 then
     mkdir CURRENT_SUBJECTS_DIR
@@ -48,10 +47,14 @@ echo SUBJECTS_DIR=$SUBJECTS_DIR
 #The path to the subject's folder
 SUBJ_DIR=$SUBJECTS_DIR/$SUBJECT
 export SUBJ_DIR
+#if [ ! -d $SUBJ_DIR ]
+#then
+#    mkdir $SUBJ_DIR
+#fi
 echo SUBJ_DIR=$SUBJ_DIR
 
 #The path to screenshots folder
-FIGS=$SUBJ_DIR/figures
+FIGS=$SUBJECTS_DIR/snapshots
 export FIGS
 if [ ! -d $FIGS ]
 then
@@ -63,7 +66,7 @@ echo FIGS=$FIGS
 #INPUTS:
 
 #The path to the input data
-DATA=/Volumes/datasets/MRS/JUNG
+DATA=$CURRENT_SUBJECTS_DIR
 export DATA
 echo DATA=$DATA
 
@@ -103,6 +106,28 @@ echo COREG_USE=$COREG_USE
 
 #FREESURFER:
 
+#Flags to depict the availability of T2 or FLAIR
+T2_FLAG=no #'yes'
+FLAIR_FLAG=no #'yes'
+
+#Format of input
+T1_INPUT_FRMT=dicom #or nifti
+export T1_INPUT_FRMT
+echo T1_INPUT_FRMT=$T1_INPUT_FRMT
+
+#T2_INPUT_FRMT=dicom #or nifti
+#export T2_INPUT_FRMT
+#echo T2_INPUT_FRMT=$T2_INPUT_FRMT
+
+#FLAIR_INPUT_FRMT=dicom #or nifti
+#export FLAIR_INPUT_FRMT
+#echo FLAIR_INPUT_FRMT=$FLAIR_INPUT_FRMT
+
+#Number of openMP threads for Freesurfer:
+OPENMP_THRDS=2
+export OPENMP_THRDS
+echo OPENMP_THRDS=$OPENMP_THRDS
+
 #mri folder location:
 MRI=$SUBJ_DIR/mri
 export MRI
@@ -126,42 +151,20 @@ echo LABEL=$LABEL
 #aseg surfs folder location:
 ASEG_SURFS=$SUBJ_DIR/surf/aseg_surfs
 export ASEG_SURFS
-if [ ! -d $ASEG_SURFS ]
-then
-    mkdir $ASEG_SURFS
-fi
+#if [ ! -d $ASEG_SURFS ]
+#then
+#    mkdir $ASEG_SURFS
+#fi
 echo ASEG_SURFS=$ASEG_SURFS
 
 #Cortical and sub-cortical segmentation folder:
 SEGMENT=$SUBJ_DIR/segment
 export SEGMENT
-if [ ! -d $SEGMENT ]
-then
-    mkdir $SEGMENT
-fi
+#if [ ! -d $SEGMENT ]
+#then
+#    mkdir $SEGMENT
+#fi
 echo SEGMENT=$SEGMENT
-
-#Flags to depict the availability of T2 or FLAIR
-T2_FLAG=no #'yes'
-FLAIR_FLAG=no #'yes'
-
-#Format of input
-T1_INPUT_FRMT=dicom #or nifti
-export T1_INPUT_FRMT
-echo T1_INPUT_FRMT=$T1_INPUT_FRMT
-
-#T2_INPUT_FRMT=dicom #or nifti
-#export T2_INPUT_FRMT
-#echo T2_INPUT_FRMT=$T2_INPUT_FRMT
-
-#FLAIR_INPUT_FRMT=dicom #or nifti
-#export FLAIR_INPUT_FRMT
-#echo FLAIR_INPUT_FRMT=$FLAIR_INPUT_FRMT
-
-#Number of openMP threads for Freesurfer:
-OPENMP_THRDS=2
-export OPENMP_THRDS
-echo OPENMP_THRDS=$OPENMP_THRDS
 
 DEFAULT_APARC="aparc"
 export DEFAULT_APARC
@@ -229,10 +232,10 @@ then
     #The path to tdi mask folder
     TDI=$SEGMENT/tdi
     export TDI
-    if [ ! -d $TDI ]
-    then
-        mkdir $TDI
-    fi
+    #if [ ! -d $TDI ]
+    #then
+    #    mkdir $TDI
+    #fi
     echo TDI=$TDI
 
     #tdi threshold for volumes in terms of number of tracks
@@ -246,10 +249,10 @@ then
     #The path to gwi mask folder
     GWI=$SEGMENT/gwi
     export GWI
-    if [ ! -d $GWI ]
-    then
-        mkdir $GWI
-    fi
+    #if [ ! -d $GWI ]
+    #then
+    #    mkdir $GWI
+    #fi
     echo GWI=$GWI
 
     #masking of volumes using grey-white matter interfaces
@@ -317,10 +320,10 @@ echo TRGSUBJECT=$TRGSUBJECT
 
 #dmr folder location:
 DMR=$SUBJ_DIR/dmr
-if [ ! -d $DMR ]
-then
-mkdir $DMR
-fi
+#if [ ! -d $DMR ]
+#then
+#    mkdir $DMR
+#fi
 export DMR
 echo DMR=$DMR
 
@@ -405,21 +408,21 @@ echo CT_ELEC_INTENSITY_TH=$CT_ELEC_INTENSITY_TH
 #SEEG
 #TODO: quite similar for EEG and MEG...
 #SEEG folder location:
-SEEG=$SUBJ_DIR/seeg
-export SEEG
-if [ ! -d $SEEG ]
-then
-mkdir$SEEG
-fi
-echo SEEG=$SEEG
+SEEG_FOLDER=$SUBJ_DIR/seeg
+export SEEG_FOLDER
+#if [ ! -d $SEEG_FOLDER ]
+#then
+#    mkdir $SEEG_FOLDER
+#fi
+echo SEEG_FOLDER=$SEEG_FOLDER
 
 #SEEG sensor file location:
-SEEG_FILE=$SEEG/SEEG_sensors.txt
+SEEG_FILE=$SEEG_FOLDER/SEEG_sensors.txt
 export SEEG_FILE
 echo SEEG_FILE=$SEEG_FILE
 
 #SEEG sensors' positions location:
-SEEG_XZY=$SEEG/seeg_xyz.txt
+SEEG_XZY=$SEEG_FOLDER/seeg_xyz.txt
 export SEEG_XZY
 echo SEEG_XZY=$SEEG_XZY
 
