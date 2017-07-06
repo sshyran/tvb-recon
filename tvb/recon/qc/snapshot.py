@@ -179,7 +179,7 @@ if __name__ == "__main__":
             os.path.expandvars(args.background), os.path.expandvars(
                 args.resampled_surface_name),
             os.path.expandvars(surfaces_path), args.gifti)
-        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), os.path.expandvars(surfaces_paths_list),
+        imageProcessor.overlap_volume_surfaces(os.path.expandvars(background), surfaces_paths_list,
                                                args.center_surface, args.use_cc_point, snapshot_name=args.snapshot_name)
 
     elif args.subcommand == arg_connectivity_measure:

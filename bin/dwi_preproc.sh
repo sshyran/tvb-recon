@@ -26,8 +26,8 @@ else
         mrchoose 0 mrconvert $DATA/DWI ./dwi_raw.mif -force
         mrchoose 1 mrconvert $DATA/DWI ./dwi_raw_re.mif -force
     else
-        mronvert $DATA/DWI/dwi_raw.nii.gz ./dwi_raw.mif -force
-        mronvert $DATA/DWI/dwi_raw_re.nii.gz ./dwi_raw_re.mif -force
+        mrconvert $DATA/DWI/dwi_raw.nii.gz ./dwi_raw.mif -force
+        mrconvert $DATA/DWI/dwi_raw_re.nii.gz ./dwi_raw_re.mif -force
     fi
     dwipreproc $DWI_PE_DIR ./dwi_raw.mif ./dwi.mif -rpe_pair ./dwi_raw.mif ./dwi_raw_re.mif -nthreads $MRTRIX_THRDS -force
 fi

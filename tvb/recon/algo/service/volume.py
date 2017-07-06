@@ -83,12 +83,12 @@ class VolumeService(object):
                         voxel_index], label_voxels_k[voxel_index]
                 # Create the neighbors' grid sharing a face
                 ijk_grid = border_grid + \
-                    numpy.tile(numpy.array(
-                        [current_voxel_i, current_voxel_j, current_voxel_k]), (n_border, 1))
+                           numpy.tile(numpy.array(
+                               [current_voxel_i, current_voxel_j, current_voxel_k]), (n_border, 1))
                 # Remove voxels outside the image
                 indices_inside_image = numpy.all([(ijk_grid[:, 0] >= 0), (ijk_grid[:, 0] < volume.dimensions[0]),
                                                   (ijk_grid[:, 1] >= 0), (ijk_grid[
-                                                      :, 1] < volume.dimensions[1]),
+                                                                          :, 1] < volume.dimensions[1]),
                                                   (ijk_grid[:, 2] >= 0), (ijk_grid[:, 2] < volume.dimensions[2])],
                                                  axis=0)
                 ijk_grid = ijk_grid[indices_inside_image, :]
@@ -110,7 +110,7 @@ class VolumeService(object):
                 except ValueError:  # empty grid
                     self.logger.error("Error at voxel ( %s, %s, %s ) of label %s: It appears to have no common-face "
                                       "neighbors inside the image!", str(
-                                          current_voxel_i), str(current_voxel_j),
+                        current_voxel_i), str(current_voxel_j),
                                       str(current_voxel_k), str(current_label))
                     return
 
@@ -243,7 +243,7 @@ class VolumeService(object):
                     # Remove voxels outside the mask volume
                     indexes_within_limits = numpy.all([(ijk_grid[:, 0] >= 0), (ijk_grid[:, 0] < mask_vol.dimensions[0]),
                                                        (ijk_grid[:, 1] >= 0), (ijk_grid[
-                                                           :, 1] < mask_vol.dimensions[1]),
+                                                                               :, 1] < mask_vol.dimensions[1]),
                                                        (ijk_grid[:, 2] >= 0),
                                                        (ijk_grid[:, 2] < mask_vol.dimensions[2])],
                                                       axis=0)
@@ -252,7 +252,7 @@ class VolumeService(object):
                     try:
                         # If none of these points is a mask point:
                         if (mask_vol.data[ijk_grid[:, 0], ijk_grid[
-                                :, 1], ijk_grid[:, 2]] < th).all():
+                                                          :, 1], ijk_grid[:, 2]] < th).all():
                             out_volume.data[
                                 current_voxel_i, current_voxel_j, current_voxel_k] = labels_nomask[label_index]
 
@@ -265,7 +265,7 @@ class VolumeService(object):
                     except ValueError:  # empty grid
                         self.logger.error("Error at voxel ( %s, %s, %s ): It appears to have no common-face neighbors "
                                           "inside the image!", str(
-                                              current_voxel_i), str(current_voxel_j),
+                            current_voxel_i), str(current_voxel_j),
                                           str(current_voxel_k))
                         return
 
@@ -361,7 +361,7 @@ class VolumeService(object):
 
         nodes_to_keep_indices = connectivity_row_sum > 0
         connectivity = connectivity[nodes_to_keep_indices, :][
-            :, nodes_to_keep_indices]
+                       :, nodes_to_keep_indices]
 
         numpy.save(os.path.splitext(connectivity_matrix_path)
                    [0] + NPY_EXTENSION, connectivity)
@@ -371,7 +371,7 @@ class VolumeService(object):
             connectivity = numpy.array(numpy.genfromtxt(
                 tract_length_path, dtype='int64'))
             connectivity = connectivity[nodes_to_keep_indices, :][
-                :, nodes_to_keep_indices]
+                           :, nodes_to_keep_indices]
 
             numpy.save(os.path.splitext(tract_length_path)
                        [0] + NPY_EXTENSION, connectivity)
@@ -387,7 +387,7 @@ class VolumeService(object):
             node_volume.data[node_volume.data == node_index] = 0
 
         node_volume.data[node_volume.data > 0] = numpy.r_[
-            1:(connectivity.shape[0] + 1)]
+                                                 1:(connectivity.shape[0] + 1)]
 
         IOUtils.write_volume(node_volume_path, node_volume)
 
@@ -408,5 +408,23 @@ class VolumeService(object):
         vox = vox[voxijk[0], voxijk[1], voxijk[2]]
         # ...and their coordinates in ras xyz space
         voxxzy = vollbl.affine_matrix.dot(numpy.c_[voxijk[0], voxijk[1], voxijk[
-                                          2], numpy.ones(vox.shape[0])].T)[:3].T
+            2], numpy.ones(vox.shape[0])].T)[:3].T
         return vox, voxxzy
+
+    def change_labels_of_aparc_aseg(self, volume, mapping_dict, conn_regs_nr):
+        not_matched = set()
+        for i in range(volume.data.shape[0]):
+            for j in range(volume.data.shape[1]):
+                for k in range(volume.data.shape[2]):
+                    val = volume.data[i][j][k]
+                    if not val in mapping_dict:
+                        not_matched.add(val)
+                    volume.data[i][j][k] = mapping_dict.get(val, -1)
+
+        print("Now values are in interval [%d - %d]" % (volume.data.min(), volume.data.max()))
+
+        if not_matched:
+            print("Not matched regions will be considered background: %s" % not_matched)
+        assert (volume.data.min() >= -1 and volume.data.max() < conn_regs_nr)
+
+        return volume

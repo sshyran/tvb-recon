@@ -29,8 +29,8 @@ def default_lut_path():
     return os.path.join(here, '..', '..', '..', '..', 'data',
                         'FreeSurferColorLUT.txt')
 
-class AnnotationService(object):
 
+class AnnotationService(object):
     def default_lut(self):
         return DEFAULT_LUT
 
@@ -58,6 +58,8 @@ class AnnotationService(object):
                         temp[3]), int(temp[4]), int(temp[5])]
                 except:
                     pass
+            return labels, names, colors
+
         elif key_mode == 'name':
             labels = OrderedDict()
             colors = OrderedDict()
@@ -73,7 +75,7 @@ class AnnotationService(object):
                         temp[3]), int(temp[4]), int(temp[5])]
                 except:
                     pass
-        return labels, names, colors
+            return labels, names, colors
 
     def rgb_to_fs_magic_number(self, rgb):
         """
@@ -121,12 +123,12 @@ class AnnotationService(object):
         # If this is an already existing lut file:
         lut_path = lut_path or default_lut_path()
         if os.path.isfile(lut_path):
-            #...find the maximum label in it and add 1
+            # ...find the maximum label in it and add 1
             add_lbl = 1 + \
-                numpy.max(self.read_lut(
-                    lut_path=lut_path, key_mode='label')[0])
+                      numpy.max(self.read_lut(
+                          lut_path=lut_path, key_mode='label')[0])
         else:
-            #...else, set it to 0
+            # ...else, set it to 0
             add_lbl = 0
         with open(lut_path, 'a') as fd:
             if add_lbl == 0:
@@ -152,7 +154,8 @@ class AnnotationService(object):
             # NOTE!!! that the fourth and fifth columns of color_table are not
             # used in the lut file!!!
             for name, (r, g, b, dummy1, dummy2), lbl in \
-                    zip(annotation.region_names, annotation.regions_color_table, list(range(len(annotation.region_names)))):
+                    zip(annotation.region_names, annotation.regions_color_table,
+                        list(range(len(annotation.region_names)))):
                 fd.write('%d\t%s\t%d %d %d %d\n' %
                          (lbl + add_lbl, prefix + name, r, g, b, 0))
 
@@ -189,11 +192,23 @@ class AnnotationService(object):
             labels.append(labels_dict[add_string + name])
         return labels
 
-    def annot_to_conn_conf(self, annot_path, conn_conf_path):
-        annotation = IOUtils.read_annotation(annot_path)
+    def annot_to_conn_conf(self, annot_path, type, conn_conf_path, first_idx=0):
+        annotation_lh = IOUtils.read_annotation(os.path.join(annot_path, "lh." + type + ".annot"))
+        annotation_rh = IOUtils.read_annotation(os.path.join(annot_path, "rh." + type + ".annot"))
         with open(conn_conf_path, 'w') as fd:
-            for id, name in enumerate(annotation.region_names):
-                fd.write('%d\t%s\n' % (id, name))
+            for id, name in enumerate(annotation_lh.region_names):
+                if type == "aparc" and name != "unknown":
+                    name = "lh-" + name
+                fd.write('%d\t%s\n' % (id + first_idx, name))
+            first_idx += len(annotation_lh.region_names)
+            for id, name in enumerate(annotation_rh.region_names):
+                if (name == "unknown"):
+                    first_idx -= 1
+                    continue
+                if type == "aparc" and name != "unknown":
+                    name = "rh-" + name
+                fd.write('%d\t%s\n' % (id + first_idx, name))
+        return first_idx + len(annotation_rh.region_names)
 
     def read_input_labels(self, labels=None, ctx=None):
         if labels is not None:
