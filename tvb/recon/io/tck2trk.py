@@ -1,5 +1,8 @@
 import sys
 
+# TODO: in the current form, the Tracts are not aligned with the surfaces exported for TVB
+# we miss a centering operation
+
 if len(sys.argv) < 3:
     print("Loads NiPy module to transform .tck file to .trk file")
     print("Dependencies: nipype, dipy, nibabel")
