@@ -1,0 +1,9 @@
+# file-based replica catalog: 2017-07-20T16:51:34.557+03:00
+t1_input.nii.gz file:///WORK/datasets/Cleveland/TVB2_raw/TVB2d.nii.gz site="local"
+dwi_input.mif file:///WORK/datasets/Cleveland/TVB2_raw/dwi_raw.mif site="local"
+T1.mgz file:///WORK/FS_NEW/freesurfer/subjects/TVB2PEG2/mri/T1.mgz site="local"
+wm.mgz file:///WORK/FS_NEW/freesurfer/subjects/TVB2PEG2/mri/wm.mgz site="local"
+aseg.mgz file:///WORK/FS_NEW/freesurfer/subjects/TVB2PEG2/mri/aseg.mgz site="local"
+aparc+aseg.mgz file:///WORK/FS_NEW/freesurfer/subjects/TVB2PEG2/mri/aparc+aseg.mgz site="local"
+b0.nii.gz file:///WORK/datasets/Cleveland/b0.nii.gz site="local"
+T1.nii.gz file:///WORK/FS_NEW/freesurfer/subjects/TVB2PEG2/mri/T1.nii.gz site="local"

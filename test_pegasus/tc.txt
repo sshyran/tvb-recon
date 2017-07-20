@@ -1,0 +1,72 @@
+tr mri_convert {
+    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+
+    site condorpool {
+        pfn "/WORK/FS_NEW/freesurfer/bin/mri_convert"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr recon {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/recon.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr mrconvert {
+    profile env "PATH" "/WORK/MRtrix/mrtrix3/release/bin:$PATH"
+
+    site condorpool {
+         pfn "/WORK/MRtrix/mrtrix3/release/bin/mrconvert"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr dwipreproc {
+    profile env "PATH" "/WORK/MRtrix/mrtrix3/scripts:$PATH"
+
+    site condorpool {
+        pfn "/WORK/MRtrix/mrtrix3/scripts/dwipreproc"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr dwi2mask {
+    profile env "PATH" "/WORK/MRtrix/mrtrix3/release/bin:$PATH"
+
+    site condorpool {
+        pfn "/WORK/MRtrix/mrtrix3/release/bin/dwi2mask"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr dwiextract {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/dwiextract.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr flirt {
+    profile env "FSLDIR" "/WORK/FSL/fsl"
+
+    site condorpool {
+        pfn "/WORK/FSL/fsl/bin/flirt"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
