@@ -19,8 +19,6 @@ tr recon {
 }
 
 tr mrconvert {
-    profile env "PATH" "/WORK/MRtrix/mrtrix3/release/bin:$PATH"
-
     site condorpool {
          pfn "/WORK/MRtrix/mrtrix3/release/bin/mrconvert"
         arch "x86_64"
@@ -30,8 +28,6 @@ tr mrconvert {
 }
 
 tr dwipreproc {
-    profile env "PATH" "/WORK/MRtrix/mrtrix3/scripts:$PATH"
-
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/scripts/dwipreproc"
         arch "x86_64"
@@ -41,8 +37,6 @@ tr dwipreproc {
 }
 
 tr dwi2mask {
-    profile env "PATH" "/WORK/MRtrix/mrtrix3/release/bin:$PATH"
-
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/release/bin/dwi2mask"
         arch "x86_64"
@@ -56,17 +50,142 @@ tr dwiextract {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/dwiextract.sh"
         arch "x86_64"
         os "${OS}"
-        type "STAGEABLE"
+        type "INSTALLED"
     }
 }
 
 tr flirt {
-    profile env "FSLDIR" "/WORK/FSL/fsl"
-
     site condorpool {
-        pfn "/WORK/FSL/fsl/bin/flirt"
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/flirt.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
+    }
+
+}
+
+tr convert-xfm {
+    profile env "FSL_DIR" "/WORK/FSL/fsl"
+
+    site condorpool {
+        pfn "/WORK/FSL/fsl/bin/convert_xfm"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr flirt-reversed {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/flirt-reversed.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr ttgen {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/ttgen.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr tt2gmwmi {
+    profile env "HOME" "/Users/pipeline"
+
+    site condorpool {
+        pfn "/WORK/MRtrix/mrtrix3/release/bin/5tt2gmwmi"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr tt2vis {
+    profile env "HOME" "/Users/pipeline"
+
+    site condorpool {
+        pfn "/WORK/MRtrix/mrtrix3/release/bin/5tt2vis"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr dwi2response {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/dwi2response.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr dwi2fod {
+    profile env "HOME" "/Users/pipeline"
+
+    site condorpool {
+        pfn "/WORK/MRtrix/mrtrix3/release/bin/dwi2fod"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr tckgen {
+    profile env "HOME" "/Users/pipeline"
+
+    site condorpool {
+        pfn "/WORK/MRtrix/mrtrix3/release/bin/tckgen"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr tcksift {
+    profile env "HOME" "/Users/pipeline"
+
+    site condorpool {
+        pfn "/WORK/MRtrix/mrtrix3/release/bin/tcksift"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr tckmap {
+    profile env "HOME" "/Users/pipeline"
+
+    site condorpool {
+        pfn "/WORK/MRtrix/mrtrix3/release/bin/tckmap"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr labelconvert {
+    profile env "HOME" "/Users/pipeline"
+
+    site condorpool {
+        pfn "/WORK/MRtrix/mrtrix3/release/bin/labelconvert"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr tck2connectome {
+    profile env "HOME" "/Users/pipeline"
+
+    site condorpool {
+        pfn "/WORK/MRtrix/mrtrix3/release/bin/tck2connectome"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
     }
 }
