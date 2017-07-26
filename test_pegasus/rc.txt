@@ -1,13 +1,7 @@
-# file-based replica catalog: 2017-07-25T18:37:42.477+03:00
+# file-based replica catalog: 2017-07-26T11:52:22.361+03:00
 t1_input.nii.gz file:///WORK/datasets/Cleveland/TVB2_raw/TVB2d.nii.gz site="local"
 dwi_input.mif file:///WORK/datasets/Cleveland/TVB2_raw/dwi_raw.mif site="local"
-T1.mgz file:///WORK/FS_NEW/freesurfer/subjects/TVB2PEG22/mri/T1.mgz site="local"
-aparc+aseg.mgz file:///WORK/FS_NEW/freesurfer/subjects/TVB2PEG22/mri/aparc+aseg.mgz site="local"
 fs_color_lut.txt file:///WORK/FS_NEW/freesurfer/FreeSurferColorLUT.txt site="local"
 fs_default.txt file:///WORK/MRtrix/mrtrix3/src/connectome/tables/fs_default.txt site="local"
-5tt.mif file:///WORK/datasets/Cleveland/TVB2_diff/5tt.mif site="local"
-5tt.mif file:///WORK/pegasus-4.7.4/output/5tt.mif site="local"
-5M.tck file:///WORK/datasets/Cleveland/TVB2_diff/5M.tck site="local"
-5M.tck file:///WORK/pegasus-4.7.4/output/5M.tck site="local"
-mask.mif file:///WORK/pegasus-4.7.4/output/mask.mif site="local"
-t1.mgz file:///WORK/pegasus-4.7.4/output/t1.mgz site="local"
+#5tt.mif file:///WORK/datasets/Cleveland/TVB2_diff/5tt.mif site="local"
+#5M.tck file:///WORK/datasets/Cleveland/TVB2_diff/5M.tck site="local"

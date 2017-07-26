@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-import os
 import sys
-
 import time
 from Pegasus.DAX3 import ADAG, File, Job, Link, Executable, PFN, Profile, Namespace
 
@@ -14,18 +12,18 @@ dax = ADAG("convert")
 dax.metadata("created", time.ctime())
 
 t1_input = File("t1_input.nii.gz")
-t1_output = File("t1.mgz")
+t1_output = File("t1_input.mgz")
 job1 = Job("mri_convert", node_label="T1 input conversion to MGZ")
 job1.addArguments(t1_input, t1_output)
 job1.uses(t1_input, link=Link.INPUT)
-job1.uses(t1_output, link=Link.OUTPUT, transfer=True)
+job1.uses(t1_output, link=Link.OUTPUT, transfer=True, register=False)
 dax.addJob(job1)
 
-# subject_dir = File("TVB2PEG2")
+t1_mgz_output = File("T1.mgz")
 job2 = Job("recon", node_label="Recon-all for T1")
 job2.addArguments("TVB2PEG22", t1_output)
 job2.uses(t1_output, link=Link.INPUT)
-# job2.uses(subject_dir, link=Link.OUTPUT, transfer=False, register=False)
+job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=True, register=False)
 dax.addJob(job2)
 
 dax.depends(job2, job1)
