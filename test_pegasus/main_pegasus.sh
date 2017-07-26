@@ -8,7 +8,7 @@
  
 # Generate with Pegasus pythonA PI and patient configuration a DAX file
 bash generate_dax.sh output/main_bnm.dax
- 
+
 # Generate Image Graph (DOT file) from DAX file
 pegasus-graphviz -o output/main_bnm.dot output/main_bnm.dax
  

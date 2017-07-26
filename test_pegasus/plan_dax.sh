@@ -20,6 +20,7 @@ source ${PATIENT_ENV}
 pegasus-plan --conf ${PEGASUS_PROPS} \
     --dax ${DAXFILE} \
     --input-dir /WORK/datasets/Cleveland/TVB2_raw \
-    --dir ${DIR}/submit \
+    --dir ${PEGASUSHOME}/submit \
+    --output-site local \
     --sites condorpool \
     --submit
