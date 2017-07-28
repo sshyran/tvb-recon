@@ -189,3 +189,12 @@ tr tck2connectome {
         type "INSTALLED"
     }
 }
+
+tr convert_output {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/convert_output.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
