@@ -20,19 +20,21 @@ job1.uses(t1_output, link=Link.OUTPUT, transfer=True, register=False)
 dax.addJob(job1)
 
 t1_mgz_output = File("T1.mgz")
+aparc_aseg_mgz_vol = File("aparc+aseg.mgz")
 job2 = Job("recon", node_label="Recon-all for T1")
-job2.addArguments("TVB2PEG22", t1_output)
+# TODO subject dir should be a parameter
+job2.addArguments("TVB2PEG23", t1_output)
 job2.uses(t1_output, link=Link.INPUT)
 job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=True, register=False)
+job2.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=True, register=False)
 dax.addJob(job2)
 
 dax.depends(job2, job1)
 
-t1_mgz_vol = File("T1.mgz")
 t1_nii_gz_vol = File("T1.nii.gz")
 job7 = Job("mri_convert", node_label="Convert T1 to NIFTI with good orientation")
-job7.addArguments(t1_mgz_vol, t1_nii_gz_vol, "--out_orientation", "RAS")
-job7.uses(t1_mgz_vol, link=Link.INPUT)
+job7.addArguments(t1_mgz_output, t1_nii_gz_vol, "--out_orientation", "RAS")
+job7.uses(t1_mgz_output, link=Link.INPUT)
 job7.uses(t1_nii_gz_vol, link=Link.OUTPUT, transfer=True, register=False)
 dax.addJob(job7)
 
@@ -48,7 +50,6 @@ dax.depends(job7, job2)
 #
 # dax.depends(job8, job2)
 
-aparc_aseg_mgz_vol = File("aparc+aseg.mgz")
 aparc_aseg_nii_gz_vol = File("aparc+aseg.nii.gz")
 job9 = Job("mri_convert", node_label="Convert APARC+ASEG to NIFTI with good orientation")
 job9.addArguments(aparc_aseg_mgz_vol, aparc_aseg_nii_gz_vol, "--out_orientation", "RAS", "-rt", "nearest")
@@ -267,6 +268,15 @@ dax.addJob(job25)
 dax.depends(job25, job19)
 dax.depends(job25, job23)
 
+# job26 = Job("convert_output")
+# job26.addArguments(file_aparc_aseg_counts5M_csv, file_aparc_aseg_mean_tract_lengths5M_csv, fs_color_lut)
+# job26.uses(file_aparc_aseg_counts5M_csv, link=Link.INPUT)
+# job26.uses(file_aparc_aseg_mean_tract_lengths5M_csv, link=Link.INPUT)
+# job26.uses(fs_color_lut, link=Link.INPUT)
+# dax.addJob(job26)
+#
+# dax.depends(job26, job24)
+# dax.depends(job26, job25)
 
 f = open(daxfile, "w")
 dax.writeXML(f)
