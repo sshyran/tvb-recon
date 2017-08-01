@@ -13,4 +13,4 @@ export FREESURFER_HOME="/WORK/FS_NEW/freesurfer"
 source "/WORK/FS_NEW/freesurfer/SetUpFreeSurfer.sh"
 
 cd /WORK/BNM/tvb-recon/tvb-recon
-python -m tvb.recon.qc.tvb_output /WORK/FS/freesurfer/subjects/TVB2C $w $t $l /WORK/datasets/Cleveland/TVB2C_tvb_frmt/res_wms
+python -m tvb.recon.qc.tvb_output $f $w $t $l $f
