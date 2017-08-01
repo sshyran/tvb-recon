@@ -120,3 +120,12 @@ class AsegGenJobNames(Enum):
     MRIS_EXTRACT = "mris_extract_main_component"
     MRIS_SMOOTH = "mris_smooth"
     ASEG_CONCAT = "aseg_concatenation"
+
+
+class OutputConvFiles(Enum):
+    RM_CORT_TXT = "region_mapping_cort.txt"
+    RM_SUBCORT_TXT = "region_mapping_subcort.txt"
+    SURF_CORT_ZIP = "surface_cort.zip"
+    SURF_SUBCORT_ZIP = "surface_subcort.zip"
+    APARC_ASEG_COR_NII_GZ = "aparc+aseg-cor.nii.gz"
+    CONNECTIVITY_ZIP = "connectivity.zip"
