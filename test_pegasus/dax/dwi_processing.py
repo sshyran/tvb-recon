@@ -15,20 +15,55 @@ class DWIProcessing(object):
 
         last_job = None
         dwi_pre_output = None
+        dwi_input = File(Inputs.DWI_INPUT.value)
+        dwi_conv_output = File(DWIFiles.DWI_RAW_MIF.value)
 
         if self.dwi_reversed is True:
+            job1 = None
+            job2 = None
+
             if self.dwi_format != "mif":
-                print ""
-            else:
-                print ""
-            last_job = None
+                if self.dwi_format == "dicom":
+                    # TODO: is mrconvert interactive for reversed aquisition data? Should we use the next lines?
+                    # mrchoose 0 mrconvert $DATA/DWI ./dwi_raw.mif -force
+                    # mrchoose 1 mrconvert $DATA/DWI ./dwi_raw_re.mif -force
+                    print "Not implemented!"
+                else:
+                    job1 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI to MIF")
+                    job1.addArguments(dwi_input, dwi_conv_output)
+                    job1.uses(dwi_input, link=Link.INPUT)
+                    job1.uses(dwi_conv_output, link=Link.OUTPUT, transfer=False, register=False)
+                    dax.addJob(job1)
+
+                    dwi_re_input = File("dwi_re.nii.gz")
+                    dwi_re = File("dwi_re.mif")
+                    job2 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI_RE to MIF")
+                    job2.addArguments(dwi_re_input, dwi_re)
+                    job2.uses(dwi_re_input, link=Link.INPUT)
+                    job2.uses(dwi_re, link=Link.OUTPUT, transfer=True, register=False)
+                    dax.addJob(job2)
+
+            job3 = Job(DWIJobNames.DWIPREPROC.value, node_label="DWI preprocessing")
+            job3.addArguments("ap", dwi_conv_output, dwi_pre_output, "-rpe_pair", dwi_conv_output, dwi_re, "-nthreads",
+                              self.mrtrix_threads)
+            job3.uses(dwi_conv_output, link=Link.INPUT)
+            job3.uses(dwi_re, link=Link.INPUT)
+            job3.uses(dwi_pre_output, link=Link.OUTPUT, transfer=False, register=False)
+            dax.addJob(job3)
+
+            if job1 is not None:
+                dax.depends(job3, job1)
+
+            if job2 is not None:
+                dax.depends(job3, job2)
+
+            last_job = job3
+
         else:
             dwi_conv_output = None
             job1 = None
-            dwi_input = File(Inputs.DWI_INPUT.value)
 
             if self.dwi_format != "mif":
-                dwi_conv_output = File(DWIFiles.DWI_RAW_MIF.value)
                 job1 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI to MIF")
                 job1.addArguments(dwi_input, dwi_conv_output)
                 job1.uses(dwi_input, link=Link.INPUT)
