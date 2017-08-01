@@ -53,6 +53,7 @@ class CoregFiles(Enum):
     D2T_MAT = "d2t.mat"
     T2D_MAT = "t2d.mat"
     B0_IN_T1 = "b0-in-t1.nii.gz"
+    B0_IN_T1_MGZ = "b0-in-t1.mgz"
     T1_IN_D = "t1-in-d.nii.gz"
     APARC_AGEG_IN_D = "aparc+aseg-in-d.nii.gz"
 
