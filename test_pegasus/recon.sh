@@ -11,3 +11,12 @@ f=$PWD
 cd $FREESURFER_HOME/subjects/$1/mri
 cp T1.mgz $f
 cp aparc+aseg.mgz $f
+cp norm.mgz $f
+
+cd ../surf
+cp lh.pial $f
+cp rh.pial $f
+
+cd ../label
+cp lh.aparc.annot $f
+cp rh.aparc.annot $f
