@@ -1,5 +1,5 @@
 from Pegasus.DAX3 import File, Job, Link
-from mappings import TractsGenFiles, TractsGenJobNames, CoregFiles, DWIFiles
+from mappings import TractsGenFiles, TractsGenJobNames, CoregFiles, DWIFiles, Inputs
 
 
 class TractsGeneration(object):
@@ -144,10 +144,12 @@ class TractsGeneration(object):
 
         dax.depends(job8, job7)
 
+        #TODO: use custom fs_default from python code
+
         aparc_aseg_in_d = File(CoregFiles.APARC_AGEG_IN_D.value)
-        file_vol_lbl = File("aparc_aseg_lbl.nii.gz")
-        fs_color_lut = File("fs_color_lut.txt")
-        fs_default = File("fs_default.txt")
+        file_vol_lbl = File(TractsGenFiles.VOLUME_LBL_NII_GZ.value)
+        fs_color_lut = File(Inputs.FS_LUT.value)
+        fs_default = File(Inputs.FS_DEFAULT.value)
         job9 = Job(TractsGenJobNames.LABEL_CONVERT.value, node_label="Compute APARC+ASEG labeled for tracts")
         job9.addArguments(aparc_aseg_in_d, fs_color_lut, fs_default, file_vol_lbl)
         job9.uses(aparc_aseg_in_d, link=Link.INPUT)
@@ -158,7 +160,7 @@ class TractsGeneration(object):
 
         dax.depends(job9, job_aparc_aseg_in_d)
 
-        file_aparc_aseg_counts5M_csv = File("aparc+aseg_counts5M.csv")
+        file_aparc_aseg_counts5M_csv = File(TractsGenFiles.TRACT_COUNTS.value)
         job10 = Job(TractsGenJobNames.TCK2CONNECTOME.value, node_label="Generate weigths")
         job10.addArguments(file_strmlns_sift, file_vol_lbl, "-assignment_radial_search", "2",
                            file_aparc_aseg_counts5M_csv)
@@ -170,7 +172,7 @@ class TractsGeneration(object):
         dax.depends(job10, job7)
         dax.depends(job10, job9)
 
-        file_aparc_aseg_mean_tract_lengths5M_csv = File("aparc+aseg_mean_tract_lengths5M.csv")
+        file_aparc_aseg_mean_tract_lengths5M_csv = File(TractsGenFiles.TRACT_LENGHTS.value)
         job11 = Job(TractsGenJobNames.TCK2CONNECTOME.value, node_label="Generate tract lengths")
         job11.addArguments(file_strmlns_sift, file_vol_lbl, "-assignment_radial_search", "2", "-scale_length",
                            "-stat_edge", "mean", file_aparc_aseg_mean_tract_lengths5M_csv)
