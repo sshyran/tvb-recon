@@ -198,3 +198,67 @@ tr convert_output {
         type "STAGEABLE"
     }
 }
+
+tr mri_pretess {
+    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+
+    site condorpool {
+        pfn "/WORK/FS/freesurfer//bin/mri_pretess"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr mri_tessellate {
+    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+
+    site condorpool {
+        pfn "/WORK/FS/freesurfer//bin/mri_tessellate"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr mris_extract_main_component {
+    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+
+    site condorpool {
+        pfn "/WORK/FS/freesurfer//bin/mris_extract_main_component"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr mris_smooth {
+    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+
+    site condorpool {
+        pfn "/WORK/FS/freesurfer//bin/mris_smooth"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr aseg_concatenation {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/aseg_concatenation.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr mris_convert {
+    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+
+    site condorpool {
+        pfn "/WORK/FS/freesurfer//bin/mris_convert"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}

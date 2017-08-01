@@ -18,11 +18,21 @@ class T1Files(Enum):
     APARC_ASEG_MGZ = "aparc+aseg.mgz"
     T1_NII_GZ = "T1.nii.gz"
     APARC_ASEG_NII_GZ = "aparc+aseg.nii.gz"
+    NORM_MGZ = "norm.mgz"
+    LH_PIAL = "lh.pial"
+    RH_PIAL = "rh.pial"
+    LH_CENTERED_PIAL = "lh.centered.pial"
+    RH_CENTERED_PIAL = "rh.centered.pial"
+    LH_APARC_ANNOT = "lh.aparc.annot"
+    RH_APARC_ANNOT = "rh.aparc.annot"
 
 
 class T1JobNames(Enum):
     MRI_CONVERT = "mri_convert"
     RECON_ALL = "recon"
+    AUTORECON3_T2 = "autorecon3-t2"
+    AUTORECON3_FLAIR = "autorecon3-flair"
+    MRIS_CONVERT = "mris_convert"
 
 
 class DWIFiles(Enum):
@@ -51,6 +61,8 @@ class CoregJobNames(Enum):
     FLIRT = "flirt"
     CONVERT_XFM = "convert-xfm"
     FLIRT_REVERSED = "flirt-reversed"
+    BBREGISTER = "bbregister"
+    MRI_VOL2VOL = "mri_vol2vol"
 
 
 class TractsGenFiles(Enum):
@@ -68,6 +80,9 @@ class TractsGenFiles(Enum):
     RF_GM = "RF_GM.txt"
     RF_CSF = "RF_CSF.txt"
     RF_VOXELS = "RF_voxels.mif"
+    VOLUME_LBL_NII_GZ = "volume_lbl.nii.gz"
+    TRACT_COUNTS = "tract_counts.csv"
+    TRACT_LENGHTS = "tract_lengths.csv"
 
 
 class TractsGenJobNames(Enum):
@@ -83,3 +98,24 @@ class TractsGenJobNames(Enum):
     TCK2CONNECTOME = "tck2connectome"
     DWI2RESPONSE_MSMT = "dwi2response-msmt"
     MSDWI2FOD = "msdwi2fod"
+
+
+class AsegFiles(Enum):
+    ASEG_MGZ = "aseg-%06d.mgz"
+    ASEG_NOT_SMOOTH = "aseg-%06d-notsmooth"
+    ASEG_NOT_SMOOTH_MAIN = "lh.aseg-%06d-notsmooth-main"
+    ASEG_LBL = "lh.aseg-%06d"
+    LH_ASEG = "lh.aseg"
+    RH_ASEG = "rh.aseg"
+    LH_CENTERED_ASEG = "lh.centered.aseg"
+    RH_CENTERED_ASEG = "rh.centered.aseg"
+    LH_ASEG_ANNOT = "lh.aseg.annot"
+    RH_ASEG_ANNOT = "rh.aseg.annot"
+
+
+class AsegGenJobNames(Enum):
+    MRI_PRETESS = "mri_pretess"
+    MRI_TESSELLATE = "mri_tessellate"
+    MRIS_EXTRACT = "mris_extract_main_component"
+    MRIS_SMOOTH = "mris_smooth"
+    ASEG_CONCAT = "aseg_concatenation"
