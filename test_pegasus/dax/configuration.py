@@ -20,6 +20,8 @@ class ConfigKey(Enum):
     DWI_MULTI_SHELL = "dwi.multi.shell"
     MRTRIX_THRDS = "mrtrix.threads"
     DWI_SCAN_DIRECTION = "dwi.scan.direction"
+    ASEG_LH_LABELS = "aseg_lh_labels"
+    ASEG_RH_LABELS = "aseg_rh_labels"
 
 
 class Configuration(object):
