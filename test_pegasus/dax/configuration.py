@@ -22,6 +22,7 @@ class ConfigKey(Enum):
     DWI_SCAN_DIRECTION = "dwi.scan.direction"
     ASEG_LH_LABELS = "aseg_lh_labels"
     ASEG_RH_LABELS = "aseg_rh_labels"
+    USE_FLIRT = "use_flirt"
 
 
 class Configuration(object):
