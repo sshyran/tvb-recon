@@ -262,3 +262,23 @@ tr mris_convert {
         type "INSTALLED"
     }
 }
+
+tr bbregister {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/bbregister.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr mri_vol2vol {
+    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+
+    site condorpool {
+        pfn "/WORK/FS/freesurfer//bin/mri_vol2vol"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
