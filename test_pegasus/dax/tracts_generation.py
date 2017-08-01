@@ -64,6 +64,7 @@ class TractsGeneration(object):
             gm_mif = File(DWIFiles.GM_MIF.value)
             csf_mif = File(DWIFiles.CSF_MIF.value)
             file_wm_fod = File(TractsGenFiles.WM_FOD_MIF.value)
+            #TODO: does msdwi2fod exist? should we use dwi2fod with the same args?
             job5 = Job(TractsGenJobNames.MSDWI2FOD.value)
             job5.addArguments("msmt_csd", dwi_mif, file_RF_WM, file_wm_fod, file_RF_GM, gm_mif, file_RF_CSF, csf_mif,
                               "-mask", mask_mif, "-nthreads", self.mrtrix_threads)
