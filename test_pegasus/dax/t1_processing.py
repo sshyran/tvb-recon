@@ -41,11 +41,21 @@ class T1Processing(object):
 
         t1_mgz_output = File(T1Files.T1_MGZ.value)
         aparc_aseg_mgz_vol = File(T1Files.APARC_ASEG_MGZ.value)
+        norm_mgz_vol = File(T1Files.NORM_MGZ.value)
+        lh_pial = File(T1Files.LH_PIAL.value)
+        rh_pial = File(T1Files.RH_PIAL.value)
+        lh_aparc_annot = File(T1Files.LH_APARC_ANNOT.value)
+        rh_aparc_annot = File(T1Files.RH_APARC_ANNOT.value)
         job2 = Job(T1JobNames.RECON_ALL.value, node_label="Recon-all for T1")
         job2.addArguments(subject, t1_output, self.openmp_threads)
         job2.uses(t1_output, link=Link.INPUT)
-        job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=True, register=False)
-        job2.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=True, register=False)
+        job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=False, register=False)
+        job2.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
+        job2.uses(norm_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
+        job2.uses(lh_pial, link=Link.OUTPUT, transfer=False, register=False)
+        job2.uses(rh_pial, link=Link.OUTPUT, transfer=False, register=False)
+        job2.uses(lh_aparc_annot, link=Link.OUTPUT, transfer=False, register=False)
+        job2.uses(rh_aparc_annot, link=Link.OUTPUT, transfer=False, register=False)
         dax.addJob(job2)
 
         if job1 is not None:
@@ -58,10 +68,10 @@ class T1Processing(object):
             t2_converted = T1Files.T2_CONVERTED.value
             t2_input, job_convert = self._ensure_input_format(self.t2_format, t2_in, t2_converted, dax)
 
-            job = Job("autorecon3-t2")
+            job = Job(T1JobNames.AUTORECON3_T2.value)
             job.addArguments(subject, t2_input, self.openmp_threads)
             job.uses(t2_input, link=Link.INPUT)
-            job.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=True, register=False)
+            job.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
             dax.addJob(job)
 
             if job_convert is not None:
@@ -75,10 +85,10 @@ class T1Processing(object):
             flair_converted = T1Files.FLAIR_CONVERTED.value
             flair_input, job_convert = self._ensure_input_format(self.flair_format, flair_in, flair_converted, dax)
 
-            job = Job("autorecon3-flair")
+            job = Job(T1JobNames.AUTORECON3_FLAIR.value)
             job.addArguments(subject, flair_input, self.openmp_threads)
             job.uses(flair_input, link=Link.INPUT)
-            job.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=True, register=False)
+            job.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
             dax.addJob(job)
 
             if job_convert is not None:
@@ -100,9 +110,27 @@ class T1Processing(object):
         job4 = Job(T1JobNames.MRI_CONVERT.value, node_label="Convert APARC+ASEG to NIFTI with good orientation")
         job4.addArguments(aparc_aseg_mgz_vol, aparc_aseg_nii_gz_vol, "--out_orientation", "RAS", "-rt", "nearest")
         job4.uses(aparc_aseg_mgz_vol, link=Link.INPUT)
-        job4.uses(aparc_aseg_nii_gz_vol, link=Link.OUTPUT, transfer=True, register=False)
+        job4.uses(aparc_aseg_nii_gz_vol, link=Link.OUTPUT, transfer=False, register=False)
         dax.addJob(job4)
 
         dax.depends(job4, last_job)
+
+        lh_centered_pial = File(T1Files.LH_CENTERED_PIAL.value)
+        job5 = Job(T1JobNames.MRIS_CONVERT.value)
+        job5.addArguments("--to-scanner", lh_pial, lh_centered_pial)
+        job5.uses(lh_pial, link=Link.INPUT)
+        job5.uses(lh_centered_pial, link=Link.OUTPUT, transfer=False, register=False)
+        dax.addJob(job5)
+
+        dax.depends(job5, last_job)
+
+        rh_centered_pial = File(T1Files.RH_CENTERED_PIAL.value)
+        job6 = Job(T1JobNames.MRIS_CONVERT.value)
+        job6.addArguments("--to-scanner", rh_pial, rh_centered_pial)
+        job6.uses(rh_pial, link=Link.INPUT)
+        job6.uses(rh_centered_pial, link=Link.OUTPUT, transfer=False, register=False)
+        dax.addJob(job6)
+
+        dax.depends(job6, last_job)
 
         return job3, job4
