@@ -1,5 +1,5 @@
 tr mri_convert {
-    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
         pfn "/WORK/FS_NEW/freesurfer/bin/mri_convert"
@@ -19,6 +19,8 @@ tr recon {
 }
 
 tr mrconvert {
+    profile env "HOME" "${HOME}"
+
     site condorpool {
          pfn "/WORK/MRtrix/mrtrix3/release/bin/mrconvert"
         arch "x86_64"
@@ -28,6 +30,8 @@ tr mrconvert {
 }
 
 tr dwipreproc {
+    profile env "HOME" "${HOME}"
+
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/scripts/dwipreproc"
         arch "x86_64"
@@ -37,6 +41,8 @@ tr dwipreproc {
 }
 
 tr dwi2mask {
+    profile env "HOME" "${HOME}"
+
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/release/bin/dwi2mask"
         arch "x86_64"
@@ -65,7 +71,7 @@ tr flirt {
 }
 
 tr convert-xfm {
-    profile env "FSL_DIR" "/WORK/FSL/fsl"
+    profile env "FSL_DIR" "${FSL_DIR}"
 
     site condorpool {
         pfn "/WORK/FSL/fsl/bin/convert_xfm"
@@ -94,7 +100,7 @@ tr ttgen {
 }
 
 tr tt2gmwmi {
-    profile env "HOME" "/Users/pipeline"
+    profile env "HOME" "${HOME}"
 
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/release/bin/5tt2gmwmi"
@@ -105,7 +111,7 @@ tr tt2gmwmi {
 }
 
 tr tt2vis {
-    profile env "HOME" "/Users/pipeline"
+    profile env "HOME" "${HOME}"
 
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/release/bin/5tt2vis"
@@ -125,7 +131,7 @@ tr dwi2response {
 }
 
 tr dwi2fod {
-    profile env "HOME" "/Users/pipeline"
+    profile env "HOME" "${HOME}"
 
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/release/bin/dwi2fod"
@@ -136,7 +142,7 @@ tr dwi2fod {
 }
 
 tr tckgen {
-    profile env "HOME" "/Users/pipeline"
+    profile env "HOME" "${HOME}"
 
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/release/bin/tckgen"
@@ -147,7 +153,7 @@ tr tckgen {
 }
 
 tr tcksift {
-    profile env "HOME" "/Users/pipeline"
+    profile env "HOME" "${HOME}"
 
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/release/bin/tcksift"
@@ -158,7 +164,7 @@ tr tcksift {
 }
 
 tr tckmap {
-    profile env "HOME" "/Users/pipeline"
+    profile env "HOME" "${HOME}"
 
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/release/bin/tckmap"
@@ -169,7 +175,7 @@ tr tckmap {
 }
 
 tr labelconvert {
-    profile env "HOME" "/Users/pipeline"
+    profile env "HOME" "${HOME}"
 
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/release/bin/labelconvert"
@@ -180,7 +186,7 @@ tr labelconvert {
 }
 
 tr tck2connectome {
-    profile env "HOME" "/Users/pipeline"
+    profile env "HOME" "${HOME}"
 
     site condorpool {
         pfn "/WORK/MRtrix/mrtrix3/release/bin/tck2connectome"
@@ -200,7 +206,7 @@ tr convert_output {
 }
 
 tr mri_pretess {
-    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
         pfn "/WORK/FS/freesurfer//bin/mri_pretess"
@@ -211,7 +217,7 @@ tr mri_pretess {
 }
 
 tr mri_tessellate {
-    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
         pfn "/WORK/FS/freesurfer//bin/mri_tessellate"
@@ -222,7 +228,7 @@ tr mri_tessellate {
 }
 
 tr mris_extract_main_component {
-    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
         pfn "/WORK/FS/freesurfer//bin/mris_extract_main_component"
@@ -233,7 +239,7 @@ tr mris_extract_main_component {
 }
 
 tr mris_smooth {
-    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
         pfn "/WORK/FS/freesurfer//bin/mris_smooth"
@@ -253,7 +259,7 @@ tr aseg_concatenation {
 }
 
 tr mris_convert {
-    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
         pfn "/WORK/FS/freesurfer//bin/mris_convert"
@@ -273,12 +279,48 @@ tr bbregister {
 }
 
 tr mri_vol2vol {
-    profile env "FREESURFER_HOME" "/WORK/FS_NEW/freesurfer"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
         pfn "/WORK/FS/freesurfer//bin/mri_vol2vol"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
+    }
+}
+
+tr qc_snapshot {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/qc_snapshot.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr gen_fs_custom {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/gen_fs_custom.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr autorecon3-t2 {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/autorecon3-t2.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr autorecon3-flair {
+    site condorpool {
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/autorecon3-flair.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
     }
 }
