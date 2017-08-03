@@ -37,8 +37,8 @@ class DWIProcessing(object):
                     job1.uses(dwi_conv_output, link=Link.OUTPUT, transfer=False, register=False)
                     dax.addJob(job1)
 
-                    dwi_re_input = File("dwi_re.nii.gz")
-                    dwi_re = File("dwi_re.mif")
+                    dwi_re_input = File(DWIFiles.DWI_RE_NII_GZ.value)
+                    dwi_re = File(DWIFiles.DWI_RE_MIF.value)
                     job2 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI_RE to MIF")
                     job2.addArguments(dwi_re_input, dwi_re)
                     job2.uses(dwi_re_input, link=Link.INPUT)
@@ -104,7 +104,7 @@ class DWIProcessing(object):
 
         dax.depends(job4, last_job)
 
-        file_mask_nii_gz = File("mask.nii.gz")
+        file_mask_nii_gz = File(DWIFiles.MASK_NII_GZ.value)
         job_convert_mask = Job(DWIJobNames.MRCONVERT.value)
         job_convert_mask.addArguments(mask_output, file_mask_nii_gz)
         job_convert_mask.uses(mask_output, link=Link.INPUT)
@@ -113,6 +113,6 @@ class DWIProcessing(object):
 
         dax.depends(job_convert_mask, job3)
 
-        self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_mask, job4], b0_output, file_mask_nii_gz)
+        self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_mask, job4], file_mask_nii_gz, b0_output)
 
         return job4, job3

@@ -1,10 +1,12 @@
 from Pegasus.DAX3 import File, Job, Link
 from mappings import CoregFiles, CoregJobNames, T1Files, DWIFiles, T1JobNames
+from qc_snapshots import QCSnapshots
 
 
 class Coregistration(object):
     def __init__(self, use_flirt=True):
         self.use_flirt = use_flirt
+        self.qc_snapshots = QCSnapshots.get_instance()
 
     def _add_flirt_steps(self, dax, job_b0, job_t1, job_aparc_aseg):
         b0_nii_gz = File(DWIFiles.B0_NII_GZ.value)
@@ -21,6 +23,8 @@ class Coregistration(object):
 
         dax.depends(job1, job_t1)
         dax.depends(job1, job_b0)
+
+        self.qc_snapshots.add_2vols_snapshot_step(dax, [job1], t1_nii_gz, b0_in_t1)
 
         t2d_mat = File(CoregFiles.T2D_MAT.value)
         job2 = Job(CoregJobNames.CONVERT_XFM.value, node_label="Convert d2t matrix to t2d matrix")
@@ -42,6 +46,8 @@ class Coregistration(object):
 
         dax.depends(job3, job2)
 
+        self.qc_snapshots.add_2vols_snapshot_step(dax, [job3], t1_in_d_nii_gz, b0_nii_gz)
+
         aparc_aseg_nii_gz = File(T1Files.APARC_ASEG_NII_GZ.value)
         aparc_aseg_in_d_nii_gz = File(CoregFiles.APARC_AGEG_IN_D.value)
         job4 = Job(CoregJobNames.FLIRT_REVERSED.value, node_label="Register APARC+ASEG to DWI")
@@ -54,6 +60,9 @@ class Coregistration(object):
 
         dax.depends(job4, job2)
         dax.depends(job4, job_aparc_aseg)
+
+        self.qc_snapshots.add_2vols_snapshot_step(dax, [job4], aparc_aseg_in_d_nii_gz, b0_nii_gz)
+        self.qc_snapshots.add_3vols_snapshot_step(dax, [job3, job4], t1_in_d_nii_gz, b0_nii_gz, aparc_aseg_in_d_nii_gz)
 
         return job3, job4
 
@@ -84,6 +93,8 @@ class Coregistration(object):
 
         dax.depends(job2, job1)
 
+        # self.qc_snapshots.add_2vols_snapshot_step(dax, [job1], t1_nii_gz, b0_in_t1_nii_gz)
+
         t1_mgz = File(T1Files.T1_MGZ.value)
         t1_in_d_nii_gz = File(CoregFiles.T1_IN_D.value)
         t1_in_d_lta = File(CoregFiles.T1_IN_D.value + ".lta")
@@ -100,6 +111,8 @@ class Coregistration(object):
         dax.depends(job3, job_t1)
         dax.depends(job3, job2)
 
+        # self.qc_snapshots.add_2vols_snapshot_step(dax, [job3], b0_nii_gz, t1_in_d_nii_gz)
+
         aparc_aseg_mgz = File(T1Files.APARC_ASEG_MGZ.value)
         aparc_aseg_in_d_nii_gz = File(CoregFiles.APARC_AGEG_IN_D.value)
         job4 = Job(CoregJobNames.MRI_VOL2VOL.value)
@@ -114,12 +127,15 @@ class Coregistration(object):
         dax.depends(job4, job_aparc_aseg)
         dax.depends(job4, job3)
 
+        # self.qc_snapshots.add_2vols_snapshot_step(dax, [job4], b0_nii_gz, aparc_aseg_in_d_nii_gz)
+        # self.qc_snapshots.add_3vols_snapshot_step(dax, [job3, job4], t1_in_d_nii_gz, b0_nii_gz, aparc_aseg_in_d_nii_gz)
+
         return job3, job4
 
     # job_b0 = job6, job_t1 = job7, job_aparc_aseg = job9
     def add_coregistration_steps(self, dax, job_b0, job_t1, job_aparc_aseg):
 
-        if self.use_flirt is True:
+        if self.use_flirt == "True":
             return self._add_flirt_steps(dax, job_b0, job_t1, job_aparc_aseg)
         else:
             return self._add_fs_steps(dax, job_b0, job_t1, job_aparc_aseg)

@@ -40,6 +40,9 @@ class DWIFiles(Enum):
     DWI_MIF = "dwi.mif"
     MASK_MIF = "mask.mif"
     B0_NII_GZ = "b0.nii.gz"
+    MASK_NII_GZ = "mask.nii.gz"
+    DWI_RE_MIF = "dwi_re.mif"
+    DWI_RE_NII_GZ = "dwi_re.nii.gz"
 
 
 class DWIJobNames(Enum):
@@ -84,6 +87,9 @@ class TractsGenFiles(Enum):
     VOLUME_LBL_NII_GZ = "volume_lbl.nii.gz"
     TRACT_COUNTS = "tract_counts.csv"
     TRACT_LENGHTS = "tract_lengths.csv"
+    GMWMI_NII_GZ = "gmwmi.nii.gz"
+    TDI_ENDS_NII_GZ = "tdi_ends.nii.gz"
+    FS_CUSTOM_TXT = "fs_custom.txt"
 
 
 class TractsGenJobNames(Enum):
@@ -99,6 +105,7 @@ class TractsGenJobNames(Enum):
     TCK2CONNECTOME = "tck2connectome"
     DWI2RESPONSE_MSMT = "dwi2response-msmt"
     MSDWI2FOD = "msdwi2fod"
+    GEN_CUSTOM_FS_TXT = "gen_fs_custom"
 
 
 class AsegFiles(Enum):
