@@ -6,4 +6,4 @@ export FREESURFER_HOME="/WORK/FS_NEW/freesurfer"
 source "/WORK/FS_NEW/freesurfer/SetUpFreeSurfer.sh"
 export SUBJECT="TVB2PEG22"
 
-python -c "import tvb.recon.algo.reconutils; tvb.recon.algo.reconutils.aseg_surf_conc_annot('$f','$1','$2','$3',lut_path='$4')"
+python -c "import tvb.recon.algo.reconutils; tvb.recon.algo.reconutils.aseg_surf_conc_annot('$PWD','$1','$2','$3',lut_path='$4')"
