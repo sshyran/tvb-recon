@@ -1,5 +1,6 @@
 from Pegasus.DAX3 import File, Job, Link
 from mappings import Inputs, DWIFiles, DWIJobNames
+from qc_snapshots import QCSnapshots
 
 
 class DWIProcessing(object):
@@ -8,6 +9,7 @@ class DWIProcessing(object):
         self.dwi_format = dwi_frmt
         self.mrtrix_threads = mrtrix_thrds
         self.dwi_pe_dir = dwi_pe_dir
+        self.qc_snapshots = QCSnapshots.get_instance()
 
     def add_dwi_processing_steps(self, dax):
         # Here we should take from configuration the:
@@ -18,7 +20,7 @@ class DWIProcessing(object):
         dwi_input = File(Inputs.DWI_INPUT.value)
         dwi_conv_output = File(DWIFiles.DWI_RAW_MIF.value)
 
-        if self.dwi_reversed is True:
+        if self.dwi_reversed == "True":
             job1 = None
             job2 = None
 
@@ -60,7 +62,6 @@ class DWIProcessing(object):
             last_job = job3
 
         else:
-            dwi_conv_output = None
             job1 = None
 
             if self.dwi_format != "mif":
@@ -102,5 +103,16 @@ class DWIProcessing(object):
         dax.addJob(job4)
 
         dax.depends(job4, last_job)
+
+        file_mask_nii_gz = File("mask.nii.gz")
+        job_convert_mask = Job(DWIJobNames.MRCONVERT.value)
+        job_convert_mask.addArguments(mask_output, file_mask_nii_gz)
+        job_convert_mask.uses(mask_output, link=Link.INPUT)
+        job_convert_mask.uses(file_mask_nii_gz, link=Link.OUTPUT, transfer=False, register=False)
+        dax.addJob(job_convert_mask)
+
+        dax.depends(job_convert_mask, job3)
+
+        self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_mask, job4], b0_output, file_mask_nii_gz)
 
         return job4, job3
