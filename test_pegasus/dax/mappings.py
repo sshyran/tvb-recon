@@ -6,7 +6,7 @@ class Inputs(Enum):
     DWI_INPUT = "dwi_input.mif"
     FS_LUT = "fs_color_lut.txt"
     FS_DEFAULT = "fs_default.txt"
-    T2_INPUT = "t2_input.nii.gz"
+    T2_INPUT = "t2_input.nii"
     FLAIR_INPUT = "flair_input.nii.gz"
 
 
@@ -72,8 +72,8 @@ class TractsGenFiles(Enum):
     FILE_5TTVIS_MIF = "5ttvis.mif"
     RESPONSE_TXT = "response.txt"
     WM_FOD_MIF = "wm_fod.mif"
-    FILE_25M_TCK = "25M.tck"
-    FILE_5M_TCK = "5M.tck"
+    FILE_TCK = "%s.tck"
+    FILE_SIFT_TCK = "%s.tck"
     TDI_ENDS_MIF = "tdi_ends.mif"
     GM_MIF = "gm.mif"
     CSF_MIF = "csf.mif"
