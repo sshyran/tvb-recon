@@ -6,12 +6,10 @@ export PEGASUSHOME=/WORK/pegasus-4.7.4
 
 export OS=MACOSX
 
-#export FREESURFER_HOME=/WORK/FS_NEW/freesurfer
+export HOME=/Users/pipeline
 
-#export SUBJECTS_DIR=/WORK/FS_NEW/freesurfer/subjects
+export FREESURFER_HOME=/WORK/FS_NEW/freesurfer
 
-#export SUBJECT=TVB2PEG22
+export SUBJECT=TVB2PEG30
 
-export OPENMP_THRDS=4
-
-export MRTRIX_THRDS=4
+export FSL_DIR=/WORK/FSL/fsl
