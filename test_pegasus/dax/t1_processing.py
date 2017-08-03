@@ -1,5 +1,6 @@
 from Pegasus.DAX3 import File, Job, Link
 from mappings import Inputs, T1Files, T1JobNames
+from qc_snapshots import QCSnapshots
 
 
 class T1Processing(object):
@@ -10,6 +11,7 @@ class T1Processing(object):
         self.flair_flag = use_flair
         self.flair_format = flair_frmt
         self.openmp_threads = openmp_thrds
+        self.qc_snapshots = QCSnapshots.get_instance()
 
     def _ensure_input_format(self, file_format, input_name, output_name, dax):
         input_file = File(input_name)
@@ -19,7 +21,7 @@ class T1Processing(object):
         if file_format == "dicom":
             output_file = File(output_name)
             job = Job(T1JobNames.MRI_CONVERT.value)
-            job.addArguments(input_file, output_file)
+            job.addArguments("-it", "dicom", input_file, output_file)
             job.uses(input_file, link=Link.INPUT)
             job.uses(output_file, link=Link.OUTPUT, transfer=False, register=False)
             dax.addJob(job)
@@ -63,7 +65,7 @@ class T1Processing(object):
 
         last_job = job2
 
-        if self.t2_flag is True:
+        if self.t2_flag == "True":
             t2_in = Inputs.T2_INPUT.value
             t2_converted = T1Files.T2_CONVERTED.value
             t2_input, job_convert = self._ensure_input_format(self.t2_format, t2_in, t2_converted, dax)
@@ -80,7 +82,7 @@ class T1Processing(object):
 
             last_job = job
 
-        if self.flair_flag is True:
+        if self.flair_flag == "True":
             flair_in = Inputs.FLAIR_INPUT.value
             flair_converted = T1Files.FLAIR_CONVERTED.value
             flair_input, job_convert = self._ensure_input_format(self.flair_format, flair_in, flair_converted, dax)
@@ -132,5 +134,9 @@ class T1Processing(object):
         dax.addJob(job6)
 
         dax.depends(job6, last_job)
+
+        self.qc_snapshots.add_vol_surf_snapshot_step(dax, [job3, job5, job6], t1_nii_gz_vol, [lh_centered_pial, rh_centered_pial])
+        self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], lh_centered_pial, lh_aparc_annot)
+        self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial, rh_aparc_annot)
 
         return job3, job4
