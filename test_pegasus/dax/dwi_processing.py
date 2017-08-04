@@ -13,9 +13,8 @@ class DWIProcessing(object):
 
     def add_dwi_processing_steps(self, dax):
         last_job = None
-        dwi_pre_output = None
         dwi_input = File(Inputs.DWI_INPUT.value)
-        dwi_conv_output = File(DWIFiles.DWI_RAW_MIF.value)
+        dwi_conv_output = None
 
         if self.dwi_reversed == "True":
             job1 = None
@@ -28,6 +27,7 @@ class DWIProcessing(object):
                     # mrchoose 1 mrconvert $DATA/DWI ./dwi_raw_re.mif -force
                     print "Not implemented!"
                 else:
+                    dwi_conv_output = File(DWIFiles.DWI_RAW_MIF.value)
                     job1 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI to MIF")
                     job1.addArguments(dwi_input, dwi_conv_output)
                     job1.uses(dwi_input, link=Link.INPUT)
@@ -42,8 +42,9 @@ class DWIProcessing(object):
                     job2.uses(dwi_re, link=Link.OUTPUT, transfer=True, register=False)
                     dax.addJob(job2)
 
+            dwi_pre_output = File(DWIFiles.DWI_MIF.value)
             job3 = Job(DWIJobNames.DWIPREPROC.value, node_label="DWI preprocessing")
-            job3.addArguments("ap", dwi_conv_output, dwi_pre_output, "-rpe_pair", dwi_conv_output, dwi_re, "-nthreads",
+            job3.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_pair", dwi_conv_output, dwi_re, "-nthreads",
                               self.mrtrix_threads)
             job3.uses(dwi_conv_output, link=Link.INPUT)
             job3.uses(dwi_re, link=Link.INPUT)
@@ -62,6 +63,7 @@ class DWIProcessing(object):
             job1 = None
 
             if self.dwi_format != "mif":
+                dwi_conv_output = File(DWIFiles.DWI_RAW_MIF.value)
                 job1 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI to MIF")
                 job1.addArguments(dwi_input, dwi_conv_output)
                 job1.uses(dwi_input, link=Link.INPUT)
@@ -73,7 +75,7 @@ class DWIProcessing(object):
 
             dwi_pre_output = File(DWIFiles.DWI_MIF.value)
             job2 = Job(DWIJobNames.DWIPREPROC.value, node_label="DWI preprocessing")
-            job2.addArguments("ap", dwi_conv_output, dwi_pre_output, "-rpe_none", "-nthreads", self.mrtrix_threads)
+            job2.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_none", "-nthreads", self.mrtrix_threads)
             job2.uses(dwi_conv_output, link=Link.INPUT)
             job2.uses(dwi_pre_output, link=Link.OUTPUT, transfer=False, register=False)
             dax.addJob(job2)
