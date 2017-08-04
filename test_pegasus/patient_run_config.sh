@@ -2,7 +2,7 @@
 
 #TODO place these in a better form ?
 
-export PEGASUS_HOME=/WORK/pegasus-4.7.4
+export PEGASUSHOME=/WORK/pegasus-4.7.4
 
 export OS=MACOSX
 

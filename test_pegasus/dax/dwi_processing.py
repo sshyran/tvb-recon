@@ -12,9 +12,6 @@ class DWIProcessing(object):
         self.qc_snapshots = QCSnapshots.get_instance()
 
     def add_dwi_processing_steps(self, dax):
-        # Here we should take from configuration the:
-        # DWI format, reversed, AP alg, mrtrix threads
-
         last_job = None
         dwi_pre_output = None
         dwi_input = File(Inputs.DWI_INPUT.value)

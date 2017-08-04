@@ -175,7 +175,6 @@ class TractsGeneration(object):
 
         self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_tdi_ends], t1_in_d, file_tdi_ends_nii_gz)
 
-        # TODO: use custom fs_default from python code
         fs_custom = File(TractsGenFiles.FS_CUSTOM_TXT.value)
         job_fs_cust = Job(TractsGenJobNames.GEN_CUSTOM_FS_TXT.value)
         job_fs_cust.addArguments(fs_custom)

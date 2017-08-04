@@ -1,9 +1,13 @@
+import os
+
 from Pegasus.DAX3 import File, Job, Link
 from mappings import CoregFiles, CoregJobNames, T1Files, DWIFiles, T1JobNames
 from qc_snapshots import QCSnapshots
 
 
 class Coregistration(object):
+    subject = os.environ["SUBJECT"]
+
     def __init__(self, use_flirt=True):
         self.use_flirt = use_flirt
         self.qc_snapshots = QCSnapshots.get_instance()
@@ -74,7 +78,7 @@ class Coregistration(object):
         d2t_lta = File("d2t.lta")
         d2t_mat = File("d2t.mat")
         job1 = Job(CoregJobNames.BBREGISTER.value)
-        job1.addArguments("TVB2PEG2", b0_nii_gz, b0_in_t1_mgz, d2t_reg, d2t_lta, d2t_mat)
+        job1.addArguments(self.subject, b0_nii_gz, b0_in_t1_mgz, d2t_reg, d2t_lta, d2t_mat)
         job1.uses(b0_nii_gz, link=Link.INPUT)
         job1.uses(b0_in_t1_mgz, link=Link.OUTPUT, transfer=False, register=False)
         job1.uses(d2t_reg, link=Link.OUTPUT, transfer=False, register=False)

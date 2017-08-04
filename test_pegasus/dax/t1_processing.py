@@ -1,9 +1,13 @@
+import os
+
 from Pegasus.DAX3 import File, Job, Link
 from mappings import Inputs, T1Files, T1JobNames
 from qc_snapshots import QCSnapshots
 
 
 class T1Processing(object):
+    subject = os.environ["SUBJECT"]
+
     def __init__(self, t1_frmt="nii", use_t2=False, t2_frmt="nii", use_flair=False, flair_frmt="nii", openmp_thrds="4"):
         self.t1_format = t1_frmt
         self.t2_flag = use_t2
@@ -32,11 +36,6 @@ class T1Processing(object):
         return output_file, job
 
     def add_t1_processing_steps(self, dax):
-        # Here we should take from configuration the:
-        # SUBJ_NAME, T1,T2,FLAIR format, T2,FLAIR use, OPENMP threads
-
-        subject = "TVB2PEG23"
-
         t1_input = Inputs.T1_INPUT.value
         t1_converted = T1Files.T1_INPUT_CONVERTED.value
         t1_output, job1 = self._ensure_input_format(self.t1_format, t1_input, t1_converted, dax)
@@ -49,7 +48,7 @@ class T1Processing(object):
         lh_aparc_annot = File(T1Files.LH_APARC_ANNOT.value)
         rh_aparc_annot = File(T1Files.RH_APARC_ANNOT.value)
         job2 = Job(T1JobNames.RECON_ALL.value, node_label="Recon-all for T1")
-        job2.addArguments(subject, t1_output, self.openmp_threads)
+        job2.addArguments(self.subject, t1_output, self.openmp_threads)
         job2.uses(t1_output, link=Link.INPUT)
         job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=False, register=False)
         job2.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
@@ -71,7 +70,7 @@ class T1Processing(object):
             t2_input, job_convert = self._ensure_input_format(self.t2_format, t2_in, t2_converted, dax)
 
             job = Job(T1JobNames.AUTORECON3_T2.value)
-            job.addArguments(subject, t2_input, self.openmp_threads)
+            job.addArguments(self.subject, t2_input, self.openmp_threads)
             job.uses(t2_input, link=Link.INPUT)
             job.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
             dax.addJob(job)
@@ -88,7 +87,7 @@ class T1Processing(object):
             flair_input, job_convert = self._ensure_input_format(self.flair_format, flair_in, flair_converted, dax)
 
             job = Job(T1JobNames.AUTORECON3_FLAIR.value)
-            job.addArguments(subject, flair_input, self.openmp_threads)
+            job.addArguments(self.subject, flair_input, self.openmp_threads)
             job.uses(flair_input, link=Link.INPUT)
             job.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
             dax.addJob(job)
@@ -137,6 +136,6 @@ class T1Processing(object):
 
         self.qc_snapshots.add_vol_surf_snapshot_step(dax, [job3, job5, job6], t1_nii_gz_vol, [lh_centered_pial, rh_centered_pial])
         self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], lh_centered_pial, lh_aparc_annot)
-        self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial, rh_aparc_annot)
+        # self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial, rh_aparc_annot)
 
         return job3, job4
