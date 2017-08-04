@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-export HOME=/Users/pipeline
-export FREESURFER_HOME="/WORK/FS_NEW/freesurfer"
+export HOME
+export FREESURFER_HOME
 source ${FREESURFER_HOME}/SetUpFreeSurfer.sh
 
 f=$PWD

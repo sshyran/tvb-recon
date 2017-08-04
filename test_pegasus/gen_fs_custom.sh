@@ -2,8 +2,8 @@
 
 source //anaconda/bin/activate tvb_recon_python3_env
 
-export FREESURFER_HOME="/WORK/FS_NEW/freesurfer"
+export FREESURFER_HOME
 source ${FREESURFER_HOME}/SetUpFreeSurfer.sh
-export SUBJECT="TVB2PEG30"
+export SUBJECT
 
 python -m tvb.recon.qc.gen_fs_custom $PWD $1
