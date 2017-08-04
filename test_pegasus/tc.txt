@@ -10,6 +10,9 @@ tr mri_convert {
 }
 
 tr recon {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "HOME" "${HOME}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/recon.sh"
         arch "x86_64"
@@ -52,6 +55,9 @@ tr dwi2mask {
 }
 
 tr dwiextract {
+    profile env "HOME" "${HOME}"
+    profile env "MRTRIX_BIN" "${MRTRIX_BIN}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/dwiextract.sh"
         arch "x86_64"
@@ -61,6 +67,8 @@ tr dwiextract {
 }
 
 tr flirt {
+    profile env "FSL_DIR" "${FSL_DIR}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/flirt.sh"
         arch "x86_64"
@@ -82,6 +90,8 @@ tr convert-xfm {
 }
 
 tr flirt-reversed {
+    profile env "FSL_DIR" "${FSL_DIR}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/flirt-reversed.sh"
         arch "x86_64"
@@ -91,6 +101,11 @@ tr flirt-reversed {
 }
 
 tr ttgen {
+    profile env "HOME" "${HOME}"
+    profile env "FSLDIR" "${FSL_DIR}"
+    profile env "MRTRIX_BIN" "${MRTRIX_BIN}"
+    profile env "MRTRIX_SCRIPTS" "${MRTRIX_SCRIPTS}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/ttgen.sh"
         arch "x86_64"
@@ -122,6 +137,10 @@ tr tt2vis {
 }
 
 tr dwi2response {
+    profile env "HOME" "${HOME}"
+    profile env "MRTRIX_BIN" "${MRTRIX_BIN}"
+    profile env "MRTRIX_SCRIPTS" "${MRTRIX_SCRIPTS}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/dwi2response.sh"
         arch "x86_64"
@@ -197,6 +216,8 @@ tr tck2connectome {
 }
 
 tr convert_output {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/convert_output.sh"
         arch "x86_64"
@@ -250,6 +271,9 @@ tr mris_smooth {
 }
 
 tr aseg_concatenation {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECT" "${SUBJECT}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/aseg_concatenation.sh"
         arch "x86_64"
@@ -270,6 +294,10 @@ tr mris_convert {
 }
 
 tr bbregister {
+    profile env "HOME" "${HOME}"
+    profile env "FSL_DIR" "${FSL_DIR}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/bbregister.sh"
         arch "x86_64"
@@ -290,6 +318,9 @@ tr mri_vol2vol {
 }
 
 tr qc_snapshot {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECT" "${SUBJECT}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/qc_snapshot.sh"
         arch "x86_64"
@@ -299,6 +330,9 @@ tr qc_snapshot {
 }
 
 tr gen_fs_custom {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECT" "${SUBJECT}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/gen_fs_custom.sh"
         arch "x86_64"
@@ -308,6 +342,9 @@ tr gen_fs_custom {
 }
 
 tr autorecon3-t2 {
+    profile env "HOME" "${HOME}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/autorecon3-t2.sh"
         arch "x86_64"
@@ -317,6 +354,9 @@ tr autorecon3-t2 {
 }
 
 tr autorecon3-flair {
+    profile env "HOME" "${HOME}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+
     site condorpool {
         pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/autorecon3-flair.sh"
         arch "x86_64"
