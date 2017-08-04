@@ -6,7 +6,8 @@ from qc_snapshots import QCSnapshots
 
 
 class T1Processing(object):
-    subject = os.environ["SUBJECT"]
+    #TODO: how to define this in config?
+    subject = "TVB2PEG30"
 
     def __init__(self, t1_frmt="nii", use_t2=False, t2_frmt="nii", use_flair=False, flair_frmt="nii", openmp_thrds="4"):
         self.t1_format = t1_frmt

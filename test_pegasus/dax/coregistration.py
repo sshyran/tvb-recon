@@ -6,7 +6,8 @@ from qc_snapshots import QCSnapshots
 
 
 class Coregistration(object):
-    subject = os.environ["SUBJECT"]
+    #TODO: how to define this in config?
+    subject = "TVB2PEG30"
 
     def __init__(self, use_flirt=True):
         self.use_flirt = use_flirt
