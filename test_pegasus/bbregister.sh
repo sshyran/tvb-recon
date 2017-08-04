@@ -2,7 +2,7 @@
 
 export HOME=/Users/pipeline
 export FREESURFER_HOME="/WORK/FS_NEW/freesurfer"
-source "/WORK/FS_NEW/freesurfer/SetUpFreeSurfer.sh"
+source ${FREESURFER_HOME}/SetUpFreeSurfer.sh
 export FSL_DIR="/WORK/FSL/fsl"
 source ${FSL_DIR}/etc/fslconf/fsl.sh
 

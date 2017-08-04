@@ -6,4 +6,4 @@ export FSLDIR=/WORK/FSL/fsl
 export PATH=${FSLDIR}/bin:${PATH}
 source ${FSLDIR}/etc/fslconf/fsl.sh
 
-/WORK/MRtrix/mrtrix3/scripts/5ttgen fsl $1 $2
+5ttgen fsl $1 $2
