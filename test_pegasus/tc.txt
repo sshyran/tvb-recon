@@ -34,12 +34,15 @@ tr mrconvert {
 
 tr dwipreproc {
     profile env "HOME" "${HOME}"
+    profile env "FSLDIR" "${FSL_DIR}"
+    profile env "MRTRIX_BIN" "${MRTRIX_BIN}"
+    profile env "MRTRIX_SCRIPTS" "${MRTRIX_SCRIPTS}"
 
     site condorpool {
-        pfn "/WORK/MRtrix/mrtrix3/scripts/dwipreproc"
+        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/dwipreproc.sh"
         arch "x86_64"
         os "${OS}"
-        type "INSTALLED"
+        type "STAGEABLE"
     }
 }
 
