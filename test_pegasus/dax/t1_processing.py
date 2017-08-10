@@ -1,12 +1,10 @@
-import os
-
 from Pegasus.DAX3 import File, Job, Link
 from mappings import Inputs, T1Files, T1JobNames
 from qc_snapshots import QCSnapshots
 
 
 class T1Processing(object):
-    #TODO: how to define this in config?
+    # TODO: how to define this in config?
     subject = "TVB2PEG30"
 
     def __init__(self, t1_frmt="nii", use_t2=False, t2_frmt="nii", use_flair=False, flair_frmt="nii", openmp_thrds="4"):
@@ -36,28 +34,34 @@ class T1Processing(object):
 
         return output_file, job
 
+    def _add_output_files(self, job, out_files):
+        for out_file in out_files:
+            job.uses(out_file, link=Link.OUTPUT, transfer=True, register=True)
+
     def add_t1_processing_steps(self, dax):
         t1_input = Inputs.T1_INPUT.value
         t1_converted = T1Files.T1_INPUT_CONVERTED.value
         t1_output, job1 = self._ensure_input_format(self.t1_format, t1_input, t1_converted, dax)
 
-        t1_mgz_output = File(T1Files.T1_MGZ.value)
         aparc_aseg_mgz_vol = File(T1Files.APARC_ASEG_MGZ.value)
-        norm_mgz_vol = File(T1Files.NORM_MGZ.value)
         lh_pial = File(T1Files.LH_PIAL.value)
         rh_pial = File(T1Files.RH_PIAL.value)
         lh_aparc_annot = File(T1Files.LH_APARC_ANNOT.value)
         rh_aparc_annot = File(T1Files.RH_APARC_ANNOT.value)
+
+        out_files_list = [aparc_aseg_mgz_vol, lh_pial, rh_pial, lh_aparc_annot, rh_aparc_annot]
+
+        t1_mgz_output = File(T1Files.T1_MGZ.value)
+        norm_mgz_vol = File(T1Files.NORM_MGZ.value)
         job2 = Job(T1JobNames.RECON_ALL.value, node_label="Recon-all for T1")
         job2.addArguments(self.subject, t1_output, self.openmp_threads)
         job2.uses(t1_output, link=Link.INPUT)
         job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=False, register=False)
-        job2.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
         job2.uses(norm_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
-        job2.uses(lh_pial, link=Link.OUTPUT, transfer=False, register=False)
-        job2.uses(rh_pial, link=Link.OUTPUT, transfer=False, register=False)
-        job2.uses(lh_aparc_annot, link=Link.OUTPUT, transfer=False, register=False)
-        job2.uses(rh_aparc_annot, link=Link.OUTPUT, transfer=False, register=False)
+
+        if self.t2_flag != "True":
+            self._add_output_files(job2, out_files_list)
+
         dax.addJob(job2)
 
         if job1 is not None:
@@ -73,7 +77,9 @@ class T1Processing(object):
             job = Job(T1JobNames.AUTORECON3_T2.value)
             job.addArguments(self.subject, t2_input, self.openmp_threads)
             job.uses(t2_input, link=Link.INPUT)
-            job.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
+
+            self._add_output_files(job, out_files_list)
+
             dax.addJob(job)
 
             if job_convert is not None:
@@ -90,7 +96,9 @@ class T1Processing(object):
             job = Job(T1JobNames.AUTORECON3_FLAIR.value)
             job.addArguments(self.subject, flair_input, self.openmp_threads)
             job.uses(flair_input, link=Link.INPUT)
-            job.uses(aparc_aseg_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
+
+            self._add_output_files(job, out_files_list)
+
             dax.addJob(job)
 
             if job_convert is not None:
@@ -135,8 +143,9 @@ class T1Processing(object):
 
         dax.depends(job6, last_job)
 
-        self.qc_snapshots.add_vol_surf_snapshot_step(dax, [job3, job5, job6], t1_nii_gz_vol, [lh_centered_pial, rh_centered_pial])
+        self.qc_snapshots.add_vol_surf_snapshot_step(dax, [job3, job5, job6], t1_nii_gz_vol,
+                                                     [lh_centered_pial, rh_centered_pial])
         self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], lh_centered_pial, lh_aparc_annot)
-        # self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial, rh_aparc_annot)
+        self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial, rh_aparc_annot)
 
         return job3, job4
