@@ -22,4 +22,5 @@ pegasus-plan --conf ${PEGASUS_PROPS} \
     --dir ${PEGASUSHOME}/submit \
     --output-site local \
     --sites condorpool \
-    --submit
+    --submit \
+    --cleanup leaf
