@@ -2,7 +2,7 @@ tr mri_convert {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/FS_NEW/freesurfer/bin/mri_convert"
+        pfn "${FREESURFER_HOME}/bin/mri_convert"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -14,7 +14,7 @@ tr recon {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/recon.sh"
+        pfn "${SH_CUSTOM_FILES}/recon.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -25,7 +25,7 @@ tr mrconvert {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-         pfn "/WORK/MRtrix/mrtrix3/release/bin/mrconvert"
+         pfn "${MRTRIX_BIN}/mrconvert"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -39,7 +39,7 @@ tr dwipreproc {
     profile env "MRTRIX_SCRIPTS" "${MRTRIX_SCRIPTS}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/dwipreproc.sh"
+        pfn "${SH_CUSTOM_FILES}/dwipreproc.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -50,7 +50,7 @@ tr dwi2mask {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-        pfn "/WORK/MRtrix/mrtrix3/release/bin/dwi2mask"
+        pfn "${MRTRIX_BIN}/dwi2mask"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -62,7 +62,7 @@ tr dwiextract {
     profile env "MRTRIX_BIN" "${MRTRIX_BIN}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/dwiextract.sh"
+        pfn "${SH_CUSTOM_FILES}/dwiextract.sh"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -73,7 +73,7 @@ tr flirt {
     profile env "FSL_DIR" "${FSL_DIR}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/flirt.sh"
+        pfn "${SH_CUSTOM_FILES}/flirt.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -85,7 +85,7 @@ tr convert-xfm {
     profile env "FSL_DIR" "${FSL_DIR}"
 
     site condorpool {
-        pfn "/WORK/FSL/fsl/bin/convert_xfm"
+        pfn "${MRTRIX_BIN}/convert_xfm"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -96,7 +96,7 @@ tr flirt-reversed {
     profile env "FSL_DIR" "${FSL_DIR}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/flirt-reversed.sh"
+        pfn "${SH_CUSTOM_FILES}/flirt-reversed.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -110,7 +110,7 @@ tr ttgen {
     profile env "MRTRIX_SCRIPTS" "${MRTRIX_SCRIPTS}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/ttgen.sh"
+        pfn "${SH_CUSTOM_FILES}/ttgen.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -121,7 +121,7 @@ tr tt2gmwmi {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-        pfn "/WORK/MRtrix/mrtrix3/release/bin/5tt2gmwmi"
+        pfn "${MRTRIX_BIN}/5tt2gmwmi"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -132,7 +132,7 @@ tr tt2vis {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-        pfn "/WORK/MRtrix/mrtrix3/release/bin/5tt2vis"
+        pfn "${MRTRIX_BIN}/5tt2vis"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -145,7 +145,7 @@ tr dwi2response {
     profile env "MRTRIX_SCRIPTS" "${MRTRIX_SCRIPTS}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/dwi2response.sh"
+        pfn "${SH_CUSTOM_FILES}/dwi2response.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -156,7 +156,7 @@ tr dwi2fod {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-        pfn "/WORK/MRtrix/mrtrix3/release/bin/dwi2fod"
+        pfn "${MRTRIX_BIN}/dwi2fod"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -167,7 +167,7 @@ tr tckgen {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-        pfn "/WORK/MRtrix/mrtrix3/release/bin/tckgen"
+        pfn "${MRTRIX_BIN}/tckgen"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -178,7 +178,7 @@ tr tcksift {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-        pfn "/WORK/MRtrix/mrtrix3/release/bin/tcksift"
+        pfn "${MRTRIX_BIN}/tcksift"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -189,7 +189,7 @@ tr tckmap {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-        pfn "/WORK/MRtrix/mrtrix3/release/bin/tckmap"
+        pfn "${MRTRIX_BIN}/tckmap"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -200,7 +200,7 @@ tr labelconvert {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-        pfn "/WORK/MRtrix/mrtrix3/release/bin/labelconvert"
+        pfn "${MRTRIX_BIN}/labelconvert"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -211,7 +211,7 @@ tr tck2connectome {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-        pfn "/WORK/MRtrix/mrtrix3/release/bin/tck2connectome"
+        pfn "${MRTRIX_BIN}/tck2connectome"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -222,7 +222,7 @@ tr convert_output {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/convert_output.sh"
+        pfn "${SH_CUSTOM_FILES}/convert_output.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -233,7 +233,7 @@ tr mri_pretess {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/FS/freesurfer//bin/mri_pretess"
+        pfn "${FREESURFER_HOME}/bin/mri_pretess"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -244,7 +244,7 @@ tr mri_tessellate {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/FS/freesurfer//bin/mri_tessellate"
+        pfn "${FREESURFER_HOME}/bin/mri_tessellate"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -255,7 +255,7 @@ tr mris_extract_main_component {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/FS/freesurfer//bin/mris_extract_main_component"
+        pfn "${FREESURFER_HOME}/bin/mris_extract_main_component"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -266,7 +266,7 @@ tr mris_smooth {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/FS/freesurfer//bin/mris_smooth"
+        pfn "${FREESURFER_HOME}/bin/mris_smooth"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -278,7 +278,7 @@ tr aseg_concatenation {
     profile env "SUBJECT" "${SUBJECT}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/aseg_concatenation.sh"
+        pfn "${SH_CUSTOM_FILES}/aseg_concatenation.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -289,7 +289,7 @@ tr mris_convert {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/FS/freesurfer//bin/mris_convert"
+        pfn "${FREESURFER_HOME}/bin/mris_convert"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -302,7 +302,7 @@ tr bbregister {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/bbregister.sh"
+        pfn "${SH_CUSTOM_FILES}/bbregister.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -313,7 +313,7 @@ tr mri_vol2vol {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/FS/freesurfer//bin/mri_vol2vol"
+        pfn "${FREESURFER_HOME}/bin/mri_vol2vol"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -325,7 +325,7 @@ tr qc_snapshot {
     profile env "SUBJECT" "${SUBJECT}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/qc_snapshot.sh"
+        pfn "${SH_CUSTOM_FILES}/qc_snapshot.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -337,7 +337,7 @@ tr gen_fs_custom {
     profile env "SUBJECT" "${SUBJECT}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/gen_fs_custom.sh"
+        pfn "${SH_CUSTOM_FILES}/gen_fs_custom.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -349,7 +349,7 @@ tr autorecon3-t2 {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/autorecon3-t2.sh"
+        pfn "${SH_CUSTOM_FILES}/autorecon3-t2.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -361,7 +361,7 @@ tr autorecon3-flair {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
-        pfn "/WORK/BNM/tvb-recon/tvb-recon/test_pegasus/autorecon3-flair.sh"
+        pfn "${SH_CUSTOM_FILES}/autorecon3-flair.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
