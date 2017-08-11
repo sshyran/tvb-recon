@@ -15,13 +15,13 @@ class TractsGeneration(object):
         self.qc_snapshots = QCSnapshots.get_instance()
 
     # job_t1_in_d = job12, job_mask = job5, job_aparc_aseg_in_d = job21
-    def add_tracts_generation_steps(self, dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_aseg_lh, job_aseg_rh):
+    def add_tracts_generation_steps(self, dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_fs_custom):
         t1_in_d = File(CoregFiles.T1_IN_D.value)
         file_5tt = File(TractsGenFiles.FILE_5TT_MIF.value)
         job1 = Job(TractsGenJobNames.JOB_5TTGEN.value, node_label="Generate 5tt MIF")
         job1.addArguments(t1_in_d, file_5tt)
         job1.uses(t1_in_d, link=Link.INPUT)
-        job1.uses(file_5tt, link=Link.OUTPUT, transfer=False, register=False)
+        job1.uses(file_5tt, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job1)
 
         dax.depends(job1, job_t1_in_d)
@@ -101,23 +101,23 @@ class TractsGeneration(object):
             last_job = job5
 
         else:
-            file_respone = File(TractsGenFiles.RESPONSE_TXT.value)
+            file_response = File(TractsGenFiles.RESPONSE_TXT.value)
             job4 = Job(TractsGenJobNames.DWI2RESPONSE.value, node_label="Compute the DWI Response")
-            job4.addArguments(dwi_mif, file_respone, mask_mif)
+            job4.addArguments(dwi_mif, file_response, mask_mif)
             job4.uses(dwi_mif, link=Link.INPUT)
             job4.uses(mask_mif, link=Link.INPUT)
-            job4.uses(file_respone, link=Link.OUTPUT, transfer=True, register=False)
+            job4.uses(file_response, link=Link.OUTPUT, transfer=True, register=False)
             dax.addJob(job4)
 
             dax.depends(job4, job_mask)
 
             file_wm_fod = File(TractsGenFiles.WM_FOD_MIF.value)
             job5 = Job(TractsGenJobNames.DWI2FOD.value, node_label="Obtain WM FOD")
-            job5.addArguments("csd", dwi_mif, file_respone, file_wm_fod, "-mask", mask_mif,
+            job5.addArguments("csd", dwi_mif, file_response, file_wm_fod, "-mask", mask_mif,
                               "-nthreads",
                               self.mrtrix_threads)
             job5.uses(dwi_mif, link=Link.INPUT)
-            job5.uses(file_respone, link=Link.INPUT)
+            job5.uses(file_response, link=Link.INPUT)
             job5.uses(mask_mif, link=Link.INPUT)
             job5.uses(file_wm_fod, link=Link.OUTPUT, transfer=True, register=False)
             dax.addJob(job5)
@@ -134,7 +134,7 @@ class TractsGeneration(object):
         job6.uses(file_wm_fod, link=Link.INPUT)
         job6.uses(file_gmwmi, link=Link.INPUT)
         job6.uses(file_5tt, link=Link.INPUT)
-        job6.uses(file_strmlns, link=Link.OUTPUT, transfer=False, register=False)
+        job6.uses(file_strmlns, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job6)
 
         dax.depends(job6, last_job)
@@ -147,7 +147,7 @@ class TractsGeneration(object):
         job7.uses(file_strmlns, link=Link.INPUT)
         job7.uses(file_wm_fod, link=Link.INPUT)
         job7.uses(file_5tt, link=Link.INPUT)
-        job7.uses(file_strmlns_sift, link=Link.OUTPUT, transfer=False, register=False)
+        job7.uses(file_strmlns_sift, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job7)
 
         dax.depends(job7, job6)
@@ -159,7 +159,7 @@ class TractsGeneration(object):
         job8.addArguments(file_strmlns_sift, file_tdi_ends, "-vox", "1", "-template", b0_nii_gz)
         job8.uses(file_strmlns_sift, link=Link.INPUT)
         job8.uses(b0_nii_gz, link=Link.INPUT)
-        job8.uses(file_tdi_ends, link=Link.OUTPUT, transfer=False, register=False)
+        job8.uses(file_tdi_ends, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job8)
 
         dax.depends(job8, job7)
@@ -175,20 +175,7 @@ class TractsGeneration(object):
 
         self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_tdi_ends], t1_in_d, file_tdi_ends_nii_gz)
 
-        fs_custom = File(TractsGenFiles.FS_CUSTOM_TXT.value)
-        job_fs_cust = Job(TractsGenJobNames.GEN_CUSTOM_FS_TXT.value)
-        job_fs_cust.addArguments(fs_custom)
-        job_fs_cust.uses(File(T1Files.LH_APARC_ANNOT.value), link=Link.INPUT)
-        job_fs_cust.uses(File(T1Files.RH_APARC_ANNOT.value), link=Link.INPUT)
-        job_fs_cust.uses(File(AsegFiles.LH_ASEG_ANNOT.value), link=Link.INPUT)
-        job_fs_cust.uses(File(AsegFiles.RH_ASEG_ANNOT.value), link=Link.INPUT)
-        job_fs_cust.uses(fs_custom, link=Link.OUTPUT, transfer=True, register=False)
-        dax.addJob(job_fs_cust)
-
-        dax.depends(job_fs_cust, job8)
-        dax.depends(job_fs_cust, job_aseg_lh)
-        dax.depends(job_fs_cust, job_aseg_rh)
-
+        fs_custom = File(AsegFiles.FS_CUSTOM_TXT.value)
         aparc_aseg_in_d = File(CoregFiles.APARC_AGEG_IN_D.value)
         file_vol_lbl = File(TractsGenFiles.VOLUME_LBL_NII_GZ.value)
         fs_color_lut = File(Inputs.FS_LUT.value)
@@ -197,10 +184,10 @@ class TractsGeneration(object):
         job9.uses(aparc_aseg_in_d, link=Link.INPUT)
         job9.uses(fs_color_lut, link=Link.INPUT)
         job9.uses(fs_custom, link=Link.INPUT)
-        job9.uses(file_vol_lbl, link=Link.OUTPUT, transfer=True, register=False)
+        job9.uses(file_vol_lbl, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job9)
 
-        dax.depends(job9, job_fs_cust)
+        dax.depends(job9, job_fs_custom)
         dax.depends(job9, job_aparc_aseg_in_d)
 
         self.qc_snapshots.add_2vols_snapshot_step(dax, [job9], t1_in_d, file_vol_lbl)

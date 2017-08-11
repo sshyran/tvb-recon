@@ -4,10 +4,9 @@ from qc_snapshots import QCSnapshots
 
 
 class T1Processing(object):
-    # TODO: how to define this in config?
-    subject = "TVB2PEG30"
-
-    def __init__(self, t1_frmt="nii", use_t2=False, t2_frmt="nii", use_flair=False, flair_frmt="nii", openmp_thrds="4"):
+    def __init__(self, subject, t1_frmt="nii", use_t2=False, t2_frmt="nii", use_flair=False, flair_frmt="nii",
+                 openmp_thrds="4"):
+        self.subject = subject
         self.t1_format = t1_frmt
         self.t2_flag = use_t2
         self.t2_format = t2_frmt
@@ -56,8 +55,8 @@ class T1Processing(object):
         job2 = Job(T1JobNames.RECON_ALL.value, node_label="Recon-all for T1")
         job2.addArguments(self.subject, t1_output, self.openmp_threads)
         job2.uses(t1_output, link=Link.INPUT)
-        job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=False, register=False)
-        job2.uses(norm_mgz_vol, link=Link.OUTPUT, transfer=False, register=False)
+        job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=True, register=True)
+        job2.uses(norm_mgz_vol, link=Link.OUTPUT, transfer=True, register=True)
 
         if self.t2_flag != "True":
             self._add_output_files(job2, out_files_list)
@@ -111,7 +110,7 @@ class T1Processing(object):
         job3 = Job(T1JobNames.MRI_CONVERT.value, node_label="Convert T1 to NIFTI with good orientation")
         job3.addArguments(t1_mgz_output, t1_nii_gz_vol, "--out_orientation", "RAS")
         job3.uses(t1_mgz_output, link=Link.INPUT)
-        job3.uses(t1_nii_gz_vol, link=Link.OUTPUT, transfer=True, register=False)
+        job3.uses(t1_nii_gz_vol, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job3)
 
         dax.depends(job3, last_job)

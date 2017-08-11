@@ -22,20 +22,22 @@ if __name__ == "__main__":
 
     config = Configuration(patient_file)
 
-    t1_processing = T1Processing(config.props[ConfigKey.T1_FRMT], config.props[ConfigKey.T2_FLAG],
-                                 config.props[ConfigKey.T2_FRMT], config.props[ConfigKey.FLAIR_FLAG],
-                                 config.props[ConfigKey.FLAIR_FRMT], config.props[ConfigKey.OPENMP_THRDS])
+    t1_processing = T1Processing(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.T1_FRMT],
+                                 config.props[ConfigKey.T2_FLAG], config.props[ConfigKey.T2_FRMT],
+                                 config.props[ConfigKey.FLAIR_FLAG], config.props[ConfigKey.FLAIR_FRMT],
+                                 config.props[ConfigKey.OPENMP_THRDS])
 
     dwi_processing = DWIProcessing(config.props[ConfigKey.DWI_IS_REVERSED], config.props[ConfigKey.DWI_FRMT],
                                    config.props[ConfigKey.MRTRIX_THRDS], config.props[ConfigKey.DWI_SCAN_DIRECTION])
 
-    coregistration = Coregistration(config.props[ConfigKey.USE_FLIRT])
+    coregistration = Coregistration(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.USE_FLIRT])
 
     tracts_generation = TractsGeneration(config.props[ConfigKey.DWI_MULTI_SHELL], config.props[ConfigKey.MRTRIX_THRDS],
                                          config.props[ConfigKey.STRMLNS_NO], config.props[ConfigKey.STRMLNS_SIFT_NO],
                                          config.props[ConfigKey.STRMLNS_LEN], config.props[ConfigKey.STRMLNS_STEP])
 
-    aseg_generation = AsegGeneration(config.props[ConfigKey.ASEG_LH_LABELS], config.props[ConfigKey.ASEG_RH_LABELS])
+    aseg_generation = AsegGeneration(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.ASEG_LH_LABELS],
+                                     config.props[ConfigKey.ASEG_RH_LABELS])
 
     output_conversion = OutputConversion()
 
@@ -43,9 +45,8 @@ if __name__ == "__main__":
     job_b0, job_mask = dwi_processing.add_dwi_processing_steps(dax)
     job_t1_in_d, job_aparc_aseg_in_d = coregistration.add_coregistration_steps(dax, job_b0, job_t1,
                                                                                job_aparc_aseg)
-    job_aseg_lh, job_aseg_rh = aseg_generation.add_aseg_generation_steps(dax, job_aparc_aseg)
-    tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_aseg_lh,
-                                                  job_aseg_rh)
+    job_aseg_lh, job_aseg_rh, job_fs_custom = aseg_generation.add_aseg_generation_steps(dax, job_aparc_aseg)
+    tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_fs_custom)
     output_conversion.add_conversion_steps(dax, job_aparc_aseg, job_aseg_lh, job_aseg_rh)
 
     f = open(daxfile, "w")

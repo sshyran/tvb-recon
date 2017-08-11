@@ -1,15 +1,11 @@
-import os
-
 from Pegasus.DAX3 import File, Job, Link
 from mappings import CoregFiles, CoregJobNames, T1Files, DWIFiles, T1JobNames
 from qc_snapshots import QCSnapshots
 
 
 class Coregistration(object):
-    #TODO: how to define this in config?
-    subject = "TVB2PEG30"
-
-    def __init__(self, use_flirt=True):
+    def __init__(self, subject, use_flirt=True):
+        self.subject = subject
         self.use_flirt = use_flirt
         self.qc_snapshots = QCSnapshots.get_instance()
 
@@ -22,8 +18,8 @@ class Coregistration(object):
         job1.addArguments(b0_nii_gz, t1_nii_gz, d2t_mat, b0_in_t1)
         job1.uses(b0_nii_gz, link=Link.INPUT)
         job1.uses(t1_nii_gz, link=Link.INPUT)
-        job1.uses(d2t_mat, link=Link.OUTPUT, transfer=False, register=False)
-        job1.uses(b0_in_t1, link=Link.OUTPUT, transfer=False, register=False)
+        job1.uses(d2t_mat, link=Link.OUTPUT, transfer=True, register=True)
+        job1.uses(b0_in_t1, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job1)
 
         dax.depends(job1, job_t1)

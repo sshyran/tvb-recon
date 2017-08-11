@@ -3,7 +3,8 @@ from mappings import T1Files, AsegGenJobNames, AsegFiles, Inputs, T1JobNames
 
 
 class AsegGeneration(object):
-    def __init__(self, lh_labels, rh_labels):
+    def __init__(self, subject, lh_labels, rh_labels):
+        self.subject = subject
         self.lh_labels = lh_labels
         self.rh_labels = rh_labels
 
@@ -12,20 +13,20 @@ class AsegGeneration(object):
         lh_aseg_annot = File(AsegFiles.LH_ASEG_ANNOT.value)
         fs_lut = File(Inputs.FS_LUT.value)
         job5 = Job(AsegGenJobNames.ASEG_CONCAT.value)
-        job5.addArguments(lh_aseg, lh_aseg_annot, self.lh_labels, fs_lut)
+        job5.addArguments(lh_aseg, lh_aseg_annot, self.lh_labels, fs_lut, self.subject)
         job5.uses(fs_lut, link=Link.INPUT)
-        job5.uses(lh_aseg, link=Link.OUTPUT, transfer=False, register=False)
-        job5.uses(lh_aseg_annot, link=Link.OUTPUT, transfer=False, register=False)
+        job5.uses(lh_aseg, link=Link.OUTPUT, transfer=True, register=True)
+        job5.uses(lh_aseg_annot, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job5)
 
         rh_aseg = File(AsegFiles.RH_ASEG.value)
         rh_aseg_annot = File(AsegFiles.RH_ASEG_ANNOT.value)
         fs_lut = File(Inputs.FS_LUT.value)
         job6 = Job(AsegGenJobNames.ASEG_CONCAT.value)
-        job6.addArguments(rh_aseg, rh_aseg_annot, self.rh_labels, fs_lut)
+        job6.addArguments(rh_aseg, rh_aseg_annot, self.rh_labels, fs_lut, self.subject)
         job6.uses(fs_lut, link=Link.INPUT)
-        job6.uses(rh_aseg, link=Link.OUTPUT, transfer=False, register=False)
-        job6.uses(rh_aseg_annot, link=Link.OUTPUT, transfer=False, register=False)
+        job6.uses(rh_aseg, link=Link.OUTPUT, transfer=True, register=True)
+        job6.uses(rh_aseg_annot, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job6)
 
         lbl_list = map(int, self.lh_labels.strip('"').split() + self.rh_labels.strip('"').split())
@@ -60,21 +61,30 @@ class AsegGeneration(object):
 
             dax.depends(job3, job2)
 
-            aseg_lbl = File(AsegFiles.ASEG_LBL.value % aseg_label)
+            lh_aseg_lbl = File(AsegFiles.ASEG_LBL_LH.value % aseg_label)
             job4 = Job(AsegGenJobNames.MRIS_SMOOTH.value)
-            job4.addArguments("-nw", aseg_not_smooth_main, aseg_lbl)
+            job4.addArguments("-nw", aseg_not_smooth_main, lh_aseg_lbl)
             job4.uses(aseg_not_smooth_main, link=Link.INPUT)
-            job4.uses(aseg_lbl, link=Link.OUTPUT, transfer=False, register=False)
+            job4.uses(lh_aseg_lbl, link=Link.OUTPUT, transfer=False, register=False)
             dax.addJob(job4)
 
             dax.depends(job4, job3)
+
+            aseg_lbl = File(AsegFiles.ASEG_LBL.value % aseg_label)
+            job_rename = Job("mv")
+            job_rename.addArguments(lh_aseg_lbl, aseg_lbl)
+            job_rename.uses(lh_aseg_lbl, link=Link.INPUT)
+            job_rename.uses(aseg_lbl, link=Link.OUTPUT, transfer=False, register=False)
+            dax.addJob(job_rename)
+
+            dax.depends(job_rename, job4)
 
             if aseg_label in map(int, self.lh_labels.strip('"').split()):
                 job5.uses(aseg_lbl, link=Link.INPUT)
             else:
                 job6.uses(aseg_lbl, link=Link.INPUT)
-            dax.depends(job5, job4)
-            dax.depends(job6, job4)
+            dax.depends(job5, job_rename)
+            dax.depends(job6, job_rename)
 
         lh_centered_aseg = File(AsegFiles.LH_CENTERED_ASEG.value)
         job7 = Job(T1JobNames.MRIS_CONVERT.value)
@@ -94,4 +104,17 @@ class AsegGeneration(object):
 
         dax.depends(job8, job6)
 
-        return job7, job8
+        fs_custom = File(AsegFiles.FS_CUSTOM_TXT.value)
+        job9 = Job(AsegGenJobNames.GEN_CUSTOM_FS_TXT.value)
+        job9.addArguments(fs_custom, self.subject)
+        job9.uses(File(T1Files.LH_APARC_ANNOT.value), link=Link.INPUT)
+        job9.uses(File(T1Files.RH_APARC_ANNOT.value), link=Link.INPUT)
+        job9.uses(File(AsegFiles.LH_ASEG_ANNOT.value), link=Link.INPUT)
+        job9.uses(File(AsegFiles.RH_ASEG_ANNOT.value), link=Link.INPUT)
+        job9.uses(fs_custom, link=Link.OUTPUT, transfer=True, register=False)
+        dax.addJob(job9)
+
+        dax.depends(job9, job7)
+        dax.depends(job9, job8)
+
+        return job7, job8, job9

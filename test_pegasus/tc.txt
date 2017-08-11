@@ -85,7 +85,7 @@ tr convert-xfm {
     profile env "FSL_DIR" "${FSL_DIR}"
 
     site condorpool {
-        pfn "${MRTRIX_BIN}/convert_xfm"
+        pfn "${FSL_DIR}/bin/convert_xfm"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -275,7 +275,6 @@ tr mris_smooth {
 
 tr aseg_concatenation {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
-    profile env "SUBJECT" "${SUBJECT}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/aseg_concatenation.sh"
@@ -322,7 +321,6 @@ tr mri_vol2vol {
 
 tr qc_snapshot {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
-    profile env "SUBJECT" "${SUBJECT}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/qc_snapshot.sh"
@@ -334,7 +332,6 @@ tr qc_snapshot {
 
 tr gen_fs_custom {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
-    profile env "SUBJECT" "${SUBJECT}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/gen_fs_custom.sh"
@@ -365,5 +362,14 @@ tr autorecon3-flair {
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
+    }
+}
+
+tr mv {
+    site condorpool {
+        pfn "/bin/mv"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
     }
 }

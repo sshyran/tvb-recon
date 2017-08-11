@@ -89,7 +89,6 @@ class TractsGenFiles(Enum):
     TRACT_LENGHTS = "tract_lengths.csv"
     GMWMI_NII_GZ = "gmwmi.nii.gz"
     TDI_ENDS_NII_GZ = "tdi_ends.nii.gz"
-    FS_CUSTOM_TXT = "fs_custom.txt"
 
 
 class TractsGenJobNames(Enum):
@@ -105,20 +104,21 @@ class TractsGenJobNames(Enum):
     TCK2CONNECTOME = "tck2connectome"
     DWI2RESPONSE_MSMT = "dwi2response-msmt"
     MSDWI2FOD = "msdwi2fod"
-    GEN_CUSTOM_FS_TXT = "gen_fs_custom"
 
 
 class AsegFiles(Enum):
     ASEG_MGZ = "aseg-%06d.mgz"
     ASEG_NOT_SMOOTH = "aseg-%06d-notsmooth"
     ASEG_NOT_SMOOTH_MAIN = "lh.aseg-%06d-notsmooth-main"
-    ASEG_LBL = "lh.aseg-%06d"
+    ASEG_LBL_LH = "lh.aseg-%06d"
+    ASEG_LBL = "aseg-%06d"
     LH_ASEG = "lh.aseg"
     RH_ASEG = "rh.aseg"
     LH_CENTERED_ASEG = "lh.centered.aseg"
     RH_CENTERED_ASEG = "rh.centered.aseg"
     LH_ASEG_ANNOT = "lh.aseg.annot"
     RH_ASEG_ANNOT = "rh.aseg.annot"
+    FS_CUSTOM_TXT = "fs_custom.txt"
 
 
 class AsegGenJobNames(Enum):
@@ -127,6 +127,7 @@ class AsegGenJobNames(Enum):
     MRIS_EXTRACT = "mris_extract_main_component"
     MRIS_SMOOTH = "mris_smooth"
     ASEG_CONCAT = "aseg_concatenation"
+    GEN_CUSTOM_FS_TXT = "gen_fs_custom"
 
 
 class OutputConvFiles(Enum):
