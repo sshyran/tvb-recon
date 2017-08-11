@@ -1,6 +1,6 @@
 from Pegasus.DAX3 import File, Job, Link
-from mappings import Inputs, T1Files, T1JobNames
-from qc_snapshots import QCSnapshots
+from tvb.recon.dax.mappings import T1JobNames, Inputs, T1Files
+from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class T1Processing(object):

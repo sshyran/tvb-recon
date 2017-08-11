@@ -1,6 +1,7 @@
 from Pegasus.DAX3 import File, Job, Link
-from mappings import TractsGenFiles, TractsGenJobNames, CoregFiles, DWIFiles, Inputs, T1Files, AsegFiles, DWIJobNames
-from qc_snapshots import QCSnapshots
+from tvb.recon.dax.mappings import CoregFiles, TractsGenFiles, TractsGenJobNames, DWIJobNames, DWIFiles, AsegFiles, \
+    Inputs
+from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class TractsGeneration(object):

@@ -1,15 +1,14 @@
 import os
 import sys
-
 import time
 from Pegasus.DAX3 import ADAG, Job, Link, File
-from t1_processing import T1Processing
-from dwi_processing import DWIProcessing
-from coregistration import Coregistration
-from aseg_generation import AsegGeneration
-from output_conversion import OutputConversion
-from tracts_generation import TractsGeneration
-from configuration import Configuration, ConfigKey
+from tvb.recon.dax.aseg_generation import AsegGeneration
+from tvb.recon.dax.configuration import Configuration, ConfigKey
+from tvb.recon.dax.coregistration import Coregistration
+from tvb.recon.dax.dwi_processing import DWIProcessing
+from tvb.recon.dax.output_conversion import OutputConversion
+from tvb.recon.dax.t1_processing import T1Processing
+from tvb.recon.dax.tracts_generation import TractsGeneration
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
@@ -53,5 +52,6 @@ if __name__ == "__main__":
     out_dir = os.path.dirname(daxfile)
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
+
     with open(daxfile, "w") as f:
         dax.writeXML(f)

@@ -1,5 +1,5 @@
 from Pegasus.DAX3 import File, Job, Link
-from mappings import T1Files, AsegGenJobNames, AsegFiles, Inputs, T1JobNames
+from tvb.recon.dax.mappings import AsegFiles, AsegGenJobNames, Inputs, T1Files, T1JobNames
 
 
 class AsegGeneration(object):

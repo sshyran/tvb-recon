@@ -1,6 +1,6 @@
 from Pegasus.DAX3 import File, Job, Link
-from mappings import CoregFiles, CoregJobNames, T1Files, DWIFiles, T1JobNames
-from qc_snapshots import QCSnapshots
+from tvb.recon.dax.mappings import DWIFiles, T1Files, CoregFiles, CoregJobNames, T1JobNames
+from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class Coregistration(object):

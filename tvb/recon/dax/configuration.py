@@ -1,8 +1,7 @@
 from enum import Enum
+from tvb.recon.logger import get_logger
 
-# from tvb.recon.logger import get_logger
-#
-# LOGGER = get_logger(__name__)
+LOGGER = get_logger(__name__)
 
 
 class ConfigKey(Enum):
@@ -32,7 +31,7 @@ class ConfigKey(Enum):
 
 class Configuration(object):
     def __init__(self, config_file):
-        # LOGGER.info("Parsing patient configuration file %s" % config_file)
+        LOGGER.info("Parsing patient configuration file %s" % config_file)
         self.props = self._parse_properties(config_file)
 
     @staticmethod
@@ -50,5 +49,5 @@ class Configuration(object):
                     raise Exception(
                         'Invalid property key %r in file %r.' % (key_str, config_file))
                 result_dict[key] = value.strip()
-            # LOGGER.debug("Read patient configuration %s" % result_dict)
+            LOGGER.debug("Read patient configuration %s" % result_dict)
             return result_dict

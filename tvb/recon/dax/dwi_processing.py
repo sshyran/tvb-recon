@@ -1,6 +1,6 @@
 from Pegasus.DAX3 import File, Job, Link
-from mappings import Inputs, DWIFiles, DWIJobNames
-from qc_snapshots import QCSnapshots
+from tvb.recon.dax.mappings import Inputs, DWIFiles, DWIJobNames
+from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class DWIProcessing(object):
@@ -44,7 +44,8 @@ class DWIProcessing(object):
 
             dwi_pre_output = File(DWIFiles.DWI_MIF.value)
             job3 = Job(DWIJobNames.DWIPREPROC.value, node_label="DWI preprocessing")
-            job3.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_pair", dwi_conv_output, dwi_re, "-nthreads",
+            job3.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_pair", dwi_conv_output, dwi_re,
+                              "-nthreads",
                               self.mrtrix_threads)
             job3.uses(dwi_conv_output, link=Link.INPUT)
             job3.uses(dwi_re, link=Link.INPUT)
@@ -75,7 +76,8 @@ class DWIProcessing(object):
 
             dwi_pre_output = File(DWIFiles.DWI_MIF.value)
             job2 = Job(DWIJobNames.DWIPREPROC.value, node_label="DWI preprocessing")
-            job2.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_none", "-nthreads", self.mrtrix_threads)
+            job2.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_none", "-nthreads",
+                              self.mrtrix_threads)
             job2.uses(dwi_conv_output, link=Link.INPUT)
             job2.uses(dwi_pre_output, link=Link.OUTPUT, transfer=True, register=True)
             dax.addJob(job2)

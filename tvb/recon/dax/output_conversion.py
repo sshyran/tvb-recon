@@ -1,5 +1,5 @@
 from Pegasus.DAX3 import File, Job, Link
-from mappings import TractsGenFiles, Inputs, T1Files, AsegFiles, OutputConvFiles
+from tvb.recon.dax.mappings import TractsGenFiles, Inputs, OutputConvFiles, T1Files, AsegFiles
 
 
 class OutputConversion(object):
