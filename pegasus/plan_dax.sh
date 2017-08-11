@@ -3,15 +3,15 @@
 DIR=$(cd $(dirname $0) && pwd)
 
 if [ $# -ne 3 ]; then
-    echo "Usage: $0 DAXFILE PEGASUS_PROPS PATIENT_ENV"
+    echo "Usage: $0 DAXFILE PEGASUS_PROPS ENV_CONFIG"
     exit 1
 fi
 
 DAXFILE=$1
 PEGASUS_PROPS=$2
-PATIENT_ENV=$3
+ENV_CONFIG=$3
 
-source ${PATIENT_ENV}
+source ${ENV_CONFIG}
 
 # This command tells Pegasus to plan the workflow contained in 
 # dax file passed as an argument. The planned workflow will be stored

@@ -1,3 +1,4 @@
+import os
 import sys
 
 import time
@@ -5,10 +6,10 @@ from Pegasus.DAX3 import ADAG, Job, Link, File
 from t1_processing import T1Processing
 from dwi_processing import DWIProcessing
 from coregistration import Coregistration
-from configuration import Configuration, ConfigKey
 from aseg_generation import AsegGeneration
 from output_conversion import OutputConversion
 from tracts_generation import TractsGeneration
+from configuration import Configuration, ConfigKey
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
@@ -49,6 +50,8 @@ if __name__ == "__main__":
     tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_fs_custom)
     output_conversion.add_conversion_steps(dax, job_aparc_aseg, job_aseg_lh, job_aseg_rh)
 
-    f = open(daxfile, "w")
-    dax.writeXML(f)
-    f.close()
+    out_dir = os.path.dirname(daxfile)
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    with open(daxfile, "w") as f:
+        dax.writeXML(f)
