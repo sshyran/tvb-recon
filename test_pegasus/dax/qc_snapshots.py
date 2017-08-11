@@ -91,12 +91,12 @@ class QCSnapshots(object):
         job.uses(surf, link=Link.INPUT)
         job.uses(annot, link=Link.INPUT)
 
-        job.uses(snapshot_file_1, link=Link.OUTPUT, transfer=True, register=False)
-        job.uses(snapshot_file_2, link=Link.OUTPUT, transfer=True, register=False)
-        job.uses(snapshot_file_3, link=Link.OUTPUT, transfer=True, register=False)
-        job.uses(snapshot_file_4, link=Link.OUTPUT, transfer=True, register=False)
-        job.uses(snapshot_file_5, link=Link.OUTPUT, transfer=True, register=False)
-        job.uses(snapshot_file_6, link=Link.OUTPUT, transfer=True, register=False)
+        job.uses(snapshot_file_1, link=Link.OUTPUT, transfer=True, register=True)
+        job.uses(snapshot_file_2, link=Link.OUTPUT, transfer=True, register=True)
+        job.uses(snapshot_file_3, link=Link.OUTPUT, transfer=True, register=True)
+        job.uses(snapshot_file_4, link=Link.OUTPUT, transfer=True, register=True)
+        job.uses(snapshot_file_5, link=Link.OUTPUT, transfer=True, register=True)
+        job.uses(snapshot_file_6, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job)
 
         for job_before in jobs_before:

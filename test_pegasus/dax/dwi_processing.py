@@ -77,7 +77,7 @@ class DWIProcessing(object):
             job2 = Job(DWIJobNames.DWIPREPROC.value, node_label="DWI preprocessing")
             job2.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_none", "-nthreads", self.mrtrix_threads)
             job2.uses(dwi_conv_output, link=Link.INPUT)
-            job2.uses(dwi_pre_output, link=Link.OUTPUT, transfer=False, register=False)
+            job2.uses(dwi_pre_output, link=Link.OUTPUT, transfer=True, register=True)
             dax.addJob(job2)
 
             if job1 is not None:
@@ -98,7 +98,7 @@ class DWIProcessing(object):
         job4 = Job(DWIJobNames.DWIEXTRACT.value, node_label="Extract DWI B0")
         job4.addArguments(dwi_pre_output, b0_output)
         job4.uses(dwi_pre_output, link=Link.INPUT)
-        job4.uses(b0_output, link=Link.OUTPUT, transfer=True, register=False)
+        job4.uses(b0_output, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job4)
 
         dax.depends(job4, last_job)
