@@ -74,13 +74,12 @@ class SurfaceTest(BaseTest):
                          verts[numpy.where(verts_mask)].all())
 
     def test_aseg_surf_conc_annot(self,):
-        surf_path = os.path.join(data_path, "aseg")
         out_surf_path = get_temporary_files_path("out_aseg")
         out_annot_path = get_temporary_files_path("out_annot")
         labels = "10 11"
         colorLUT = get_data_file("colorLUT.txt")
         self.service.aseg_surf_conc_annot(
-            surf_path, out_surf_path, out_annot_path, labels, colorLUT)
+            data_path, out_surf_path, out_annot_path, labels, colorLUT)
         self.assertTrue(os.path.exists(out_surf_path))
         self.assertTrue(os.path.exists(out_annot_path))
 
