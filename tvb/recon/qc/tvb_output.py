@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import argparse
 import os
 import subprocess
 import sys
@@ -20,7 +20,8 @@ def create_tvb_dataset(cort_surf_direc: os.PathLike,
                        weights_file: os.PathLike,
                        tracts_file: os.PathLike,
                        fs_color_lut: os.PathLike,
-                       out_dir: os.PathLike):
+                       out_dir: os.PathLike,
+                       bring_t1=False):
     annot_cort_lh = IOUtils.read_annotation(os.path.join(label_direc, "lh.aparc.annot"))
     annot_cort_rh = IOUtils.read_annotation(os.path.join(label_direc, "rh.aparc.annot"))
 
@@ -33,13 +34,13 @@ def create_tvb_dataset(cort_surf_direc: os.PathLike,
 
     surface_service = SurfaceService()
 
-    surf_cort_lh = IOUtils.read_surface(os.path.join(cort_surf_direc, "lh-centered.pial"), False)
-    surf_cort_rh = IOUtils.read_surface(os.path.join(cort_surf_direc, "rh-centered.pial"), False)
+    surf_cort_lh = IOUtils.read_surface(os.path.join(cort_surf_direc, "lh.centered.pial"), False)
+    surf_cort_rh = IOUtils.read_surface(os.path.join(cort_surf_direc, "rh.centered.pial"), False)
 
     full_cort_surface = surface_service.merge_surfaces([surf_cort_lh, surf_cort_rh])
 
-    surf_subcort_lh = IOUtils.read_surface(os.path.join(cort_surf_direc, "lh-centered.aseg"), False)
-    surf_subcort_rh = IOUtils.read_surface(os.path.join(cort_surf_direc, "rh-centered.aseg"), False)
+    surf_subcort_lh = IOUtils.read_surface(os.path.join(cort_surf_direc, "lh.centered.aseg"), False)
+    surf_subcort_rh = IOUtils.read_surface(os.path.join(cort_surf_direc, "rh.centered.aseg"), False)
 
     full_subcort_surface = surface_service.merge_surfaces([surf_subcort_lh, surf_subcort_rh])
 
@@ -99,18 +100,44 @@ def create_tvb_dataset(cort_surf_direc: os.PathLike,
                                                                        weights_matrix.shape[0])
     IOUtils.write_volume(os.path.join(out_dir, "aparc+aseg-cor.nii.gz"), aparc_aseg_cor_volume)
 
-    shutil.copy2(os.path.join(mri_direc, "T1.nii.gz"), out_dir)
+    if bring_t1:
+        shutil.copy2(os.path.join(mri_direc, "T1.nii.gz"), out_dir)
 
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Convert pipeline output to TVB format")
+    parser.add_argument("-p", help="Call from Pegasus WMS", required=False, action="store_true")
+
+    parser.add_argument("input_dir")
+    parser.add_argument("weights_file")
+    parser.add_argument("tracts_file")
+    parser.add_argument("fs_color_lut")
+    parser.add_argument("output_dir")
+
+    return parser.parse_args()
 
 if __name__ == "__main__":
-    subject_dir, weights_file, tracts_file, fs_color_lut, out_dir = sys.argv[1:]
+    args = parse_arguments()
 
-    create_tvb_dataset(
-        os.path.join(subject_dir, "surf"),
-        os.path.join(subject_dir, "label"),
-        os.path.join(subject_dir, "mri"),
-        weights_file,
-        tracts_file,
-        fs_color_lut,
-        out_dir
-    )
+    if args.p:
+        create_tvb_dataset(
+            args.input_dir,
+            args.input_dir,
+            args.input_dir,
+            args.weights_file,
+            args.tracts_file,
+            args.fs_color_lut,
+            args.output_dir
+        )
+
+    else:
+        create_tvb_dataset(
+            os.path.join(args.input_dir, "surf"),
+            os.path.join(args.input_dir, "label"),
+            os.path.join(args.input_dir, "mri"),
+            args.weights_file,
+            args.tracts_file,
+            args.fs_color_lut,
+            args.output_dir,
+            True
+        )

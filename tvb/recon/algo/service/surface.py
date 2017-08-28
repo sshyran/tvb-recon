@@ -296,7 +296,8 @@ class SurfaceService(object):
         label_number = -1
 
         for label_index in label_indices:
-            this_surf_path = surf_path + "-%06d" % int(label_index)
+            # TODO: This is hardcoded: /aseg-%06d here and also in pegasus dax generator
+            this_surf_path = surf_path + "/aseg-%06d" % int(label_index)
 
             if os.path.exists(this_surf_path):
                 ind_l, = numpy.where(label_indices == label_index)

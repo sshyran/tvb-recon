@@ -5,13 +5,8 @@
 
     <!-- The local site contains information about the submit host -->
     <site handle="local" arch="x86_64" os="${OS}">
-        <!-- This is where intermediate data will be stored -->
-        <directory type="shared-scratch" path="${PEGASUS_HOME}/scratch">
-            <file-server operation="all" url="file://${PEGASUS_HOME}/scratch"/>
-        </directory>
-        <!-- This is where output data will be stored -->
-        <directory type="shared-storage" path="${PEGASUS_HOME}/output">
-            <file-server operation="all" url="file://${PEGASUS_HOME}/output"/>
+        <directory type="shared-scratch" path="${PEGASUSHOME}/scratch">
+            <file-server operation="all" url="file://${PEGASUSHOME}/scratch"/>
         </directory>
     </site>
 
