@@ -19,7 +19,7 @@ source ${ENV_CONFIG}
 
 pegasus-plan --conf ${PEGASUS_PROPS} \
     --dax ${DAXFILE} \
-    --dir ${PEGASUSHOME}/submit \
+    --dir ${PEGASUSSUBMIT} \
     --output-site local \
     --sites condorpool \
     --submit \
