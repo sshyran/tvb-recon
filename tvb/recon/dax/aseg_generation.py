@@ -56,7 +56,7 @@ class AsegGeneration(object):
             job3 = Job(AsegGenJobNames.MRIS_EXTRACT.value)
             job3.addArguments(aseg_not_smooth, aseg_not_smooth_main)
             job3.uses(aseg_not_smooth, link=Link.INPUT)
-            job3.uses(aseg_not_smooth_main, link=Link.OUTPUT, transfer=False, register=False)
+            job3.uses(aseg_not_smooth_main, link=Link.OUTPUT, transfer=True, register=True)
             dax.addJob(job3)
 
             dax.depends(job3, job2)
@@ -65,7 +65,7 @@ class AsegGeneration(object):
             job4 = Job(AsegGenJobNames.MRIS_SMOOTH.value)
             job4.addArguments("-nw", aseg_not_smooth_main, lh_aseg_lbl)
             job4.uses(aseg_not_smooth_main, link=Link.INPUT)
-            job4.uses(lh_aseg_lbl, link=Link.OUTPUT, transfer=False, register=False)
+            job4.uses(lh_aseg_lbl, link=Link.OUTPUT, transfer=True, register=True)
             dax.addJob(job4)
 
             dax.depends(job4, job3)
@@ -74,7 +74,7 @@ class AsegGeneration(object):
             job_rename = Job("mv")
             job_rename.addArguments(lh_aseg_lbl, aseg_lbl)
             job_rename.uses(lh_aseg_lbl, link=Link.INPUT)
-            job_rename.uses(aseg_lbl, link=Link.OUTPUT, transfer=False, register=False)
+            job_rename.uses(aseg_lbl, link=Link.OUTPUT, transfer=True, register=True)
             dax.addJob(job_rename)
 
             dax.depends(job_rename, job4)
@@ -90,7 +90,7 @@ class AsegGeneration(object):
         job7 = Job(T1JobNames.MRIS_CONVERT.value)
         job7.addArguments("--to-scanner", lh_aseg, lh_centered_aseg)
         job7.uses(lh_aseg, link=Link.INPUT)
-        job7.uses(lh_centered_aseg, link=Link.OUTPUT, transfer=False, register=False)
+        job7.uses(lh_centered_aseg, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job7)
 
         dax.depends(job7, job5)
@@ -99,7 +99,7 @@ class AsegGeneration(object):
         job8 = Job(T1JobNames.MRIS_CONVERT.value)
         job8.addArguments("--to-scanner", rh_aseg, rh_centered_aseg)
         job8.uses(rh_aseg, link=Link.INPUT)
-        job8.uses(rh_centered_aseg, link=Link.OUTPUT, transfer=False, register=False)
+        job8.uses(rh_centered_aseg, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job8)
 
         dax.depends(job8, job6)
@@ -111,7 +111,7 @@ class AsegGeneration(object):
         job9.uses(File(T1Files.RH_APARC_ANNOT.value), link=Link.INPUT)
         job9.uses(File(AsegFiles.LH_ASEG_ANNOT.value), link=Link.INPUT)
         job9.uses(File(AsegFiles.RH_ASEG_ANNOT.value), link=Link.INPUT)
-        job9.uses(fs_custom, link=Link.OUTPUT, transfer=True, register=False)
+        job9.uses(fs_custom, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job9)
 
         dax.depends(job9, job7)
