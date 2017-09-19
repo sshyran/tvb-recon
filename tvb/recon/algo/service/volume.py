@@ -284,6 +284,20 @@ class VolumeService(object):
         numpy.save(filepath + "-idx.npy", out_ijk)
         numpy.savetxt(filepath + "-idx.txt", out_ijk, fmt='%d')
 
+    def vol_val_xyz(self, vol, aff, val):
+        vox_idx = numpy.argwhere(vol == val)
+        xyz = aff.dot(numpy.c_[vox_idx, numpy.ones(vox_idx.shape[0])].T)[:3].T
+        return xyz
+
+    def compute_label_volume_centers(self, label_volume, affine=None):
+
+        vol = label_volume
+        aff = affine
+        for val in numpy.unique(vol):
+            xyz = self.vol_val_xyz(vol, aff, val)
+            x, y, z = xyz.mean(axis=0)
+            yield val, (x, y, z)
+
     def label_with_dilation(self, to_label_nii_fname,
                             dilated_nii_fname, out_nii_fname):
         """
@@ -297,6 +311,14 @@ class VolumeService(object):
         dil_mask = IOUtils.read_volume(dilated_nii_fname)
 
         lab, n = scipy.ndimage.label(dil_mask.data)
+
+        lab_xyz = list(self.compute_label_volume_centers(lab, dil_mask.affine_matrix))
+        lab_sort = numpy.r_[:n + 1]
+        # sort labels along AP axis
+        for i, (val, _) in enumerate(sorted(lab_xyz, key=lambda t: t[1][1])):
+            lab_sort[val] = i
+        lab = lab_sort[lab]
+
         mask.data *= lab
         self.logger.info(
             '%d objects found when labeling the dilated volume.', n)

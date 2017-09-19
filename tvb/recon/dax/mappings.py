@@ -8,6 +8,8 @@ class Inputs(Enum):
     FS_DEFAULT = "fs_default.txt"
     T2_INPUT = "t2_input.nii"
     FLAIR_INPUT = "flair_input.nii.gz"
+    CT_INPUT = "ct_input.nii.gz"
+    SCHEMA_TXT = "schema.txt"
 
 
 class T1Files(Enum):
@@ -19,6 +21,7 @@ class T1Files(Enum):
     T1_NII_GZ = "T1.nii.gz"
     APARC_ASEG_NII_GZ = "aparc+aseg.nii.gz"
     NORM_MGZ = "norm.mgz"
+    BRAIN_MGZ = "brain.mgz"
     LH_PIAL = "lh.pial"
     RH_PIAL = "rh.pial"
     LH_CENTERED_PIAL = "lh.centered.pial"
@@ -137,3 +140,21 @@ class OutputConvFiles(Enum):
     SURF_SUBCORT_ZIP = "surface_subcort.zip"
     APARC_ASEG_COR_NII_GZ = "aparc+aseg-cor.nii.gz"
     CONNECTIVITY_ZIP = "connectivity.zip"
+
+
+class SEEGCompJobNames(Enum):
+    MRI_BINARIZE = "mri_binarize"
+    LABEL_CT_WITH_DILATION = "label_ct_with_dilation"
+    GEN_SEEG_XYZ = "gen_seeg_xyz"
+
+
+class SEEGCompFiles(Enum):
+    CT_RAS_NII_GZ = "ct-ras.nii.gz"
+    CT_IN_T1_NII_GZ = "ct-in-t1.nii.gz"
+    CT_TO_T1_MAT = "ct_to_t1.mat"
+    BRAIN_RAS_NII_GZ = "brain-ras.nii.gz"
+    BRAIN_MASK_NII_GZ = "brain-mask.nii.gz"
+    MASKED_CT_NII_GZ = "masked-ct.nii.gz"
+    DILATED_CT_NII_GZ = "dilated-ct.nii.gz"
+    LABELED_CT_NII_GZ = "labeled-ct.nii.gz"
+    SEEG_XYZ = "seeg.xyz"

@@ -24,8 +24,8 @@ sensorService = SensorService()
 annotationService = AnnotationService()
 
 
-def gen_head_model():
-    sensorService.gen_head_model()
+def gen_head_model(subjs, subj):
+    sensorService.gen_head_model(subjs, subj)
 
 #-----------------------------Freesurfer surfaces------------------------------
 

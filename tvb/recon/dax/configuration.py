@@ -27,6 +27,9 @@ class ConfigKey(Enum):
     STRMLNS_SIFT_NO = "strmlns_sift_no"
     STRMLNS_LEN = "strmlns_len"
     STRMLNS_STEP = "strmlns_step"
+    CT_FLAG = "ct.flag"
+    CT_FRMT = "ct.format"
+    CT_ELEC_INTENSITY_TH = "ct.elec.intensity.th"
 
 
 class Configuration(object):

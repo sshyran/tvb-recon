@@ -12,6 +12,7 @@ cd ${FREESURFER_HOME}/subjects/$1/mri
 cp T1.mgz $f
 cp aparc+aseg.mgz $f
 cp norm.mgz $f
+cp brain.mgz $f
 
 cd ../surf
 cp lh.pial $f

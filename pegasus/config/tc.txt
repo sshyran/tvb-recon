@@ -365,6 +365,41 @@ tr autorecon3-flair {
     }
 }
 
+tr mri_binarize {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+
+    site condorpool {
+        pfn "${FREESURFER_HOME}/bin/mri_binarize"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr label_ct_with_dilation {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${FREESURFER_HOME}/subjects"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/label_ct_with_dilation.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr gen_seeg_xyz {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${FREESURFER_HOME}/subjects"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/gen_seeg_xyz.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
 tr mv {
     site condorpool {
         pfn "/bin/mv"
