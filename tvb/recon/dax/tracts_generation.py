@@ -216,3 +216,5 @@ class TractsGeneration(object):
 
         dax.depends(job11, job7)
         dax.depends(job11, job9)
+
+        return job10, job11

@@ -3,7 +3,7 @@ from tvb.recon.dax.mappings import TractsGenFiles, Inputs, OutputConvFiles, T1Fi
 
 
 class OutputConversion(object):
-    def add_conversion_steps(self, dax, job_aparc_aseg, job_aseg_lh, job_aseg_rh):
+    def add_conversion_steps(self, dax, job_aparc_aseg, job_aseg_lh, job_aseg_rh, job_weights, job_lengths):
         weights_csv = File(TractsGenFiles.TRACT_COUNTS.value)
         lenghts_csv = File(TractsGenFiles.TRACT_LENGHTS.value)
         fs_lut = File(Inputs.FS_LUT.value)
@@ -38,3 +38,5 @@ class OutputConversion(object):
         dax.depends(job, job_aparc_aseg)
         dax.depends(job, job_aseg_lh)
         dax.depends(job, job_aseg_rh)
+        dax.depends(job, job_weights)
+        dax.depends(job, job_lengths)

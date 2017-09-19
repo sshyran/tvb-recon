@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-from Pegasus.DAX3 import ADAG, Job, Link, File
+from Pegasus.DAX3 import ADAG
 from tvb.recon.dax.aseg_generation import AsegGeneration
 from tvb.recon.dax.configuration import Configuration, ConfigKey
 from tvb.recon.dax.coregistration import Coregistration
@@ -46,8 +46,8 @@ if __name__ == "__main__":
     job_t1_in_d, job_aparc_aseg_in_d = coregistration.add_coregistration_steps(dax, job_b0, job_t1,
                                                                                job_aparc_aseg)
     job_aseg_lh, job_aseg_rh, job_fs_custom = aseg_generation.add_aseg_generation_steps(dax, job_aparc_aseg)
-    tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_fs_custom)
-    output_conversion.add_conversion_steps(dax, job_aparc_aseg, job_aseg_lh, job_aseg_rh)
+    job_weights, job_lengths = tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_fs_custom)
+    output_conversion.add_conversion_steps(dax, job_aparc_aseg, job_aseg_lh, job_aseg_rh, job_weights, job_lengths)
 
     out_dir = os.path.dirname(daxfile)
     if not os.path.exists(out_dir):
