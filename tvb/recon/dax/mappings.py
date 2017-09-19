@@ -145,6 +145,7 @@ class OutputConvFiles(Enum):
 class SEEGCompJobNames(Enum):
     MRI_BINARIZE = "mri_binarize"
     LABEL_CT_WITH_DILATION = "label_ct_with_dilation"
+    GEN_SCHEMA_TXT = "gen_schema_txt"
     GEN_SEEG_XYZ = "gen_seeg_xyz"
 
 

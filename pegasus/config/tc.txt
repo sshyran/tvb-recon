@@ -428,6 +428,18 @@ tr gen_seeg_xyz {
     }
 }
 
+tr gen_schema_txt {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/gen_schema_txt.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
 tr mv {
     site condorpool {
         pfn "/bin/mv"

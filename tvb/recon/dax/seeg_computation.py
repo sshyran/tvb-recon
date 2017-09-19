@@ -79,12 +79,21 @@ class SEEGComputation(object):
         dax.depends(job7, job6)
 
         schema_txt = File(Inputs.SCHEMA_TXT.value)
-        seeg_xyz = File(SEEGCompFiles.SEEG_XYZ.value)
-        job8 = Job(SEEGCompJobNames.GEN_SEEG_XYZ.value)
-        job8.addArguments(labeled_ct, schema_txt, seeg_xyz, self.subj)
-        job8.uses(labeled_ct, Link.INPUT)
-        job8.uses(schema_txt, Link.INPUT)
-        job8.uses(seeg_xyz, Link.OUTPUT, transfer=True, register=True)
+        job8 = Job(SEEGCompJobNames.GEN_SCHEMA_TXT.value)
+        job8.addArguments(labeled_ct, schema_txt)
+        job8.uses(labeled_ct, link=Link.INPUT)
+        job8.uses(schema_txt, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job8)
 
         dax.depends(job8, job7)
+
+        seeg_xyz = File(SEEGCompFiles.SEEG_XYZ.value)
+        job9 = Job(SEEGCompJobNames.GEN_SEEG_XYZ.value)
+        job9.addArguments(labeled_ct, schema_txt, seeg_xyz, self.subj)
+        job9.uses(labeled_ct, Link.INPUT)
+        job9.uses(schema_txt, Link.INPUT)
+        job9.uses(seeg_xyz, Link.OUTPUT, transfer=True, register=True)
+        dax.addJob(job9)
+
+        dax.depends(job9, job7)
+        dax.depends(job9, job8)
