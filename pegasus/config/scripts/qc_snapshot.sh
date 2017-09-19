@@ -3,7 +3,8 @@
 source ${ANACONDA_ACTIVATE} ${PYTHON3_ENVIRONMENT}
 
 export FREESURFER_HOME
-source ${FREESURFER_HOME}/SetUpFreeSurfer.sh
+export SUBJECTS_DIR
+source ${FREESURFER_HOME}/FreeSurferEnv.sh
 export FIGS=$PWD
 export SNAPSHOT_NUMBER=$1
 

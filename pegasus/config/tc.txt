@@ -11,6 +11,8 @@ tr mri_convert {
 
 tr recon {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
     profile env "HOME" "${HOME}"
 
     site condorpool {
@@ -222,6 +224,8 @@ tr convert_output {
     profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
     profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/convert_output.sh"
@@ -279,6 +283,8 @@ tr aseg_concatenation {
     profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
     profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/aseg_concatenation.sh"
@@ -303,6 +309,8 @@ tr bbregister {
     profile env "HOME" "${HOME}"
     profile env "FSL_DIR" "${FSL_DIR}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/bbregister.sh"
@@ -327,6 +335,8 @@ tr qc_snapshot {
     profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
     profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/qc_snapshot.sh"
@@ -340,6 +350,8 @@ tr gen_fs_custom {
     profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
     profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/gen_fs_custom.sh"
@@ -352,6 +364,8 @@ tr gen_fs_custom {
 tr autorecon3-t2 {
     profile env "HOME" "${HOME}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/autorecon3-t2.sh"
@@ -364,6 +378,8 @@ tr autorecon3-t2 {
 tr autorecon3-flair {
     profile env "HOME" "${HOME}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/autorecon3-flair.sh"

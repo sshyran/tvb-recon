@@ -2,7 +2,8 @@
 
 export HOME
 export FREESURFER_HOME
-source ${FREESURFER_HOME}/SetUpFreeSurfer.sh
+export SUBJECTS_DIR
+source ${FREESURFER_HOME}/FreeSurferEnv.sh
 export FSL_DIR
 source ${FSL_DIR}/etc/fslconf/fsl.sh
 
