@@ -219,6 +219,8 @@ tr tck2connectome {
 }
 
 tr convert_output {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
@@ -274,6 +276,8 @@ tr mris_smooth {
 }
 
 tr aseg_concatenation {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
@@ -320,6 +324,8 @@ tr mri_vol2vol {
 }
 
 tr qc_snapshot {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
@@ -331,6 +337,8 @@ tr qc_snapshot {
 }
 
 tr gen_fs_custom {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
 
     site condorpool {
@@ -377,6 +385,8 @@ tr mri_binarize {
 }
 
 tr label_ct_with_dilation {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
     profile env "SUBJECTS_DIR" "${FREESURFER_HOME}/subjects"
 
@@ -389,6 +399,8 @@ tr label_ct_with_dilation {
 }
 
 tr gen_seeg_xyz {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
     profile env "SUBJECTS_DIR" "${FREESURFER_HOME}/subjects"
 
