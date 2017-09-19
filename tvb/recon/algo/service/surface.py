@@ -16,7 +16,7 @@ from scipy.sparse.csgraph import connected_components, shortest_path
 from sklearn.metrics.pairwise import paired_distances
 from scipy.spatial.distance import cdist
 from copy import deepcopy
-from .annotation import default_lut_path  # TODO into fs module
+from tvb.recon.algo.service.annotation import default_lut_path  # TODO into fs module
 
 
 class SurfaceService(object):
