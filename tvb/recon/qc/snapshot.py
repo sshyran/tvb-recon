@@ -5,7 +5,6 @@ import os
 
 from tvb.recon.logger import get_logger
 from tvb.recon.model.constants import *
-from tvb.recon.model.constants import SNAPSHOT_NAME
 from tvb.recon.qc.image.processor import ImageProcessor
 from tvb.recon.qc.image.transformer import ImageTransformer
 
@@ -131,7 +130,7 @@ if __name__ == "__main__":
 
     snapshot_count = int(os.environ.get(SNAPSHOT_NUMBER_ENVIRON_VAR, 0))
 
-    imageTransformer = ImageTransformer(abs_path)
+    imageTransformer = ImageTransformer(snapshots_directory)
     imageTransformer.use_ras_transform = args.ras_transform
     imageTransformer.use_center_surface = args.center_surface
 

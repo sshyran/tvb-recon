@@ -1,4 +1,5 @@
 import sys
+import nipype.interfaces.mrtrix as mrt
 
 # TODO: in the current form, the Tracts are not aligned with the surfaces exported for TVB
 # we miss a centering operation
@@ -12,7 +13,6 @@ if len(sys.argv) < 3:
     print("Output: TrackVis track vile (.trk)")
     sys.exit(0)
 
-import nipype.interfaces.mrtrix as mrt
 
 mr = mrt.MRTrix2TrackVis()
 mr.inputs.image_file = sys.argv[1]
