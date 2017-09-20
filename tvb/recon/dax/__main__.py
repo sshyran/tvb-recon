@@ -6,6 +6,7 @@ from tvb.recon.dax.aseg_generation import AsegGeneration
 from tvb.recon.dax.configuration import Configuration, ConfigKey
 from tvb.recon.dax.coregistration import Coregistration
 from tvb.recon.dax.dwi_processing import DWIProcessing
+from tvb.recon.dax.head_model import HeadModel
 from tvb.recon.dax.output_conversion import OutputConversion
 from tvb.recon.dax.seeg_computation import SEEGComputation
 from tvb.recon.dax.t1_processing import T1Processing
@@ -45,6 +46,8 @@ if __name__ == "__main__":
     seeg_computation = SEEGComputation(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.CT_FRMT],
                                        config.props[ConfigKey.CT_ELEC_INTENSITY_TH])
 
+    head_model = HeadModel(config.props[ConfigKey.SUBJECT])
+
     job_t1, job_aparc_aseg = t1_processing.add_t1_processing_steps(dax)
     job_b0, job_mask = dwi_processing.add_dwi_processing_steps(dax)
     job_t1_in_d, job_aparc_aseg_in_d = coregistration.add_coregistration_steps(dax, job_b0, job_t1,
@@ -54,6 +57,7 @@ if __name__ == "__main__":
     output_conversion.add_conversion_steps(dax, job_aparc_aseg, job_aseg_lh, job_aseg_rh, job_weights, job_lengths)
 
     if config.props[ConfigKey.CT_FLAG] == "True":
+        head_model.add_head_model_steps(dax, job_t1)
         seeg_computation.add_seeg_positions_computation_steps(dax)
 
     out_dir = os.path.dirname(daxfile)

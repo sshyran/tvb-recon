@@ -440,6 +440,33 @@ tr gen_schema_txt {
     }
 }
 
+tr mne_watershed_bem {
+    profile env "MNE_ROOT" "${MNE_ROOT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${FREESURFER_HOME}/subjects"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/mne_watershed_bem.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr convert_to_brain_visa {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${FREESURFER_HOME}/subjects"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/convert_to_brain_visa.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
 tr mv {
     site condorpool {
         pfn "/bin/mv"

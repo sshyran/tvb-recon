@@ -159,3 +159,19 @@ class SEEGCompFiles(Enum):
     DILATED_CT_NII_GZ = "dilated-ct.nii.gz"
     LABELED_CT_NII_GZ = "labeled-ct.nii.gz"
     SEEG_XYZ = "seeg.xyz"
+
+
+class HeadModelJobNames(Enum):
+    MNE_WATERSHED_BEM = "mne_watershed_bem"
+    CONVERT_TO_BRAIN_VISA = "convert_to_brain_visa"
+
+
+class HeadModelFiles(Enum):
+    BRAIN_SURFACE = "%s_brain_surface"
+    INNER_SKULL_SURFACE = "%s_inner_skull_surface"
+    OUTER_SKIN_SURFACE = "%s_outer_skin_surface"
+    OUTER_SKULL_SURFACE = "%s_outer_skull_surface"
+    BRAIN_SURFACE_TRI = "%s_brain_surface.tri"
+    INNER_SKULL_SURFACE_TRI = "%s_inner_skull_surface.tri"
+    OUTER_SKIN_SURFACE_TRI = "%s_outer_skin_surface.tri"
+    OUTER_SKULL_SURFACE_TRI = "%s_outer_skull_surface.tri"

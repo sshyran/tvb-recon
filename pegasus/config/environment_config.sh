@@ -23,3 +23,5 @@ export ANACONDA_ACTIVATE=//anaconda/bin/activate
 export PYTHON3_ENVIRONMENT=tvb_recon_python3_env
 
 export SH_CUSTOM_FILES=/WORK/BNM/tvb-recon/tvb-recon/pegasus/config/scripts
+
+export MNE_ROOT=/WORK/MNE/MNE-2.7.0-3106-MacOSX-i386
