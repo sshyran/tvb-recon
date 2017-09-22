@@ -190,3 +190,10 @@ class Surface(object):
         triangle_areas = numpy.sqrt(numpy.sum(tri_norm ** 2, axis=1)) / 2.0
         triangle_areas = triangle_areas[:, numpy.newaxis]
         return triangle_areas
+
+    def get_vertex_areas(self):
+        triangle_areas = self.get_triangle_areas()
+        vertex_areas = numpy.zeros((self.vertices.shape[0]))
+        for triang, vertices in enumerate(self.triangles):
+            for i in range(3):
+                vertex_areas[vertices[i]] += 1. / 3. * triangle_areas[triang]

@@ -8,14 +8,18 @@ import matplotlib
 # ensure default behavior is headless. If you want, e.g. Qt5Agg, use the
 # MPLBACKEND environment variable.
 # cf. http://matplotlib.org/faq/environment_variables_faq.html
+from tvb.recon.algo.service.mapping_service import MappingService
+from tvb.recon.io.factory import IOUtils
+
 matplotlib.use(os.environ.get('MPLBACKEND', 'Agg'))
 
 import pylab
 from tvb.recon.model.surface import Surface
 
+SIGMA = 1.0
+
 
 class SensorService(object):
-
     def gen_head_model(self, subjects_dir, subject, decimated=False, fs_bem_folder=False):
         surface_suffix = "surface"
         surface_prefix = subject
@@ -122,3 +126,56 @@ class SensorService(object):
             [pylab.axvline(xp, color='r') for xp in xi_pos]
             pylab.show()
         return xyz_pos
+
+    # This is from tvb_make/util/gain_matrix_seeg.py
+    def gain_matrix_dipole(vertices: numpy.ndarray, orientations: numpy.ndarray, areas: numpy.ndarray,
+                           region_mapping: numpy.ndarray, nregions: int, sensors: numpy.ndarray):
+        """
+        Parameters
+        ----------
+        vertices             np.ndarray of floats of size n x 3, where n is the number of vertices
+        orientations         np.ndarray of floats of size n x 3
+        region_mapping       np.ndarray of ints of size n
+        sensors              np.ndarray of floats of size m x 3, where m is the number of sensors
+        Returns
+        -------
+        np.ndarray of size m x n
+        """
+
+        nverts = vertices.shape[0]
+        nsens = sensors.shape[0]
+
+        reg_map_mtx = numpy.zeros((nverts, nregions), dtype=int)
+        for i, region in enumerate(region_mapping):
+            if region >= 0:
+                reg_map_mtx[i, region] = 1
+        # reg_map_mtx[np.arange(region_mapping.size), region_mapping] = 1.0
+
+        gain_mtx_vert = numpy.zeros((nsens, nverts))
+        for sens_ind in range(nsens):
+            a = sensors[sens_ind, :] - vertices
+            na = numpy.sqrt(numpy.sum(a ** 2, axis=1))
+            gain_mtx_vert[sens_ind, :] = areas * (numpy.sum(orientations * a, axis=1) / na ** 3) / (
+            4.0 * numpy.pi * SIGMA)
+
+        # return gain_mtx_vert @ reg_map_mtx
+        return numpy.dot(gain_mtx_vert, reg_map_mtx)
+
+    def compute_seeg_gain_matrix(self, cortical_surface_file, annot_cort_lh, annot_cort_rh, seeg_xyz, out_gain_mat):
+
+        surface = IOUtils.read_surface(cortical_surface_file, False)
+        normals = surface.vertex_normals()
+        areas = surface.get_vertex_areas()
+
+        lh_annot = IOUtils.read_annotation(annot_cort_lh)
+        rh_annot = IOUtils.read_annotation(annot_cort_rh)
+
+        mapping = MappingService(lh_annot, rh_annot, None, None)
+        mapping.generate_region_mapping_for_cort_annot(lh_annot, rh_annot)
+        nr_regions = len(mapping.cort_lut_dict.keys())
+
+        sensors = numpy.genfromtxt(seeg_xyz, usecols=[1, 2, 3])
+
+        gain_matrix = self._gain_matrix_dipole(surface.vertices, normals, areas, mapping.cort_region_mapping,
+                                               nr_regions, sensors)
+        numpy.savetxt(out_gain_mat, gain_matrix)
