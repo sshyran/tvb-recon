@@ -97,3 +97,5 @@ class SEEGComputation(object):
 
         dax.depends(job9, job7)
         dax.depends(job9, job8)
+
+        return job9

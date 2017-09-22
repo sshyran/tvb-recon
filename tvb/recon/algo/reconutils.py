@@ -6,6 +6,7 @@ from tvb.recon.algo.service.volume import VolumeService
 from tvb.recon.algo.service.subparcellation import SubparcellationService
 from tvb.recon.algo.service.sensor import SensorService
 from tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
+from tvb.recon.io.factory import IOUtils
 
 try:
     import gdist
@@ -42,6 +43,12 @@ def aseg_surf_conc_annot(surf_path, out_surf_path, annot_path, labels,
                          lut_path=os.path.join(FREESURFER_HOME, 'FreeSurferColorLUT.txt')):
     surfaceService.aseg_surf_conc_annot(
         surf_path, out_surf_path, annot_path, labels, lut_path)
+
+def merge_surfs(surf_lh, surf_rh, out_surf_path):
+    s_lh = IOUtils.read_surface(surf_lh, False)
+    s_rh = IOUtils.read_surface(surf_rh, False)
+    surf = surfaceService.merge_surfaces([s_lh, s_rh])
+    IOUtils.write_surface(out_surf_path, surf)
 
 #---------------------------------Volumes--------------------------------------
 
@@ -121,6 +128,9 @@ def node_connectivity_metric(
 def periodic_xyz_for_object(lab, val, aff, bw=0.1, doplot=False):
     return sensorService.periodic_xyz_for_object(lab, val, aff, bw, doplot)
 
+
+def compute_seeg_gain_matrix(cortical_surface, lh_aparc_annot, rh_aparc_annot, seeg_xyz, gain_seeg_mat):
+    return sensorService.compute_seeg_gain_matrix(cortical_surface, lh_aparc_annot, rh_aparc_annot, seeg_xyz, gain_seeg_mat)
 
 if __name__ == '__main__':
     cmd = sys.argv[1]

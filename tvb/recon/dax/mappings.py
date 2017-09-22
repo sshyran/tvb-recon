@@ -182,3 +182,11 @@ class HeadModelFiles(Enum):
     HEAD_MODEL_COND = "head_model.cond"
     HEAD_MAT = "head.mat"
     HEAD_INV_MAT = "head_inv.mat"
+
+class SeegGainFiles(Enum):
+    CORTICAL_PIAL = "cortical.pial"
+    SEEG_GAIN_MAT = "seeg_gain.mat"
+
+class SeegGainJobNames(Enum):
+    MERGE_SURFACES = "merge_surfaces"
+    COMPUTE_SEEG_GAIN = "compute_seeg_gain"
