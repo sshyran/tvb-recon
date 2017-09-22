@@ -128,7 +128,7 @@ class SensorService(object):
         return xyz_pos
 
     # This is from tvb_make/util/gain_matrix_seeg.py
-    def gain_matrix_dipole(vertices: numpy.ndarray, orientations: numpy.ndarray, areas: numpy.ndarray,
+    def _gain_matrix_dipole(self, vertices: numpy.ndarray, orientations: numpy.ndarray, areas: numpy.ndarray,
                            region_mapping: numpy.ndarray, nregions: int, sensors: numpy.ndarray):
         """
         Parameters
@@ -155,8 +155,7 @@ class SensorService(object):
         for sens_ind in range(nsens):
             a = sensors[sens_ind, :] - vertices
             na = numpy.sqrt(numpy.sum(a ** 2, axis=1))
-            gain_mtx_vert[sens_ind, :] = areas * (numpy.sum(orientations * a, axis=1) / na ** 3) / (
-            4.0 * numpy.pi * SIGMA)
+            gain_mtx_vert[sens_ind, :] = areas * (numpy.sum(orientations * a, axis=1) / na ** 3) / (4.0 * numpy.pi * SIGMA)
 
         # return gain_mtx_vert @ reg_map_mtx
         return numpy.dot(gain_mtx_vert, reg_map_mtx)

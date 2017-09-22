@@ -197,3 +197,4 @@ class Surface(object):
         for triang, vertices in enumerate(self.triangles):
             for i in range(3):
                 vertex_areas[vertices[i]] += 1. / 3. * triangle_areas[triang]
+        return vertex_areas
