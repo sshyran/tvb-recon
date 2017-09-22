@@ -4,7 +4,7 @@ source ${ANACONDA_ACTIVATE} ${PYTHON3_ENVIRONMENT}
 
 export FREESURFER_HOME
 export SUBJECTS_DIR
-export SUBJECT=$4
+export SUBJECT=$3
 
 python <<EOF
 from tvb.recon.algo.reconutils import convert_fs_to_brain_visa

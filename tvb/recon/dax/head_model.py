@@ -35,7 +35,7 @@ class HeadModel(object):
         for idx, surf in enumerate(bem_surfs):
             tri_file = bem_tri_surfs[idx]
             job2 = Job(HeadModelJobNames.CONVERT_TO_BRAIN_VISA.value)
-            job2.addArguments(surf, tri_file)
+            job2.addArguments(surf, tri_file, self.subject)
             job2.uses(surf, link=Link.INPUT)
             job2.uses(tri_file, link=Link.OUTPUT, transfer=True, register=True)
             dax.addJob(job2)
