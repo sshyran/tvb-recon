@@ -164,6 +164,9 @@ class SEEGCompFiles(Enum):
 class HeadModelJobNames(Enum):
     MNE_WATERSHED_BEM = "mne_watershed_bem"
     CONVERT_TO_BRAIN_VISA = "convert_to_brain_visa"
+    GEN_HEAD_MODEL = "gen_head_model"
+    OM_ASSEMBLE = "om_assemble"
+    OM_MINVERSER = "om_minverser"
 
 
 class HeadModelFiles(Enum):
@@ -175,3 +178,7 @@ class HeadModelFiles(Enum):
     INNER_SKULL_SURFACE_TRI = "%s_inner_skull_surface.tri"
     OUTER_SKIN_SURFACE_TRI = "%s_outer_skin_surface.tri"
     OUTER_SKULL_SURFACE_TRI = "%s_outer_skull_surface.tri"
+    HEAD_MODEL_GEOM = "head_model.geom"
+    HEAD_MODEL_COND = "head_model.cond"
+    HEAD_MAT = "head.mat"
+    HEAD_INV_MAT = "head_inv.mat"

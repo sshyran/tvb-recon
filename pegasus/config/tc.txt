@@ -404,7 +404,7 @@ tr label_ct_with_dilation {
     profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
     profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
-    profile env "SUBJECTS_DIR" "${FREESURFER_HOME}/subjects"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/label_ct_with_dilation.sh"
@@ -418,7 +418,7 @@ tr gen_seeg_xyz {
     profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
     profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
-    profile env "SUBJECTS_DIR" "${FREESURFER_HOME}/subjects"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/gen_seeg_xyz.sh"
@@ -443,7 +443,7 @@ tr gen_schema_txt {
 tr mne_watershed_bem {
     profile env "MNE_ROOT" "${MNE_ROOT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
-    profile env "SUBJECTS_DIR" "${FREESURFER_HOME}/subjects"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/mne_watershed_bem.sh"
@@ -464,6 +464,41 @@ tr convert_to_brain_visa {
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
+    }
+}
+
+
+tr gen_head_model {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/gen_head_model.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr om_assemble {
+
+    site condorpool {
+        pfn "/usr/local/bin/om_assemble"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr om_minverser {
+
+    site condorpool {
+        pfn "/usr/local/bin/om_minverser"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
     }
 }
 

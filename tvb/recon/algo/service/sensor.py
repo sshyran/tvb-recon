@@ -16,22 +16,31 @@ from tvb.recon.model.surface import Surface
 
 class SensorService(object):
 
-    def gen_head_model(self, subjects_dir, subject):
-        surfs_glob = '%s/%s/bem/watershed/*_surface-low.tri' % (
-            subjects_dir, subject)
-        surfs = glob.glob(surfs_glob)
+    def gen_head_model(self, subjects_dir, subject, decimated=False, fs_bem_folder=False):
+        surface_suffix = "surface"
+        surface_prefix = subject
+        hm_base = 'head_model'
 
-        if len(surfs) == 0:
-            raise Exception('tri surfaces not found!')
+        if decimated is True:
+            surface_suffix = "surface-low"
 
-        hm_base = '%s/%s/bem/head_model' % (subjects_dir, subject)
+        if fs_bem_folder is True:
+            surface_prefix = '%s/%s/bem/watershed/%s' % (subjects_dir, subject, subject)
+            hm_base = '%s/%s/bem/head_model' % (subjects_dir, subject)
+
+            surfs_glob = '%s/%s/bem/watershed/*_%s.tri' % (subjects_dir, subject, surface_suffix)
+            surfs = glob.glob(surfs_glob)
+
+            if len(surfs) == 0:
+                raise Exception('tri surfaces not found!')
+
         hm_temp = """# Domain Description 1.1
 
     Interfaces 3
 
-    Interface Skull: "{0}_outer_skull_surface-low.tri"
-    Interface Cortex: "{0}_inner_skull_surface-low.tri"
-    Interface Head: "{0}_outer_skin_surface-low.tri"
+    Interface Skull: "{0}_outer_skull_{1}.tri"
+    Interface Cortex: "{0}_inner_skull_{1}.tri"
+    Interface Head: "{0}_outer_skin_{1}.tri"
 
     Domains 4
 
@@ -39,7 +48,7 @@ class SensorService(object):
     Domain Brain: -Cortex
     Domain Air: Head
     Domain Skull: Cortex -Skull
-    """.format('%s/%s/bem/watershed/%s' % (subjects_dir, subject, subject))
+    """.format('%s' % surface_prefix, '%s' % surface_suffix)
 
         hm_geom = hm_base + '.geom'
         with open(hm_geom, 'w') as fd:
