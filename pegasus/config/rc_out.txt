@@ -5,5 +5,7 @@ surface_cort.zip file:///WORK/pegasus-4.7.4/output5/out_tvb/surface_cort.zip sit
 surface_subcort.zip file:///WORK/pegasus-4.7.4/output5/out_tvb/surface_subcort.zip site="local"
 aparc+aseg-cor.nii.gz file:///WORK/pegasus-4.7.4/output5/out_tvb/aparc+aseg-cor.nii.gz site="local"
 connectivity.zip file:///WORK/pegasus-4.7.4/output5/out_tvb/connectivity.zip site="local"
+seeg.xyz file:///WORK/pegasus-4.7.4/output5/out_tvb/seeg.xyz site="local"
+seeg_gain.mat file:///WORK/pegasus-4.7.4/output5/out_tvb/seeg_gain.mat site="local"
 .*\.png file:///WORK/pegasus-4.7.4/output5/figs/[0] site="local" regex="true"
 .* file:///WORK/pegasus-4.7.4/output5/[0] site="local" regex="true"
