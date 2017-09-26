@@ -84,3 +84,10 @@ class GenericIO(object):
         with open(str(out_file), "w") as f:
             for val in list:
                 f.write("%s\n" % val)
+
+    def read_connectivity_zip(self, connectivity_file):
+        with ZipFile(connectivity_file, "r") as conn_zip:
+            centres_file = conn_zip.extract("centers.txt")
+
+        centers = numpy.genfromtxt(centres_file, usecols=[1, 2, 3])
+        return centers

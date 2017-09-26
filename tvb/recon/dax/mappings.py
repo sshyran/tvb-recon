@@ -192,3 +192,12 @@ class SeegGainFiles(Enum):
 class SeegGainJobNames(Enum):
     MERGE_SURFACES = "merge_surfaces"
     COMPUTE_SEEG_GAIN = "compute_seeg_gain"
+
+
+class ProjectionCompFiles(Enum):
+    SENS_POSITIONS = "%s.xyz"
+    PROJECTION_MAT = "%s_gain.mat"
+
+
+class ProjectionCompJobNames(Enum):
+    COMPUTE_PROJ_MAT = "compute_projection_matrix"

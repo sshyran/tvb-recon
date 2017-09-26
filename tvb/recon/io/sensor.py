@@ -16,3 +16,10 @@ def generate_schema_txt(ct_labeled_volume, schema_dir, schema_file):
 
     genericIO = GenericIO()
     genericIO.write_dict_to_txt_file(schema_dict, os.path.join(schema_dir, schema_file))
+
+
+def read_sensors_positions(sensors_file):
+    sensors_positions = numpy.genfromtxt(sensors_file, usecols=[1, 2, 3])
+    sensors_labels = numpy.genfromtxt(sensors_file, usecols=[0], dtype="str")
+
+    return sensors_positions, sensors_labels

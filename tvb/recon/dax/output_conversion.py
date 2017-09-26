@@ -40,3 +40,5 @@ class OutputConversion(object):
         dax.depends(job, job_aseg_rh)
         dax.depends(job, job_weights)
         dax.depends(job, job_lengths)
+
+        return job

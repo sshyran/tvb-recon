@@ -7,6 +7,8 @@ from tvb.recon.algo.service.subparcellation import SubparcellationService
 from tvb.recon.algo.service.sensor import SensorService
 from tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
 from tvb.recon.io.factory import IOUtils
+from tvb.recon.io.sensor import read_sensors_positions
+from tvb.recon.io.generic import GenericIO
 
 try:
     import gdist
@@ -23,7 +25,7 @@ volumeService = VolumeService()
 subparcelatioService = SubparcellationService()
 sensorService = SensorService()
 annotationService = AnnotationService()
-
+genericIO = GenericIO()
 
 def gen_head_model(subjs=SUBJECTS_DIR, subj=SUBJECT):
     sensorService.gen_head_model(subjs, subj)
@@ -131,8 +133,13 @@ def periodic_xyz_for_object(lab, val, aff, bw=0.1, doplot=False):
 
 def compute_seeg_gain_matrix(cortical_surface, lh_aparc_annot, rh_aparc_annot, subcortical_surface, lh_aseg_annot,
                              rh_aseg_annot, seeg_xyz, gain_seeg_mat):
-    return sensorService.compute_seeg_gain_matrix(cortical_surface, lh_aparc_annot, rh_aparc_annot, subcortical_surface,
+    sensorService.compute_seeg_gain_matrix(cortical_surface, lh_aparc_annot, rh_aparc_annot, subcortical_surface,
                                                   lh_aseg_annot, rh_aseg_annot, seeg_xyz, gain_seeg_mat)
+
+def compute_projection_matrix(sensor_positions_file, connectivity_zip, out_matrix):
+    sensors_positions, labels = read_sensors_positions(sensor_positions_file)
+    connectivity_centers = genericIO.read_connectivity_zip(connectivity_zip)
+    sensorService.compute_sensors_projection(sensors_positions, connectivity_centers, out_matrix)
 
 if __name__ == '__main__':
     cmd = sys.argv[1]
