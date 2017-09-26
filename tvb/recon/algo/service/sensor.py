@@ -129,7 +129,7 @@ class SensorService(object):
 
     # This is from tvb_make/util/gain_matrix_seeg.py
     def _gain_matrix_dipole(self, vertices: numpy.ndarray, orientations: numpy.ndarray, areas: numpy.ndarray,
-                           region_mapping: numpy.ndarray, nregions: int, sensors: numpy.ndarray):
+                            sensors: numpy.ndarray):
         """
         Parameters
         ----------
@@ -145,36 +145,66 @@ class SensorService(object):
         nverts = vertices.shape[0]
         nsens = sensors.shape[0]
 
-        reg_map_mtx = numpy.zeros((nverts, nregions), dtype=int)
-        for i, region in enumerate(region_mapping):
-            if region >= 0:
-                reg_map_mtx[i, region] = 1
-        # reg_map_mtx[np.arange(region_mapping.size), region_mapping] = 1.0
+        gain_mtx_vert = numpy.zeros((nsens, nverts))
+        for sens_ind in range(nsens):
+            a = sensors[sens_ind, :] - vertices
+            na = numpy.sqrt(numpy.sum(a ** 2, axis=1))
+            gain_mtx_vert[sens_ind, :] = areas * (numpy.sum(orientations * a, axis=1) / na ** 3) / (
+                4.0 * numpy.pi * SIGMA)
+
+        return gain_mtx_vert
+
+    def _gain_matrix_inv_square(self, vertices: numpy.ndarray, areas: numpy.ndarray, sensors: numpy.ndarray):
+        nverts = vertices.shape[0]
+        nsens = sensors.shape[0]
 
         gain_mtx_vert = numpy.zeros((nsens, nverts))
         for sens_ind in range(nsens):
             a = sensors[sens_ind, :] - vertices
             na = numpy.sqrt(numpy.sum(a ** 2, axis=1))
-            gain_mtx_vert[sens_ind, :] = areas * (numpy.sum(orientations * a, axis=1) / na ** 3) / (4.0 * numpy.pi * SIGMA)
+            gain_mtx_vert[sens_ind, :] = areas / na ** 2
 
-        # return gain_mtx_vert @ reg_map_mtx
-        return numpy.dot(gain_mtx_vert, reg_map_mtx)
+        return gain_mtx_vert
 
-    def compute_seeg_gain_matrix(self, cortical_surface_file, annot_cort_lh, annot_cort_rh, seeg_xyz, out_gain_mat):
+    def _get_verts_regions_matrix(self, nvertices: int, nregions: int, region_mapping: numpy.ndarray):
+        reg_map_mtx = numpy.zeros((nvertices, nregions), dtype=int)
+        for i, region in enumerate(region_mapping):
+            if region >= 0:
+                reg_map_mtx[i, region] = 1
+
+        return reg_map_mtx
+
+    def compute_seeg_gain_matrix(self, cortical_surface_file, annot_cort_lh, annot_cort_rh, subcort_surface_file,
+                                 annot_subcort_lh,  annot_subcort_rh, seeg_xyz, out_gain_mat):
 
         surface = IOUtils.read_surface(cortical_surface_file, False)
-        normals = surface.vertex_normals()
         areas = surface.get_vertex_areas()
+        normals = surface.vertex_normals()
+
+        aseg_surface = IOUtils.read_surface(subcort_surface_file, False)
+        areas_subcort = aseg_surface.get_vertex_areas()
 
         lh_annot = IOUtils.read_annotation(annot_cort_lh)
         rh_annot = IOUtils.read_annotation(annot_cort_rh)
 
-        mapping = MappingService(lh_annot, rh_annot, None, None)
-        mapping.generate_region_mapping_for_cort_annot(lh_annot, rh_annot)
-        nr_regions = len(mapping.cort_lut_dict.keys())
+        lh_aseg_annot = IOUtils.read_annotation(annot_subcort_lh)
+        rh_aseg_annot = IOUtils.read_annotation(annot_subcort_rh)
 
         sensors = numpy.genfromtxt(seeg_xyz, usecols=[1, 2, 3])
 
-        gain_matrix = self._gain_matrix_dipole(surface.vertices, normals, areas, mapping.cort_region_mapping,
-                                               nr_regions, sensors)
-        numpy.savetxt(out_gain_mat, gain_matrix)
+        mapping = MappingService(lh_annot, rh_annot, lh_aseg_annot, rh_aseg_annot)
+        mapping.generate_region_mapping_for_cort_annot(lh_annot, rh_annot)
+        mapping.generate_region_mapping_for_subcort_annot(lh_aseg_annot, rh_aseg_annot)
+
+        nr_regions = len(mapping.get_all_regions())
+        nr_vertices = surface.vertices.shape[0] + aseg_surface.vertices.shape[0]
+        verts_regions_mat = self._get_verts_regions_matrix(nr_vertices, nr_regions, mapping.cort_region_mapping +
+                                                           mapping.subcort_region_mapping)
+
+        gain_matrix = self._gain_matrix_dipole(surface.vertices, normals, areas, sensors)
+
+        gain_matrix_subcort = self._gain_matrix_inv_square(aseg_surface.vertices, areas_subcort, sensors)
+
+        gain_total = numpy.concatenate((gain_matrix, gain_matrix_subcort), axis=1)
+
+        numpy.savetxt(out_gain_mat, gain_total @ verts_regions_mat)

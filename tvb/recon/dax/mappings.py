@@ -186,6 +186,8 @@ class HeadModelFiles(Enum):
 class SeegGainFiles(Enum):
     CORTICAL_PIAL = "cortical.pial"
     SEEG_GAIN_MAT = "seeg_gain.mat"
+    SUBCORTICAL_ASEG = "subcortical.aseg"
+
 
 class SeegGainJobNames(Enum):
     MERGE_SURFACES = "merge_surfaces"

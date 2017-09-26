@@ -129,8 +129,10 @@ def periodic_xyz_for_object(lab, val, aff, bw=0.1, doplot=False):
     return sensorService.periodic_xyz_for_object(lab, val, aff, bw, doplot)
 
 
-def compute_seeg_gain_matrix(cortical_surface, lh_aparc_annot, rh_aparc_annot, seeg_xyz, gain_seeg_mat):
-    return sensorService.compute_seeg_gain_matrix(cortical_surface, lh_aparc_annot, rh_aparc_annot, seeg_xyz, gain_seeg_mat)
+def compute_seeg_gain_matrix(cortical_surface, lh_aparc_annot, rh_aparc_annot, subcortical_surface, lh_aseg_annot,
+                             rh_aseg_annot, seeg_xyz, gain_seeg_mat):
+    return sensorService.compute_seeg_gain_matrix(cortical_surface, lh_aparc_annot, rh_aparc_annot, subcortical_surface,
+                                                  lh_aseg_annot, rh_aseg_annot, seeg_xyz, gain_seeg_mat)
 
 if __name__ == '__main__':
     cmd = sys.argv[1]

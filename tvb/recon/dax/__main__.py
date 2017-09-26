@@ -52,7 +52,8 @@ if __name__ == "__main__":
     job_t1_in_d, job_aparc_aseg_in_d = coregistration.add_coregistration_steps(dax, job_b0, job_t1,
                                                                                job_aparc_aseg)
     job_aseg_lh, job_aseg_rh, job_fs_custom = aseg_generation.add_aseg_generation_steps(dax, job_aparc_aseg)
-    job_weights, job_lengths = tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_fs_custom)
+    job_weights, job_lengths = tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask,
+                                                                             job_aparc_aseg_in_d, job_fs_custom)
     output_conversion.add_conversion_steps(dax, job_aparc_aseg, job_aseg_lh, job_aseg_rh, job_weights, job_lengths)
 
     if config.props[ConfigKey.CT_FLAG] == "True":
@@ -64,7 +65,8 @@ if __name__ == "__main__":
 
         else:
             seeg_gain_computation = SeegGainComputation(config.props[ConfigKey.SUBJECT])
-            seeg_gain_computation.add_seeg_gain_computation_steps(dax, job_seeg_xyz)
+            seeg_gain_computation.add_seeg_gain_computation_steps(dax, job_seeg_xyz, job_aparc_aseg, job_aseg_lh,
+                                                                  job_aseg_rh)
     out_dir = os.path.dirname(daxfile)
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)

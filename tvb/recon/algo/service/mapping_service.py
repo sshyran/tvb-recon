@@ -19,8 +19,7 @@ class MappingService(object):
     def __init__(self, cort_annot_lh: Annotation, cort_annot_rh: Annotation, subcort_annot_lh: Annotation,
                  subcort_annot_rh: Annotation):
         self.cort_lut_dict = self.generate_lut_dict_from_annot(cort_annot_lh, cort_annot_rh, self.CORT_TYPE, 0)
-        if subcort_annot_lh is not None:
-            self.subcort_lut_dict = self.generate_lut_dict_from_annot(subcort_annot_lh, subcort_annot_rh,
+        self.subcort_lut_dict = self.generate_lut_dict_from_annot(subcort_annot_lh, subcort_annot_rh,
                                                                       self.SUBCORT_TYPE, len(self.cort_lut_dict))
         self.cort_region_mapping = list()
         self.subcort_region_mapping = list()
