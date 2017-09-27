@@ -1,0 +1,97 @@
+import argparse
+import subprocess
+import os
+import numpy
+from tvb.recon.algo.service.annotation import AnnotationService
+from tvb.recon.algo.service.mapping_service import MappingService
+from tvb.recon.algo.service.surface import SurfaceService
+from tvb.recon.io.factory import IOUtils
+from tvb.recon.io.generic import GenericIO
+
+genericIO = GenericIO()
+
+
+def compute_region_details(fs_color_lut: os.PathLike):
+    annot_cort_lh = IOUtils.read_annotation("lh.aparc.annot")
+    annot_cort_rh = IOUtils.read_annotation("rh.aparc.annot")
+
+    annot_subcort_lh = IOUtils.read_annotation("lh.aseg.annot")
+    annot_subcort_rh = IOUtils.read_annotation("rh.aseg.annot")
+
+    mapping = MappingService(annot_cort_lh, annot_cort_rh, annot_subcort_lh, annot_subcort_rh)
+    mapping.generate_region_mapping_for_cort_annot(annot_cort_lh, annot_cort_rh)
+    mapping.generate_region_mapping_for_subcort_annot(annot_subcort_lh, annot_subcort_rh)
+
+    surface_service = SurfaceService()
+
+    surf_cort_lh = IOUtils.read_surface("lh.centered.pial", False)
+    surf_cort_rh = IOUtils.read_surface("rh.centered.pial", False)
+
+    full_cort_surface = surface_service.merge_surfaces([surf_cort_lh, surf_cort_rh])
+
+    surf_subcort_lh = IOUtils.read_surface("lh.centered.aseg", False)
+    surf_subcort_rh = IOUtils.read_surface("rh.centered.aseg", False)
+
+    full_subcort_surface = surface_service.merge_surfaces([surf_subcort_lh, surf_subcort_rh])
+
+    genericIO.write_list_to_txt_file(mapping.cort_region_mapping, "region_mapping_cort.txt")
+    genericIO.write_list_to_txt_file(mapping.subcort_region_mapping, "region_mapping_subcort.txt")
+
+    vox2ras_file = "vox2ras.txt"
+    subprocess.call(["mri_info", "--vox2ras", "T1.nii.gz", "--o", vox2ras_file])
+
+    surf_subcort_filename = "surface_subcort.zip"
+    IOUtils.write_surface(surf_subcort_filename, full_subcort_surface)
+
+    surf_cort_filename = "surface_cort.zip"
+    IOUtils.write_surface(surf_cort_filename, full_cort_surface)
+
+    os.remove(vox2ras_file)
+
+    cort_subcort_full_surf = surface_service.merge_surfaces([full_cort_surface, full_subcort_surface])
+    cort_subcort_full_region_mapping = mapping.cort_region_mapping + mapping.subcort_region_mapping
+
+    dict_fs_custom = mapping.get_mapping_for_connectome_generation()
+    genericIO.write_dict_to_txt_file(dict_fs_custom, "fs_custom.txt")
+
+    region_areas = surface_service.compute_areas_for_regions(mapping.get_all_regions(),
+                                                             cort_subcort_full_surf,
+                                                             cort_subcort_full_region_mapping)
+    genericIO.write_list_to_txt_file(region_areas, "areas.txt")
+
+    region_centers = surface_service.compute_centers_for_regions(mapping.get_all_regions(), cort_subcort_full_surf,
+                                                                 cort_subcort_full_region_mapping)
+    cort_subcort_lut = mapping.get_entire_lut()
+    region_names = list(cort_subcort_lut.values())
+
+    with open("centers.txt", "w") as f:
+        for idx, (val_x, val_y, val_z) in enumerate(region_centers):
+            f.write("%s %.2f %.2f %.2f\n" % (region_names[idx], val_x, val_y, val_z))
+
+    region_orientations = surface_service.compute_orientations_for_regions(mapping.get_all_regions(),
+                                                                           cort_subcort_full_surf,
+                                                                           cort_subcort_full_region_mapping)
+    numpy.savetxt("average_orientations.txt", region_orientations, fmt='%.2f %.2f %.2f')
+
+    annotation_service = AnnotationService()
+    lut_dict, _, _ = annotation_service.read_lut(fs_color_lut, "name")
+    rm_index_dict = mapping.get_mapping_for_aparc_aseg(lut_dict)
+    genericIO.write_dict_to_txt_file(rm_index_dict, "rm_to_aparc_aseg.txt")
+
+    genericIO.write_list_to_txt_file(mapping.is_cortical_region_mapping(), "cortical.txt")
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Convert pipeline output to TVB format")
+    parser.add_argument("-p", help="Call from Pegasus WMS", required=False, action="store_true")
+
+    parser.add_argument("fs_color_lut")
+
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_arguments()
+
+    if args.p:
+        compute_region_details(args.fs_color_lut)

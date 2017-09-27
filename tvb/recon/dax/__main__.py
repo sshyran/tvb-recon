@@ -52,10 +52,10 @@ if __name__ == "__main__":
     job_b0, job_mask = dwi_processing.add_dwi_processing_steps(dax)
     job_t1_in_d, job_aparc_aseg_in_d = coregistration.add_coregistration_steps(dax, job_b0, job_t1,
                                                                                job_aparc_aseg)
-    job_aseg_lh, job_aseg_rh, job_fs_custom = aseg_generation.add_aseg_generation_steps(dax, job_aparc_aseg)
+    job_aseg_lh, job_aseg_rh, job_mapping_details = aseg_generation.add_aseg_generation_steps(dax, job_aparc_aseg)
     job_weights, job_lengths = tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask,
-                                                                             job_aparc_aseg_in_d, job_fs_custom)
-    job_conn = output_conversion.add_conversion_steps(dax, job_aparc_aseg, job_aseg_lh, job_aseg_rh, job_weights,
+                                                                             job_aparc_aseg_in_d, job_mapping_details)
+    job_conn = output_conversion.add_conversion_steps(dax, job_aparc_aseg, job_mapping_details, job_weights,
                                                       job_lengths)
 
     if config.props[ConfigKey.CT_FLAG] == "True":

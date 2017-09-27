@@ -122,6 +122,15 @@ class AsegFiles(Enum):
     LH_ASEG_ANNOT = "lh.aseg.annot"
     RH_ASEG_ANNOT = "rh.aseg.annot"
     FS_CUSTOM_TXT = "fs_custom.txt"
+    CENTERS_TXT = "centers.txt"
+    AREAS_TXT = "areas.txt"
+    ORIENTATIONS_TXT = "average_orientations.txt"
+    CORTICAL_TXT = "cortical.txt"
+    RM_TO_APARC_ASEG_TXT = "rm_to_aparc_aseg.txt"
+    RM_CORT_TXT = "region_mapping_cort.txt"
+    RM_SUBCORT_TXT = "region_mapping_subcort.txt"
+    SURF_CORT_ZIP = "surface_cort.zip"
+    SURF_SUBCORT_ZIP = "surface_subcort.zip"
 
 
 class AsegGenJobNames(Enum):
@@ -130,14 +139,10 @@ class AsegGenJobNames(Enum):
     MRIS_EXTRACT = "mris_extract_main_component"
     MRIS_SMOOTH = "mris_smooth"
     ASEG_CONCAT = "aseg_concatenation"
-    GEN_CUSTOM_FS_TXT = "gen_fs_custom"
+    GEN_MAPPING_DETAILS = "gen_mapping_details"
 
 
 class OutputConvFiles(Enum):
-    RM_CORT_TXT = "region_mapping_cort.txt"
-    RM_SUBCORT_TXT = "region_mapping_subcort.txt"
-    SURF_CORT_ZIP = "surface_cort.zip"
-    SURF_SUBCORT_ZIP = "surface_subcort.zip"
     APARC_ASEG_COR_NII_GZ = "aparc+aseg-cor.nii.gz"
     CONNECTIVITY_ZIP = "connectivity.zip"
 

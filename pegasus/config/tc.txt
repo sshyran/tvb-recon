@@ -346,15 +346,14 @@ tr qc_snapshot {
     }
 }
 
-tr gen_fs_custom {
+tr gen_mapping_details {
     profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
     profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
     profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
-    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
-        pfn "${SH_CUSTOM_FILES}/gen_fs_custom.sh"
+        pfn "${SH_CUSTOM_FILES}/gen_mapping_details.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
