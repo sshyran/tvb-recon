@@ -9,12 +9,10 @@ from itertools import product
 # ensure default behavior is headless. If you want, e.g. Qt5Agg, use the
 # MPLBACKEND environment variable.
 # cf. http://matplotlib.org/faq/environment_variables_faq.html
-from tvb.recon.algo.service.mapping_service import MappingService
 from tvb.recon.io.factory import IOUtils
 from tvb.recon.io.generic import GenericIO
 
 matplotlib.use(os.environ.get('MPLBACKEND', 'Agg'))
-
 import pylab
 from tvb.recon.model.surface import Surface
 
@@ -176,34 +174,34 @@ class SensorService(object):
 
         return reg_map_mtx
 
-    def compute_seeg_gain_matrix(self, seeg_xyz, cort_surf, subcort_surf, cort_rm, subcort_rm, normals_file, areas_file,
-                                 out_gain_mat):
+    def compute_seeg_gain_matrix(self, seeg_xyz, cort_file, subcort_file, cort_rm, subcort_rm, out_gain_mat):
         genericIO = GenericIO()
 
         sensors = numpy.genfromtxt(seeg_xyz, usecols=[1, 2, 3])
-        cort_vertices = genericIO.read_field_from_zip("vertices.txt", cort_surf)
-        subcort_vertices = genericIO.read_field_from_zip("vertices.txt", subcort_surf)
+
+        cort_vertices = genericIO.read_field_from_zip("vertices.txt", cort_file)
+        cort_triangles = genericIO.read_field_from_zip("triangles.txt", cort_file, dtype="i")
+        cort_surf = Surface(cort_vertices, cort_triangles)
+        cort_normals = cort_surf.vertex_normals()
+        cort_areas = cort_surf.get_vertex_areas()
+
+        subcort_vertices = genericIO.read_field_from_zip("vertices.txt", subcort_file)
+        subcort_triangles = genericIO.read_field_from_zip("triangles.txt", subcort_file, dtype="i")
+        subcort_surf = Surface(subcort_vertices, subcort_triangles)
+        subcort_areas = subcort_surf.get_vertex_areas()
 
         cort_rm = list(numpy.genfromtxt(cort_rm, usecols=[0], dtype='i'))
         subcort_rm = list(numpy.genfromtxt(subcort_rm, usecols=[0], dtype='i'))
         region_list = numpy.unique(cort_rm + subcort_rm)
 
-        areas = numpy.genfromtxt(areas_file, usecols=[0])
-        no_cort_rm = numpy.unique(cort_rm).size
-        cort_areas = areas[0:no_cort_rm]
-        subcort_areas = areas[no_cort_rm + 1:]
-
-        normals = numpy.genfromtxt(normals_file, usecols=[0, 1, 2])
-        cort_normals = normals[0:no_cort_rm]
-
         nr_regions = len(region_list)
-        nr_vertices = cort_vertices.size + subcort_vertices.size
+        nr_vertices = cort_surf.vertices.shape[0] + subcort_surf.vertices.shape[0]
 
         verts_regions_mat = self._get_verts_regions_matrix(nr_vertices, nr_regions, cort_rm + subcort_rm)
 
-        gain_matrix = self._gain_matrix_dipole(cort_vertices, cort_normals, cort_areas, sensors)
+        gain_matrix = self._gain_matrix_dipole(cort_surf.vertices, cort_normals, cort_areas, sensors)
 
-        gain_matrix_subcort = self._gain_matrix_inv_square(subcort_vertices, subcort_areas, sensors)
+        gain_matrix_subcort = self._gain_matrix_inv_square(subcort_surf.vertices, subcort_areas, sensors)
 
         gain_total = numpy.concatenate((gain_matrix, gain_matrix_subcort), axis=1)
 

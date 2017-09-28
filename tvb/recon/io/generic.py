@@ -85,9 +85,9 @@ class GenericIO(object):
             for val in list:
                 f.write("%s\n" % val)
 
-    def read_field_from_zip(self, field, zip, cols=[0, 1, 2]):
+    def read_field_from_zip(self, field, zip, cols=[0, 1, 2], dtype="f"):
         with ZipFile(zip, "r") as f_zip:
             extracted_field = f_zip.extract(field)
 
-        res = numpy.genfromtxt(extracted_field, usecols=cols)
+        res = numpy.genfromtxt(extracted_field, usecols=cols, dtype=dtype)
         return res

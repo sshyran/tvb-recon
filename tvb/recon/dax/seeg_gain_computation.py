@@ -13,20 +13,16 @@ class SeegGainComputation(object):
         subcort_surf = File(AsegFiles.SURF_SUBCORT_ZIP.value)
         cort_rm = File(AsegFiles.RM_CORT_TXT.value)
         subcort_rm = File(AsegFiles.RM_SUBCORT_TXT.value)
-        normals = File(AsegFiles.ORIENTATIONS_TXT.value)
-        areas = File(AsegFiles.AREAS_TXT.value)
 
         gain_mat = File(SeegGainFiles.SEEG_GAIN_MAT.value)
 
         job = Job(SeegGainJobNames.COMPUTE_SEEG_GAIN.value)
-        job.addArguments(seeg_xyz, cort_surf, subcort_surf, cort_rm, subcort_rm, normals, areas, gain_mat, self.subject)
+        job.addArguments(seeg_xyz, cort_surf, subcort_surf, cort_rm, subcort_rm, gain_mat, self.subject)
         job.uses(seeg_xyz, link=Link.INPUT)
         job.uses(cort_surf, link=Link.INPUT)
         job.uses(subcort_surf, link=Link.INPUT)
         job.uses(cort_rm, link=Link.INPUT)
         job.uses(subcort_rm, link=Link.INPUT)
-        job.uses(normals, link=Link.INPUT)
-        job.uses(areas, link=Link.INPUT)
         job.uses(gain_mat, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job)
 
