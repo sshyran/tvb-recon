@@ -88,6 +88,9 @@ class MappingService(object):
         region_mapping = list()
         cort_inv_lut_dict = self._invert_color_lut(self.cort_lut_dict)
 
+        lh_annot.region_mapping[lh_annot.region_mapping == -1] = 0
+        rh_annot.region_mapping[rh_annot.region_mapping == -1] = 0
+
         for lbl in lh_annot.region_mapping:
             current_region_name = lh_annot.region_names[lbl]
             region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_lh + current_region_name))
