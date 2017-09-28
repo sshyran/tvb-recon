@@ -85,9 +85,9 @@ class GenericIO(object):
             for val in list:
                 f.write("%s\n" % val)
 
-    def read_connectivity_zip(self, connectivity_file):
-        with ZipFile(connectivity_file, "r") as conn_zip:
-            centres_file = conn_zip.extract("centers.txt")
+    def read_field_from_zip(self, field, zip, cols=[0, 1, 2]):
+        with ZipFile(zip, "r") as f_zip:
+            extracted_field = f_zip.extract(field)
 
-        centers = numpy.genfromtxt(centres_file, usecols=[1, 2, 3])
-        return centers
+        res = numpy.genfromtxt(extracted_field, usecols=cols)
+        return res

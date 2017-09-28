@@ -11,6 +11,7 @@ from itertools import product
 # cf. http://matplotlib.org/faq/environment_variables_faq.html
 from tvb.recon.algo.service.mapping_service import MappingService
 from tvb.recon.io.factory import IOUtils
+from tvb.recon.io.generic import GenericIO
 
 matplotlib.use(os.environ.get('MPLBACKEND', 'Agg'))
 
@@ -167,7 +168,7 @@ class SensorService(object):
 
         return gain_mtx_vert
 
-    def _get_verts_regions_matrix(self, nvertices: int, nregions: int, region_mapping: numpy.ndarray):
+    def _get_verts_regions_matrix(self, nvertices: int, nregions: int, region_mapping: list):
         reg_map_mtx = numpy.zeros((nvertices, nregions), dtype=int)
         for i, region in enumerate(region_mapping):
             if region >= 0:
@@ -175,36 +176,34 @@ class SensorService(object):
 
         return reg_map_mtx
 
-    def compute_seeg_gain_matrix(self, cortical_surface_file, annot_cort_lh, annot_cort_rh, subcort_surface_file,
-                                 annot_subcort_lh,  annot_subcort_rh, seeg_xyz, out_gain_mat):
-
-        surface = IOUtils.read_surface(cortical_surface_file, False)
-        areas = surface.get_vertex_areas()
-        normals = surface.vertex_normals()
-
-        aseg_surface = IOUtils.read_surface(subcort_surface_file, False)
-        areas_subcort = aseg_surface.get_vertex_areas()
-
-        lh_annot = IOUtils.read_annotation(annot_cort_lh)
-        rh_annot = IOUtils.read_annotation(annot_cort_rh)
-
-        lh_aseg_annot = IOUtils.read_annotation(annot_subcort_lh)
-        rh_aseg_annot = IOUtils.read_annotation(annot_subcort_rh)
+    def compute_seeg_gain_matrix(self, seeg_xyz, cort_surf, subcort_surf, cort_rm, subcort_rm, normals_file, areas_file,
+                                 out_gain_mat):
+        genericIO = GenericIO()
 
         sensors = numpy.genfromtxt(seeg_xyz, usecols=[1, 2, 3])
+        cort_vertices = genericIO.read_field_from_zip("vertices.txt", cort_surf)
+        subcort_vertices = genericIO.read_field_from_zip("vertices.txt", subcort_surf)
 
-        mapping = MappingService(lh_annot, rh_annot, lh_aseg_annot, rh_aseg_annot)
-        mapping.generate_region_mapping_for_cort_annot(lh_annot, rh_annot)
-        mapping.generate_region_mapping_for_subcort_annot(lh_aseg_annot, rh_aseg_annot)
+        cort_rm = list(numpy.genfromtxt(cort_rm, usecols=[0], dtype='i'))
+        subcort_rm = list(numpy.genfromtxt(subcort_rm, usecols=[0], dtype='i'))
+        region_list = numpy.unique(cort_rm + subcort_rm)
 
-        nr_regions = len(mapping.get_all_regions())
-        nr_vertices = surface.vertices.shape[0] + aseg_surface.vertices.shape[0]
-        verts_regions_mat = self._get_verts_regions_matrix(nr_vertices, nr_regions, mapping.cort_region_mapping +
-                                                           mapping.subcort_region_mapping)
+        areas = numpy.genfromtxt(areas_file, usecols=[0])
+        no_cort_rm = numpy.unique(cort_rm).size
+        cort_areas = areas[0:no_cort_rm]
+        subcort_areas = areas[no_cort_rm + 1:]
 
-        gain_matrix = self._gain_matrix_dipole(surface.vertices, normals, areas, sensors)
+        normals = numpy.genfromtxt(normals_file, usecols=[0, 1, 2])
+        cort_normals = normals[0:no_cort_rm]
 
-        gain_matrix_subcort = self._gain_matrix_inv_square(aseg_surface.vertices, areas_subcort, sensors)
+        nr_regions = len(region_list)
+        nr_vertices = cort_vertices.size + subcort_vertices.size
+
+        verts_regions_mat = self._get_verts_regions_matrix(nr_vertices, nr_regions, cort_rm + subcort_rm)
+
+        gain_matrix = self._gain_matrix_dipole(cort_vertices, cort_normals, cort_areas, sensors)
+
+        gain_matrix_subcort = self._gain_matrix_inv_square(subcort_vertices, subcort_areas, sensors)
 
         gain_total = numpy.concatenate((gain_matrix, gain_matrix_subcort), axis=1)
 
