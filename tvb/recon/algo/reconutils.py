@@ -136,10 +136,9 @@ def compute_seeg_gain_matrix(seeg_xyz, cort_surf, subcort_surf, cort_rm, subcort
     sensorService.compute_seeg_gain_matrix(seeg_xyz, cort_surf, subcort_surf, cort_rm, subcort_rm, normals_file,
                                            areas_file, out_gain_mat)
 
-def compute_projection_matrix(sensor_positions_file, connectivity_zip, out_matrix):
-    sensors_positions, labels = read_sensors_positions(sensor_positions_file)
-    connectivity_centers = genericIO.read_field_from_zip("centers.txt", connectivity_zip, [1, 2, 3])
-    sensorService.compute_sensors_projection(sensors_positions, connectivity_centers, out_matrix)
+
+def compute_projection_matrix(sensor_positions_file, centers_file, out_matrix):
+    sensorService.compute_sensors_projection(sensor_positions_file, centers_file, out_matrix)
 
 if __name__ == '__main__':
     cmd = sys.argv[1]

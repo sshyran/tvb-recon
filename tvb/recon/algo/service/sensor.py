@@ -210,14 +210,17 @@ class SensorService(object):
         numpy.savetxt(out_gain_mat, gain_total @ verts_regions_mat)
 
     # This is from tvb-epilepsy
-    def compute_sensors_projection(self, sensors_locations, connectivity_centers, out_matrix):
-        n_sensors = sensors_locations.shape[0]
-        n_regions = connectivity_centers.shape[0]
+    def compute_sensors_projection(self, sensors_file, centers_file, out_matrix):
+        sensors = numpy.genfromtxt(sensors_file, usecols=[1, 2, 3])
+        centers = numpy.genfromtxt(centers_file, usecols=[1,2,3])
+
+        n_sensors = sensors.shape[0]
+        n_regions = centers.shape[0]
         projection = numpy.zeros((n_sensors, n_regions))
         dist = numpy.zeros((n_sensors, n_regions))
 
         for iS, iR in product(range(n_sensors), range(n_regions)):
-            dist[iS, iR] = numpy.sqrt(numpy.sum((sensors_locations[iS, :] - connectivity_centers[iR, :]) ** 2))
+            dist[iS, iR] = numpy.sqrt(numpy.sum((sensors[iS, :] - centers[iR, :]) ** 2))
             projection[iS, iR] = 1 / dist[iS, iR] ** 2
 
         projection /= numpy.percentile(projection, 95)

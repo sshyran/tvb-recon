@@ -71,11 +71,11 @@ if __name__ == "__main__":
                 seeg_gain_computation.add_seeg_gain_computation_steps(dax, job_seeg_xyz, job_mapping_details)
             if config.props[ConfigKey.EEG_FLAG] == "True":
                 projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT], SensorsType.EEG.value)
-                projection_computation.add_projection_computation_steps(dax, job_conn)
+                projection_computation.add_projection_computation_steps(dax, job_mapping_details)
 
             if config.props[ConfigKey.MEG_FLAG] == "True":
                 projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT], SensorsType.MEG.value)
-                projection_computation.add_projection_computation_steps(dax, job_conn)
+                projection_computation.add_projection_computation_steps(dax, job_mapping_details)
 
     out_dir = os.path.dirname(daxfile)
     if not os.path.exists(out_dir):
