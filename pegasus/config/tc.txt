@@ -87,10 +87,10 @@ tr convert-xfm {
     profile env "FSL_DIR" "${FSL_DIR}"
 
     site condorpool {
-        pfn "${FSL_DIR}/bin/convert_xfm"
+        pfn "${SH_CUSTOM_FILES}/convert_fsl_mat.sh"
         arch "x86_64"
         os "${OS}"
-        type "INSTALLED"
+        type "STAGEABLE"
     }
 }
 
