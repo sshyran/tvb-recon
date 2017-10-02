@@ -9,6 +9,7 @@ from tvb.recon.dax.dwi_processing import DWIProcessing
 from tvb.recon.dax.head_model import HeadModel
 from tvb.recon.dax.output_conversion import OutputConversion
 from tvb.recon.dax.projection_computation import ProjectionComputation
+from tvb.recon.dax.resampling import Resampling
 from tvb.recon.dax.seeg_computation import SEEGComputation
 from tvb.recon.dax.seeg_gain_computation import SeegGainComputation
 from tvb.recon.dax.t1_processing import T1Processing
@@ -30,6 +31,9 @@ if __name__ == "__main__":
                                  config.props[ConfigKey.T2_FLAG], config.props[ConfigKey.T2_FRMT],
                                  config.props[ConfigKey.FLAIR_FLAG], config.props[ConfigKey.FLAIR_FRMT],
                                  config.props[ConfigKey.OPENMP_THRDS])
+
+    resampling = Resampling(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.TRGSUBJECT],
+                            config.props[ConfigKey.DECIM_FACTOR])
 
     dwi_processing = DWIProcessing(config.props[ConfigKey.DWI_IS_REVERSED], config.props[ConfigKey.DWI_FRMT],
                                    config.props[ConfigKey.MRTRIX_THRDS], config.props[ConfigKey.DWI_SCAN_DIRECTION])
@@ -53,6 +57,11 @@ if __name__ == "__main__":
     job_t1_in_d, job_aparc_aseg_in_d = coregistration.add_coregistration_steps(dax, job_b0, job_t1,
                                                                                job_aparc_aseg)
     job_aseg_lh, job_aseg_rh, job_mapping_details = aseg_generation.add_aseg_generation_steps(dax, job_aparc_aseg)
+
+    if config.props[ConfigKey.RESAMPLE_FLAG] == "True":
+        resampling.add_surface_resampling_steps(dax, job_aparc_aseg, job_aseg_lh)
+        resampling.add_annotation_resampling_steps(dax, job_aparc_aseg, job_aseg_lh)
+
     job_weights, job_lengths = tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask,
                                                                              job_aparc_aseg_in_d, job_mapping_details)
     job_conn = output_conversion.add_conversion_steps(dax, job_aparc_aseg, job_mapping_details, job_weights,

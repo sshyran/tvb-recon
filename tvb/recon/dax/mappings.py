@@ -188,6 +188,7 @@ class HeadModelFiles(Enum):
     HEAD_MAT = "head.mat"
     HEAD_INV_MAT = "head_inv.mat"
 
+
 class SeegGainFiles(Enum):
     CORTICAL_PIAL = "cortical.pial"
     SEEG_GAIN_MAT = "seeg_gain.mat"
@@ -206,3 +207,19 @@ class ProjectionCompFiles(Enum):
 
 class ProjectionCompJobNames(Enum):
     COMPUTE_PROJ_MAT = "compute_projection_matrix"
+
+
+class ResamplingFiles(Enum):
+    LH_PIAL_RESAMP = "lh.pial-%s"
+    RH_PIAL_RESAMP = "rh.pial-%s"
+    LH_ASEG_RESAMP = "lh.aseg-%s"
+    RH_ASEG_RESAMP = "rh.aseg-%s"
+    LH_APARC_ANNOT_RESAMP = "lh.aparc-%s.annot"
+    RH_APARC_ANNOT_RESAMP = "rh.aparc-%s.annot"
+    LH_ASEG_ANNOT_RESAMP = "lh.aseg-%s.annot"
+    RH_ASEG_ANNOT_RESAMP = "rh.aseg-%s.annot"
+
+
+class ResamplingJobNames(Enum):
+    MRI_SURF2SURF = "mri_surf2surf"
+    MRIS_DECIMATE = "mris_decimate"

@@ -34,6 +34,9 @@ class ConfigKey(Enum):
     SEEG_FLAG = "seeg.flag"
     EEG_FLAG = "eeg.flag"
     MEG_FLAG = "meg.flag"
+    RESAMPLE_FLAG = "resample.flag"
+    TRGSUBJECT = "trgsubject"
+    DECIM_FACTOR = "decim.factor"
 
 
 class Configuration(object):

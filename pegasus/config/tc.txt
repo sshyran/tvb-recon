@@ -543,6 +543,29 @@ tr compute_projection_matrix {
     }
 }
 
+tr mri_surf2surf {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/mri_surf2surf.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr mris_decimate {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+
+    site condorpool {
+        pfn "${FREESURFER_HOME}/bin/mris_decimate"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
 tr mv {
     site condorpool {
         pfn "/bin/mv"
