@@ -107,7 +107,7 @@ class TractsGeneration(object):
             job4.addArguments(dwi_mif, file_response, mask_mif)
             job4.uses(dwi_mif, link=Link.INPUT)
             job4.uses(mask_mif, link=Link.INPUT)
-            job4.uses(file_response, link=Link.OUTPUT, transfer=True, register=False)
+            job4.uses(file_response, link=Link.OUTPUT, transfer=True, register=True)
             dax.addJob(job4)
 
             dax.depends(job4, job_mask)
@@ -120,7 +120,7 @@ class TractsGeneration(object):
             job5.uses(dwi_mif, link=Link.INPUT)
             job5.uses(file_response, link=Link.INPUT)
             job5.uses(mask_mif, link=Link.INPUT)
-            job5.uses(file_wm_fod, link=Link.OUTPUT, transfer=True, register=False)
+            job5.uses(file_wm_fod, link=Link.OUTPUT, transfer=True, register=True)
             dax.addJob(job5)
 
             dax.depends(job5, job4)
@@ -169,7 +169,7 @@ class TractsGeneration(object):
         job_convert_tdi_ends = Job(DWIJobNames.MRCONVERT.value)
         job_convert_tdi_ends.addArguments(file_tdi_ends, file_tdi_ends_nii_gz)
         job_convert_tdi_ends.uses(file_tdi_ends, link=Link.INPUT)
-        job_convert_tdi_ends.uses(file_tdi_ends_nii_gz, link=Link.OUTPUT, transfer=False, register=False)
+        job_convert_tdi_ends.uses(file_tdi_ends_nii_gz, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job_convert_tdi_ends)
 
         dax.depends(job_convert_tdi_ends, job8)
@@ -199,7 +199,7 @@ class TractsGeneration(object):
                            file_aparc_aseg_counts5M_csv)
         job10.uses(file_strmlns_sift, link=Link.INPUT)
         job10.uses(file_vol_lbl, link=Link.INPUT)
-        job10.uses(file_aparc_aseg_counts5M_csv, link=Link.OUTPUT, transfer=True, register=False)
+        job10.uses(file_aparc_aseg_counts5M_csv, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job10)
 
         dax.depends(job10, job7)
@@ -211,7 +211,7 @@ class TractsGeneration(object):
                            "-stat_edge", "mean", file_aparc_aseg_mean_tract_lengths5M_csv)
         job11.uses(file_strmlns_sift, link=Link.INPUT)
         job11.uses(file_vol_lbl, link=Link.INPUT)
-        job11.uses(file_aparc_aseg_mean_tract_lengths5M_csv, link=Link.OUTPUT, transfer=True, register=False)
+        job11.uses(file_aparc_aseg_mean_tract_lengths5M_csv, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job11)
 
         dax.depends(job11, job7)

@@ -91,7 +91,7 @@ class DWIProcessing(object):
         job3 = Job(DWIJobNames.DWI2MASK.value, node_label="Create DWI mask")
         job3.addArguments(dwi_pre_output, mask_output, "-nthreads", self.mrtrix_threads)
         job3.uses(dwi_pre_output, link=Link.INPUT)
-        job3.uses(mask_output, link=Link.OUTPUT, transfer=True, register=False)
+        job3.uses(mask_output, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job3)
 
         dax.depends(job3, last_job)
@@ -109,7 +109,7 @@ class DWIProcessing(object):
         job_convert_mask = Job(DWIJobNames.MRCONVERT.value)
         job_convert_mask.addArguments(mask_output, file_mask_nii_gz)
         job_convert_mask.uses(mask_output, link=Link.INPUT)
-        job_convert_mask.uses(file_mask_nii_gz, link=Link.OUTPUT, transfer=False, register=False)
+        job_convert_mask.uses(file_mask_nii_gz, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job_convert_mask)
 
         dax.depends(job_convert_mask, job3)
