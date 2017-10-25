@@ -6,4 +6,4 @@ export FREESURFER_HOME
 export SUBJECTS_DIR
 source ${FREESURFER_HOME}/FreeSurferEnv.sh
 
-python -m tvb.recon.qc.mapping_details -p $1
+python -m tvb.recon.qc.mapping_details -p $@

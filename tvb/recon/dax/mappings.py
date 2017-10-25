@@ -212,10 +212,13 @@ class ProjectionCompJobNames(Enum):
 class ResamplingFiles(Enum):
     LH_PIAL_RESAMP = "lh.pial-%s"
     RH_PIAL_RESAMP = "rh.pial-%s"
-    LH_ASEG_RESAMP = "lh.aseg-%s"
-    RH_ASEG_RESAMP = "rh.aseg-%s"
+    LH_CENTERED_PIAL_RESAMP = "lh.centered.pial-%s"
+    RH_CENTERED_PIAL_RESAMP = "rh.centered.pial-%s"
     LH_APARC_ANNOT_RESAMP = "lh.aparc-%s.annot"
     RH_APARC_ANNOT_RESAMP = "rh.aparc-%s.annot"
+
+    LH_ASEG_RESAMP = "lh.aseg-%s"
+    RH_ASEG_RESAMP = "rh.aseg-%s"
     LH_ASEG_ANNOT_RESAMP = "lh.aseg-%s.annot"
     RH_ASEG_ANNOT_RESAMP = "rh.aseg-%s.annot"
 

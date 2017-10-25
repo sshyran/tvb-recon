@@ -37,7 +37,7 @@ class T1Processing(object):
         for out_file in out_files:
             job.uses(out_file, link=Link.OUTPUT, transfer=True, register=True)
 
-    def add_t1_processing_steps(self, dax):
+    def add_t1_processing_steps(self, dax, resamp_flag):
         t1_input = Inputs.T1_INPUT.value
         t1_converted = T1Files.T1_INPUT_CONVERTED.value
         t1_output, job1 = self._ensure_input_format(self.t1_format, t1_input, t1_converted, dax)
@@ -126,27 +126,28 @@ class T1Processing(object):
 
         dax.depends(job4, last_job)
 
-        lh_centered_pial = File(T1Files.LH_CENTERED_PIAL.value)
-        job5 = Job(T1JobNames.MRIS_CONVERT.value)
-        job5.addArguments("--to-scanner", lh_pial, lh_centered_pial)
-        job5.uses(lh_pial, link=Link.INPUT)
-        job5.uses(lh_centered_pial, link=Link.OUTPUT, transfer=False, register=False)
-        dax.addJob(job5)
+        if resamp_flag != "True":
+            lh_centered_pial = File(T1Files.LH_CENTERED_PIAL.value)
+            job5 = Job(T1JobNames.MRIS_CONVERT.value)
+            job5.addArguments("--to-scanner", lh_pial, lh_centered_pial)
+            job5.uses(lh_pial, link=Link.INPUT)
+            job5.uses(lh_centered_pial, link=Link.OUTPUT, transfer=False, register=False)
+            dax.addJob(job5)
 
-        dax.depends(job5, last_job)
+            dax.depends(job5, last_job)
 
-        rh_centered_pial = File(T1Files.RH_CENTERED_PIAL.value)
-        job6 = Job(T1JobNames.MRIS_CONVERT.value)
-        job6.addArguments("--to-scanner", rh_pial, rh_centered_pial)
-        job6.uses(rh_pial, link=Link.INPUT)
-        job6.uses(rh_centered_pial, link=Link.OUTPUT, transfer=False, register=False)
-        dax.addJob(job6)
+            rh_centered_pial = File(T1Files.RH_CENTERED_PIAL.value)
+            job6 = Job(T1JobNames.MRIS_CONVERT.value)
+            job6.addArguments("--to-scanner", rh_pial, rh_centered_pial)
+            job6.uses(rh_pial, link=Link.INPUT)
+            job6.uses(rh_centered_pial, link=Link.OUTPUT, transfer=False, register=False)
+            dax.addJob(job6)
 
-        dax.depends(job6, last_job)
+            dax.depends(job6, last_job)
 
-        self.qc_snapshots.add_vol_surf_snapshot_step(dax, [job3, job5, job6], t1_nii_gz_vol,
+            self.qc_snapshots.add_vol_surf_snapshot_step(dax, [job3, job5, job6], t1_nii_gz_vol,
                                                      [lh_centered_pial, rh_centered_pial])
-        self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], lh_centered_pial, lh_aparc_annot)
-        self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial, rh_aparc_annot)
+            self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], lh_centered_pial, lh_aparc_annot)
+            self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial, rh_aparc_annot)
 
         return job3, job4

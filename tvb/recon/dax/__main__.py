@@ -45,22 +45,24 @@ if __name__ == "__main__":
                                          config.props[ConfigKey.STRMLNS_LEN], config.props[ConfigKey.STRMLNS_STEP])
 
     aseg_generation = AsegGeneration(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.ASEG_LH_LABELS],
-                                     config.props[ConfigKey.ASEG_RH_LABELS])
+                                     config.props[ConfigKey.ASEG_RH_LABELS], config.props[ConfigKey.TRGSUBJECT])
 
     output_conversion = OutputConversion()
 
     seeg_computation = SEEGComputation(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.CT_FRMT],
                                        config.props[ConfigKey.CT_ELEC_INTENSITY_TH])
 
-    job_t1, job_aparc_aseg = t1_processing.add_t1_processing_steps(dax)
+    job_t1, job_aparc_aseg = t1_processing.add_t1_processing_steps(dax, config.props[ConfigKey.RESAMPLE_FLAG])
     job_b0, job_mask = dwi_processing.add_dwi_processing_steps(dax)
-    job_t1_in_d, job_aparc_aseg_in_d = coregistration.add_coregistration_steps(dax, job_b0, job_t1,
-                                                                               job_aparc_aseg)
-    job_aseg_lh, job_aseg_rh, job_mapping_details = aseg_generation.add_aseg_generation_steps(dax, job_aparc_aseg)
+    job_t1_in_d, job_aparc_aseg_in_d = coregistration.add_coregistration_steps(dax, job_b0, job_t1, job_aparc_aseg)
+    job_aseg_lh, job_aseg_rh = aseg_generation.add_aseg_generation_steps(dax, job_aparc_aseg)
 
+    job_resamp_cort = None
     if config.props[ConfigKey.RESAMPLE_FLAG] == "True":
-        resampling.add_surface_resampling_steps(dax, job_aparc_aseg, job_aseg_lh)
-        resampling.add_annotation_resampling_steps(dax, job_aparc_aseg, job_aseg_lh)
+        job_resamp_cort = resampling.add_surface_resampling_steps(dax, job_aparc_aseg)
+
+    job_mapping_details = aseg_generation.add_mapping_details_computation_step(dax, job_aseg_lh, job_aseg_rh,
+                                                                               job_resamp_cort)
 
     job_weights, job_lengths = tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask,
                                                                              job_aparc_aseg_in_d, job_mapping_details)
