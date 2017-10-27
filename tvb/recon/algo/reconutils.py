@@ -16,9 +16,8 @@ except ImportError:
     warnings.warn(
         'Geodesic distance module unavailable; please pip install gdist.')
 
-
 SUBJECTS_DIR, SUBJECT, FREESURFER_HOME = [os.environ[
-    key] for key in 'SUBJECTS_DIR SUBJECT FREESURFER_HOME'.split()]
+                                              key] for key in 'SUBJECTS_DIR SUBJECT FREESURFER_HOME'.split()]
 
 surfaceService = SurfaceService()
 volumeService = VolumeService()
@@ -27,10 +26,12 @@ sensorService = SensorService()
 annotationService = AnnotationService()
 genericIO = GenericIO()
 
-def gen_head_model(subjs=SUBJECTS_DIR, subj=SUBJECT):
-    sensorService.gen_head_model(subjs, subj)
 
-#-----------------------------Freesurfer surfaces------------------------------
+def gen_head_model(subjs=SUBJECTS_DIR, subj=SUBJECT, decimated=False):
+    sensorService.gen_head_model(subjs, subj, decimated)
+
+
+# -----------------------------Freesurfer surfaces------------------------------
 
 
 def convert_fs_to_brain_visa(fs_surf, bv_surf=None):
@@ -46,13 +47,15 @@ def aseg_surf_conc_annot(surf_path, out_surf_path, annot_path, labels,
     surfaceService.aseg_surf_conc_annot(
         surf_path, out_surf_path, annot_path, labels, lut_path)
 
+
 def merge_surfs(surf_lh, surf_rh, out_surf_path):
     s_lh = IOUtils.read_surface(surf_lh, False)
     s_rh = IOUtils.read_surface(surf_rh, False)
     surf = surfaceService.merge_surfaces([s_lh, s_rh])
     IOUtils.write_surface(out_surf_path, surf)
 
-#---------------------------------Volumes--------------------------------------
+
+# ---------------------------------Volumes--------------------------------------
 
 
 def vol_to_ext_surf_vol(in_vol_path, labels=None, ctx=None,
@@ -85,7 +88,7 @@ def remove_zero_connectivity_nodes(
 def simple_label_config(aparc_fname, out_fname):
     volumeService.simple_label_config(aparc_fname, out_fname)
 
- #-------------------------Surfaces from/to volumes----------------------------
+    # -------------------------Surfaces from/to volumes----------------------------
 
 
 def sample_vol_on_surf(surf_path, vol_path, annot_path, out_surf_path, cras_path,
@@ -94,7 +97,8 @@ def sample_vol_on_surf(surf_path, vol_path, annot_path, out_surf_path, cras_path
     surfaceService.sample_vol_on_surf(surf_path, vol_path, annot_path, out_surf_path, cras_path,
                                       add_string, vertex_neighbourhood, add_lbl, lut_path)
 
-#------------------Subparcellation-subsegmentation-----------------------------
+
+# ------------------Subparcellation-subsegmentation-----------------------------
 
 
 def subparc_files(surf_path, annot_path, out_annot_parc_name, trg_area):
@@ -111,11 +115,14 @@ def connectivity_geodesic_subparc(self, surf_path, annot_path, con_verts_idx, ou
                                       os.environ['FREESURFER_HOME'], DEFAULT_LUT),
                                   out_lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT)):
     subparcelatioService.connectivity_geodesic_subparc(surf_path, annot_path, con_verts_idx,
-                                                       out_annot_path=out_annot_path, labels=labels, ctx=ctx, add_string=add_string,
-                                                       parc_area=parc_area, con_sim_aff=con_sim_aff, geod_dist_aff=geod_dist_aff,
+                                                       out_annot_path=out_annot_path, labels=labels, ctx=ctx,
+                                                       add_string=add_string,
+                                                       parc_area=parc_area, con_sim_aff=con_sim_aff,
+                                                       geod_dist_aff=geod_dist_aff,
                                                        structural_connectivity_constraint=structural_connectivity_constraint,
                                                        clustering_mode=clustering_mode,
-                                                       cras_path=cras_path, ref_vol_path=ref_vol_path, consim_path=consim_path,
+                                                       cras_path=cras_path, ref_vol_path=ref_vol_path,
+                                                       consim_path=consim_path,
                                                        in_lut_path=in_lut_path, out_lut_path=out_lut_path)
 
 
@@ -124,7 +131,8 @@ def node_connectivity_metric(
     subparcelatioService.node_connectivity_metric(
         con_mat_path, metric, out_consim_path)
 
-#-------------------------------Contacts---------------------------------------
+
+# -------------------------------Contacts---------------------------------------
 
 
 def periodic_xyz_for_object(lab, val, aff, bw=0.1, doplot=False):
@@ -137,6 +145,7 @@ def compute_seeg_gain_matrix(seeg_xyz, cort_surf, subcort_surf, cort_rm, subcort
 
 def compute_projection_matrix(sensor_positions_file, centers_file, out_matrix):
     sensorService.compute_sensors_projection(sensor_positions_file, centers_file, out_matrix)
+
 
 if __name__ == '__main__':
     cmd = sys.argv[1]

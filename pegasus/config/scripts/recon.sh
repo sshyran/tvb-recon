@@ -27,6 +27,8 @@ cp brain.mgz $f
 cd ../surf
 cp lh.pial $f
 cp rh.pial $f
+cp lh.white $f
+cp rh.white $f
 
 cd ../label
 cp lh.aparc.annot $f

@@ -139,6 +139,8 @@ class AsegGeneration(object):
         subcort_region_mapping = File(AsegFiles.RM_SUBCORT_TXT.value)
         cort_surface = File(AsegFiles.SURF_CORT_ZIP.value)
         subcort_surface = File(AsegFiles.SURF_SUBCORT_ZIP.value)
+        lh_dipoles = File(AsegFiles.LH_DIPOLES_TXT.value)
+        rh_dipoles = File(AsegFiles.RH_DIPOLES_TXT.value)
 
         # Job config:
         job9 = Job(AsegGenJobNames.GEN_MAPPING_DETAILS.value)
@@ -165,10 +167,14 @@ class AsegGeneration(object):
         job9.uses(subcort_region_mapping, link=Link.OUTPUT, transfer=True, register=True)
         job9.uses(cort_surface, link=Link.OUTPUT, transfer=True, register=True)
         job9.uses(subcort_surface, link=Link.OUTPUT, transfer=True, register=True)
+        job9.uses(lh_dipoles, link=Link.OUTPUT, transfer=True, register=True)
+        job9.uses(rh_dipoles, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job9)
 
-        dax.depends(job9, job_resampling)
         dax.depends(job9, job_lh_aseg)
         dax.depends(job9, job_rh_aseg)
+
+        if job_resampling is not None:
+            dax.depends(job9, job_resampling)
 
         return job9

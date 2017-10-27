@@ -9,7 +9,7 @@ export SUBJECT=$1
 
 f=$PWD
 
-mne_watershed_bem
+mne_watershed_bem --overwrite
 
 cd ${SUBJECTS_DIR}/${SUBJECT}/bem/watershed
 

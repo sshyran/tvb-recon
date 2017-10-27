@@ -45,10 +45,12 @@ class T1Processing(object):
         aparc_aseg_mgz_vol = File(T1Files.APARC_ASEG_MGZ.value)
         lh_pial = File(T1Files.LH_PIAL.value)
         rh_pial = File(T1Files.RH_PIAL.value)
+        lh_white = File(T1Files.LH_WHITE.value)
+        rh_white = File(T1Files.RH_WHITE.value)
         lh_aparc_annot = File(T1Files.LH_APARC_ANNOT.value)
         rh_aparc_annot = File(T1Files.RH_APARC_ANNOT.value)
 
-        out_files_list = [aparc_aseg_mgz_vol, lh_pial, rh_pial, lh_aparc_annot, rh_aparc_annot]
+        out_files_list = [aparc_aseg_mgz_vol, lh_pial, rh_pial, lh_white, rh_white, lh_aparc_annot, rh_aparc_annot]
 
         t1_mgz_output = File(T1Files.T1_MGZ.value)
         norm_mgz_vol = File(T1Files.NORM_MGZ.value)
@@ -146,8 +148,10 @@ class T1Processing(object):
             dax.depends(job6, last_job)
 
             self.qc_snapshots.add_vol_surf_snapshot_step(dax, [job3, job5, job6], t1_nii_gz_vol,
-                                                     [lh_centered_pial, rh_centered_pial])
-            self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], lh_centered_pial, lh_aparc_annot)
-            self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial, rh_aparc_annot)
+                                                         [lh_centered_pial, rh_centered_pial])
+            self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], lh_centered_pial,
+                                                           lh_aparc_annot)
+            self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial,
+                                                           rh_aparc_annot)
 
         return job3, job4

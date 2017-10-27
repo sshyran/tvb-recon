@@ -56,8 +56,7 @@ def compute_region_details(fs_color_lut: os.PathLike, t1: os.PathLike, lh_cort: 
     dict_fs_custom = mapping.get_mapping_for_connectome_generation()
     genericIO.write_dict_to_txt_file(dict_fs_custom, "fs_custom.txt")
 
-    region_areas = surface_service.compute_areas_for_regions(mapping.get_all_regions(),
-                                                             cort_subcort_full_surf,
+    region_areas = surface_service.compute_areas_for_regions(mapping.get_all_regions(), cort_subcort_full_surf,
                                                              cort_subcort_full_region_mapping)
     genericIO.write_list_to_txt_file(region_areas, "areas.txt")
 
@@ -73,6 +72,27 @@ def compute_region_details(fs_color_lut: os.PathLike, t1: os.PathLike, lh_cort: 
     region_orientations = surface_service.compute_orientations_for_regions(mapping.get_all_regions(),
                                                                            cort_subcort_full_surf,
                                                                            cort_subcort_full_region_mapping)
+
+    lh_region_centers = surface_service.compute_centers_for_regions(mapping.get_lh_regions(), surf_cort_lh,
+                                                                    mapping.lh_region_mapping)
+    lh_region_orientations = surface_service.compute_orientations_for_regions(mapping.get_lh_regions(), surf_cort_lh,
+                                                                              mapping.lh_region_mapping)
+    with open("lh_dipoles.txt", "w") as f:
+        for idx, (val_x, val_y, val_z) in enumerate(lh_region_centers):
+            f.write("%.2f %.2f %.2f %.2f %.2f %.2f\n" % (
+                val_x, val_y, val_z, lh_region_orientations[idx][0], lh_region_orientations[idx][1],
+                lh_region_orientations[idx][2]))
+
+    rh_region_centers = surface_service.compute_centers_for_regions(mapping.get_rh_regions(), surf_cort_rh,
+                                                                    mapping.rh_region_mapping)
+    rh_region_orientations = surface_service.compute_orientations_for_regions(mapping.get_rh_regions(), surf_cort_rh,
+                                                                              mapping.rh_region_mapping)
+    with open("rh_dipoles.txt", "w") as f:
+        for idx, (val_x, val_y, val_z) in enumerate(rh_region_centers):
+            f.write("%.2f %.2f %.2f %.2f %.2f %.2f\n" % (
+                val_x, val_y, val_z, rh_region_orientations[idx][0], rh_region_orientations[idx][1],
+                rh_region_orientations[idx][2]))
+
     numpy.savetxt("average_orientations.txt", region_orientations, fmt='%.2f %.2f %.2f')
 
     annotation_service = AnnotationService()

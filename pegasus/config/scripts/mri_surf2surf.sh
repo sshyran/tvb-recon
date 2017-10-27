@@ -10,14 +10,14 @@ f=$PWD
 
 mri_surf2surf $@
 
-if [ $8 == "pial" ]
+if [ $8 == "pial" ] || [ $8 == "white" ]
 then
     cd ${SUBJECTS_DIR}/${TRGSUBJECT}/surf
     if [ $6 == "lh" ]
     then
-        mv lh.pial-${TRGSUBJECT} $f
+        mv lh.$8-${TRGSUBJECT} $f
     else
-        mv rh.pial-${TRGSUBJECT} $f
+        mv rh.$8-${TRGSUBJECT} $f
     fi
 else
     cd ${SUBJECTS_DIR}/${TRGSUBJECT}/label

@@ -7,11 +7,14 @@ from tvb.recon.dax.configuration import Configuration, ConfigKey, SensorsType
 from tvb.recon.dax.coregistration import Coregistration
 from tvb.recon.dax.dwi_processing import DWIProcessing
 from tvb.recon.dax.head_model import HeadModel
+from tvb.recon.dax.lead_field_model import LeadFieldModel
 from tvb.recon.dax.output_conversion import OutputConversion
 from tvb.recon.dax.projection_computation import ProjectionComputation
 from tvb.recon.dax.resampling import Resampling
 from tvb.recon.dax.seeg_computation import SEEGComputation
 from tvb.recon.dax.seeg_gain_computation import SeegGainComputation
+from tvb.recon.dax.sensor_model import SensorModel
+from tvb.recon.dax.source_model import SourceModel
 from tvb.recon.dax.t1_processing import T1Processing
 from tvb.recon.dax.tracts_generation import TractsGeneration
 
@@ -27,29 +30,30 @@ if __name__ == "__main__":
 
     config = Configuration(patient_file)
 
-    t1_processing = T1Processing(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.T1_FRMT],
-                                 config.props[ConfigKey.T2_FLAG], config.props[ConfigKey.T2_FRMT],
-                                 config.props[ConfigKey.FLAIR_FLAG], config.props[ConfigKey.FLAIR_FRMT],
-                                 config.props[ConfigKey.OPENMP_THRDS])
+    subject = config.props[ConfigKey.SUBJECT]
+    trg_subject = config.props[ConfigKey.TRGSUBJECT]
 
-    resampling = Resampling(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.TRGSUBJECT],
-                            config.props[ConfigKey.DECIM_FACTOR])
+    t1_processing = T1Processing(subject, config.props[ConfigKey.T1_FRMT], config.props[ConfigKey.T2_FLAG],
+                                 config.props[ConfigKey.T2_FRMT], config.props[ConfigKey.FLAIR_FLAG],
+                                 config.props[ConfigKey.FLAIR_FRMT], config.props[ConfigKey.OPENMP_THRDS])
+
+    resampling = Resampling(subject, trg_subject, config.props[ConfigKey.DECIM_FACTOR])
 
     dwi_processing = DWIProcessing(config.props[ConfigKey.DWI_IS_REVERSED], config.props[ConfigKey.DWI_FRMT],
                                    config.props[ConfigKey.MRTRIX_THRDS], config.props[ConfigKey.DWI_SCAN_DIRECTION])
 
-    coregistration = Coregistration(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.USE_FLIRT])
+    coregistration = Coregistration(subject, config.props[ConfigKey.USE_FLIRT])
 
     tracts_generation = TractsGeneration(config.props[ConfigKey.DWI_MULTI_SHELL], config.props[ConfigKey.MRTRIX_THRDS],
                                          config.props[ConfigKey.STRMLNS_NO], config.props[ConfigKey.STRMLNS_SIFT_NO],
                                          config.props[ConfigKey.STRMLNS_LEN], config.props[ConfigKey.STRMLNS_STEP])
 
-    aseg_generation = AsegGeneration(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.ASEG_LH_LABELS],
-                                     config.props[ConfigKey.ASEG_RH_LABELS], config.props[ConfigKey.TRGSUBJECT])
+    aseg_generation = AsegGeneration(subject, config.props[ConfigKey.ASEG_LH_LABELS],
+                                     config.props[ConfigKey.ASEG_RH_LABELS], trg_subject)
 
     output_conversion = OutputConversion()
 
-    seeg_computation = SEEGComputation(config.props[ConfigKey.SUBJECT], config.props[ConfigKey.CT_FRMT],
+    seeg_computation = SEEGComputation(subject, config.props[ConfigKey.CT_FRMT],
                                        config.props[ConfigKey.CT_ELEC_INTENSITY_TH])
 
     job_t1, job_aparc_aseg = t1_processing.add_t1_processing_steps(dax, config.props[ConfigKey.RESAMPLE_FLAG])
@@ -70,16 +74,26 @@ if __name__ == "__main__":
                                                       job_lengths)
 
     if config.props[ConfigKey.CT_FLAG] == "True":
-        job_seeg_xyz = seeg_computation.add_seeg_positions_computation_steps(dax)
+        if config.props[ConfigKey.SEEG_FLAG] == "True":
+            job_seeg_xyz = seeg_computation.add_seeg_positions_computation_steps(dax)
 
-        if config.props[ConfigKey.USE_OPENMEEG] == "True":
-            head_model = HeadModel(config.props[ConfigKey.SUBJECT])
-            head_model.add_head_model_steps(dax, job_t1)
+            if config.props[ConfigKey.USE_OPENMEEG] == "True":
+                head_model = HeadModel(subject, config.props[ConfigKey.RESAMPLE_FLAG])
+                job_head_model = head_model.add_head_model_steps(dax, job_t1)
 
-        else:
-            if config.props[ConfigKey.SEEG_FLAG] == "True":
+                source_model = SourceModel(subject, trg_subject)
+                job_source_model = source_model.add_source_model_steps(dax, job_head_model, job_mapping_details)
+
+                sensor_model = SensorModel(subject, trg_subject)
+                job_sensor_model_lh, job_sensor_model_rh = sensor_model.add_sensor_model_steps(dax, job_source_model)
+
+                lead_field_model = LeadFieldModel(subject, trg_subject)
+                lead_field_model.add_lead_field_model_steps(dax, job_sensor_model_lh, job_sensor_model_rh)
+
+            else:
                 seeg_gain_computation = SeegGainComputation(config.props[ConfigKey.SUBJECT])
                 seeg_gain_computation.add_seeg_gain_computation_steps(dax, job_seeg_xyz, job_mapping_details)
+        else:
             if config.props[ConfigKey.EEG_FLAG] == "True":
                 projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT], SensorsType.EEG.value)
                 projection_computation.add_projection_computation_steps(dax, job_mapping_details)

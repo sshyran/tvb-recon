@@ -24,6 +24,8 @@ class T1Files(Enum):
     BRAIN_MGZ = "brain.mgz"
     LH_PIAL = "lh.pial"
     RH_PIAL = "rh.pial"
+    LH_WHITE = "lh.white"
+    RH_WHITE = "rh.white"
     LH_CENTERED_PIAL = "lh.centered.pial"
     RH_CENTERED_PIAL = "rh.centered.pial"
     LH_APARC_ANNOT = "lh.aparc.annot"
@@ -131,6 +133,8 @@ class AsegFiles(Enum):
     RM_SUBCORT_TXT = "region_mapping_subcort.txt"
     SURF_CORT_ZIP = "surface_cort.zip"
     SURF_SUBCORT_ZIP = "surface_subcort.zip"
+    LH_DIPOLES_TXT = "lh_dipoles.txt"
+    RH_DIPOLES_TXT = "rh_dipoles.txt"
 
 
 class AsegGenJobNames(Enum):
@@ -179,10 +183,14 @@ class HeadModelFiles(Enum):
     INNER_SKULL_SURFACE = "%s_inner_skull_surface"
     OUTER_SKIN_SURFACE = "%s_outer_skin_surface"
     OUTER_SKULL_SURFACE = "%s_outer_skull_surface"
-    BRAIN_SURFACE_TRI = "%s_brain_surface.tri"
-    INNER_SKULL_SURFACE_TRI = "%s_inner_skull_surface.tri"
-    OUTER_SKIN_SURFACE_TRI = "%s_outer_skin_surface.tri"
-    OUTER_SKULL_SURFACE_TRI = "%s_outer_skull_surface.tri"
+    BRAIN_SURFACE_LOW = "%s_brain_surface_low"
+    INNER_SKULL_SURFACE_LOW = "%s_inner_skull_surface_low"
+    OUTER_SKIN_SURFACE_LOW = "%s_outer_skin_surface_low"
+    OUTER_SKULL_SURFACE_LOW = "%s_outer_skull_surface_low"
+    BRAIN_SURFACE_LOW_TRI = "%s_brain_surface_low.tri"
+    INNER_SKULL_SURFACE_LOW_TRI = "%s_inner_skull_surface_low.tri"
+    OUTER_SKIN_SURFACE_LOW_TRI = "%s_outer_skin_surface_low.tri"
+    OUTER_SKULL_SURFACE_LOW_TRI = "%s_outer_skull_surface_low.tri"
     HEAD_MODEL_GEOM = "head_model.geom"
     HEAD_MODEL_COND = "head_model.cond"
     HEAD_MAT = "head.mat"
@@ -226,3 +234,29 @@ class ResamplingFiles(Enum):
 class ResamplingJobNames(Enum):
     MRI_SURF2SURF = "mri_surf2surf"
     MRIS_DECIMATE = "mris_decimate"
+
+
+class SourceModelFiles(Enum):
+    LH_WHITE_RESAMP = "lh.white-%s"
+    RH_WHITE_RESAMP = "rh.white-%s"
+    LH_WHITE_RESAMP_TRI = "lh.white-%s.tri"
+    RH_WHITE_RESAMP_TRI = "rh.white-%s.tri"
+    LH_WHITE_RESAMP_SSM = "lh.white-%s.ssm"
+    RH_WHITE_RESAMP_SSM = "rh.white-%s.ssm"
+    LH_WHITE_RESAMP_DSM = "lh.white-%s.dsm"
+    RH_WHITE_RESAMP_DSM = "rh.white-%s.dsm"
+
+
+class SensorModelFiles(Enum):
+    SEEG_H2IPM = "seeg.h2ipm"
+    LH_DS2IPM = "lh.white-%s.ds2ipm"
+    RH_DS2IPM = "rh.white-%s.ds2ipm"
+
+
+class LeadFieldModelFiles(Enum):
+    LH_CORT_GAIN_H5 = "lh_cortical_gain.h5"
+    RH_CORT_GAIN_H5 = "rh_cortical_gain.h5"
+
+
+class LeadFieldModelJobNames(Enum):
+    OM_GAIN = "om_gain"

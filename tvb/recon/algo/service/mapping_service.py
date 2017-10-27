@@ -20,9 +20,15 @@ class MappingService(object):
                  subcort_annot_rh: Annotation):
         self.cort_lut_dict = self.generate_lut_dict_from_annot(cort_annot_lh, cort_annot_rh, self.CORT_TYPE, 0)
         self.subcort_lut_dict = self.generate_lut_dict_from_annot(subcort_annot_lh, subcort_annot_rh,
-                                                                      self.SUBCORT_TYPE, len(self.cort_lut_dict))
+                                                                  self.SUBCORT_TYPE, len(self.cort_lut_dict))
         self.cort_region_mapping = list()
         self.subcort_region_mapping = list()
+
+    def get_lh_regions(self):
+        return list(self.cort_lut_dict.keys())[0:self.len_lh]
+
+    def get_rh_regions(self):
+        return list(self.cort_lut_dict.keys())[self.len_rh:]
 
     def generate_lut_dict_from_annot(self, annot_lh: Annotation, annot_rh: Annotation, annot_type: str,
                                      idx: int) -> dict:
@@ -30,6 +36,8 @@ class MappingService(object):
         dict_rh = self._get_dict_from_annot(annot_rh)
 
         if annot_type == self.CORT_TYPE:
+            self.len_lh = len(dict_lh)
+            self.len_rh = len(dict_rh)
             return self._prepare_cort_lut_dict(dict_lh, dict_rh, idx)
 
         return self._prepare_subcort_lut_dict(dict_lh, dict_rh, idx)
@@ -91,13 +99,17 @@ class MappingService(object):
         lh_annot.region_mapping[lh_annot.region_mapping == -1] = 0
         rh_annot.region_mapping[rh_annot.region_mapping == -1] = 0
 
+        self.lh_region_mapping = list()
         for lbl in lh_annot.region_mapping:
             current_region_name = lh_annot.region_names[lbl]
             region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_lh + current_region_name))
+            self.lh_region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_lh + current_region_name))
 
+        self.rh_region_mapping = list()
         for lbl in rh_annot.region_mapping:
             current_region_name = rh_annot.region_names[lbl]
             region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_rh + current_region_name))
+            self.rh_region_mapping.append(cort_inv_lut_dict.get(self.fs_prefix_rh + current_region_name))
 
         self.cort_region_mapping = region_mapping
 

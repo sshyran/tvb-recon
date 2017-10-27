@@ -87,10 +87,10 @@ tr convert-xfm {
     profile env "FSL_DIR" "${FSL_DIR}"
 
     site condorpool {
-        pfn "${SH_CUSTOM_FILES}/convert_fsl_mat.sh"
+        pfn "${FSL_DIR}/bin/convert_xfm"
         arch "x86_64"
         os "${OS}"
-        type "STAGEABLE"
+        type "INSTALLED"
     }
 }
 
@@ -487,7 +487,7 @@ tr om_assemble {
         pfn "/usr/local/bin/om_assemble"
         arch "x86_64"
         os "${OS}"
-        type "STAGEABLE"
+        type "INSTALLED"
     }
 }
 
@@ -495,6 +495,16 @@ tr om_minverser {
 
     site condorpool {
         pfn "/usr/local/bin/om_minverser"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr om_gain {
+
+    site condorpool {
+        pfn "/usr/local/bin/om_gain"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
