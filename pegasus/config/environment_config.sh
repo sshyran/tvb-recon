@@ -3,16 +3,16 @@
 #TODO place these in a better form ?
 
 export PEGASUSHOME=/WORK/pegasus-4.7.4
-export PEGASUSSUBMIT=${PEGASUSHOME}/submit
-export PEGASUSSCRATCH=${PEGASUSHOME}/scratch
+export PEGASUSSUBMIT=$${PEGASUSHOME}/submit
+export PEGASUSSCRATCH=$${PEGASUSHOME}/scratch
 
 export OS=MACOSX
 
 export HOME=/Users/pipeline
 
 export FREESURFER_HOME=/WORK/FS_NEW/freesurfer
-export SUBJECTS_DIR=${FREESURFER_HOME}/subjects
-export FUNCTIONALS_DIR=${FREESURFER_HOME}/sessions
+export SUBJECTS_DIR=$${FREESURFER_HOME}/subjects
+export FUNCTIONALS_DIR=$${FREESURFER_HOME}/sessions
 
 export FSL_DIR=/WORK/FSL/fsl
 
