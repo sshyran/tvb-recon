@@ -4,6 +4,9 @@ from enum import Enum
 class Inputs(Enum):
     T1_INPUT = "t1_input.nii.gz"
     DWI_INPUT = "dwi_input.mif"
+    DWI_INPUT_NO_GRAD = "dwi_input_no_grad.nii"
+    DWI_BVEC = "dwi.bvec"
+    DWI_BVAL = "dwi.bval"
     FS_LUT = "fs_color_lut.txt"
     FS_DEFAULT = "fs_default.txt"
     T2_INPUT = "t2_input.nii"

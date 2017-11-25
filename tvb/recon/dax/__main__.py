@@ -40,7 +40,8 @@ if __name__ == "__main__":
     resampling = Resampling(subject, trg_subject, config.props[ConfigKey.DECIM_FACTOR])
 
     dwi_processing = DWIProcessing(config.props[ConfigKey.DWI_IS_REVERSED], config.props[ConfigKey.DWI_FRMT],
-                                   config.props[ConfigKey.MRTRIX_THRDS], config.props[ConfigKey.DWI_SCAN_DIRECTION])
+                                   config.props[ConfigKey.DWI_USE_GRADIENT], config.props[ConfigKey.MRTRIX_THRDS],
+                                   config.props[ConfigKey.DWI_SCAN_DIRECTION])
 
     coregistration = Coregistration(subject, config.props[ConfigKey.USE_FLIRT])
 

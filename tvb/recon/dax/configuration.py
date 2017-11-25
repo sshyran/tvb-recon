@@ -17,6 +17,7 @@ class ConfigKey(Enum):
     OPENMP_THRDS = "openmp.threads"
     DWI_IS_REVERSED = "dwi.is.reversed"
     DWI_FRMT = "dwi.format"
+    DWI_USE_GRADIENT = "dwi.use.gradient"
     DWI_MULTI_SHELL = "dwi.multi.shell"
     MRTRIX_THRDS = "mrtrix.threads"
     DWI_SCAN_DIRECTION = "dwi.scan.direction"
