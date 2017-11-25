@@ -13,8 +13,8 @@ PATH_TO_OUTPUT_SUBJ_FOLDER = "/WORK/pegasus-4.7.4"
 
 PREFIX_SUBJECT_FOLDER = "TVB"
 
-FIRST_SUBJECT_NUMBER = 28
-LAST_SUBJECT_NUMBER = 30
+FIRST_SUBJECT_NUMBER = 25
+LAST_SUBJECT_NUMBER = 27
 
 PATH_TO_DEFAULT_PEGASUS_CONFIGURATION = os.path.join(os.getcwd(), "config")
 
@@ -30,7 +30,6 @@ class configs(Enum):
     SITES = "sites.xml"
     RC = "rc.txt"
     RC_OUT = "rc_out.txt"
-    TC = "tc.txt"
     TC = "tc.txt"
 
 
@@ -59,13 +58,14 @@ def create_config_files_for_subj(current_subject):
         with open(subj_environ_config_path, "w+") as subj_environ_config_file:
             subj_environ_config_file.write(environ_config)
 
-    default_rc_out_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC.value)
-    with open(default_rc_out_path) as default_rc_out_file:
-        template = Template(default_rc_out_file.read())
-        rc_out_config = template.substitute(path=PATH_TO_INPUT_SUBJ_FOLDERS)
-        subj_rc_out_path = os.path.join(current_dir, configs.RC.value)
-        with open(subj_rc_out_path, "w+") as subj_rc_out_file:
-            subj_rc_out_file.write(rc_out_config)
+    default_rc_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC.value)
+    with open(default_rc_path) as default_rc_file:
+        template = Template(default_rc_file.read())
+        rc_config = template.substitute(path=os.path.join(PATH_TO_INPUT_SUBJ_FOLDERS, current_subject, "NII"),
+                                        subject=current_subject)
+        subj_rc_path = os.path.join(current_dir, configs.RC.value)
+        with open(subj_rc_path, "w+") as subj_rc_file:
+            subj_rc_file.write(rc_config)
 
     default_rc_out_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC_OUT.value)
     with open(default_rc_out_path) as default_rc_out_file:
