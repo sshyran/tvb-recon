@@ -93,7 +93,10 @@ if __name__ == "__main__":
 
             else:
                 seeg_gain_computation = SeegGainComputation(config.props[ConfigKey.SUBJECT])
-                seeg_gain_computation.add_seeg_gain_computation_steps(dax, job_seeg_xyz, job_mapping_details)
+                if config.props[ConfigKey.SEEG_GAIN_USE_DP] == "True":
+                    seeg_gain_computation.add_seeg_gain_dp_computation_steps(dax, job_seeg_xyz, job_mapping_details)
+                if config.props[ConfigKey.SEEG_GAIN_USE_MRS] == "True":
+                    seeg_gain_computation.add_seeg_mrs_gain_computation_steps(dax, job_seeg_xyz, job_mapping_details)
         else:
             if config.props[ConfigKey.EEG_FLAG] == "True":
                 projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT], SensorsType.EEG.value)

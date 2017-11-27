@@ -202,7 +202,8 @@ class HeadModelFiles(Enum):
 
 class SeegGainFiles(Enum):
     CORTICAL_PIAL = "cortical.pial"
-    SEEG_GAIN_MAT = "seeg_gain.mat"
+    SEEG_GAIN_DP_MAT = "seeg_dp_gain.mat"
+    SEEG_GAIN_MRS_MAT = "seeg_mrs_gain.mat"
     SUBCORTICAL_ASEG = "subcortical.aseg"
 
 

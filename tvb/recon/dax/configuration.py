@@ -33,6 +33,8 @@ class ConfigKey(Enum):
     USE_OPENMEEG = "use.openmeeg"
     CT_ELEC_INTENSITY_TH = "ct.elec.intensity.th"
     SEEG_FLAG = "seeg.flag"
+    SEEG_GAIN_USE_DP = "seeg.gain.use.dp"
+    SEEG_GAIN_USE_MRS = "seeg.gain.use.mrs"
     EEG_FLAG = "eeg.flag"
     MEG_FLAG = "meg.flag"
     RESAMPLE_FLAG = "resample.flag"
@@ -62,6 +64,7 @@ class Configuration(object):
                 result_dict[key] = value.strip()
             LOGGER.debug("Read patient configuration %s" % result_dict)
             return result_dict
+
 
 class SensorsType(Enum):
     SEEG = "seeg"
