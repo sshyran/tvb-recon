@@ -26,7 +26,7 @@ class SensorService(object):
         hm_base = 'head_model'
 
         if decimated is True:
-            surface_suffix = "surface-low"
+            surface_suffix = "surface_low"
 
         if fs_bem_folder is True:
             surface_prefix = '%s/%s/bem/watershed/%s' % (subjects_dir, subject, subject)
@@ -208,19 +208,22 @@ class SensorService(object):
         numpy.savetxt(out_gain_mat, gain_total @ verts_regions_mat)
 
     # This is from tvb-epilepsy
-    def compute_sensors_projection(self, sensors_file, centers_file, out_matrix):
+    def compute_sensors_projection(self, sensors_file, centers_file, out_matrix, normalize=95, ceil=True):
         sensors = numpy.genfromtxt(sensors_file, usecols=[1, 2, 3])
-        centers = numpy.genfromtxt(centers_file, usecols=[1,2,3])
+        centers = numpy.genfromtxt(centers_file, usecols=[1, 2, 3])
 
-        n_sensors = sensors.shape[0]
-        n_regions = centers.shape[0]
-        projection = numpy.zeros((n_sensors, n_regions))
-        dist = numpy.zeros((n_sensors, n_regions))
+        n1 = sensors.shape[0]
+        n2 = centers.shape[0]
+        projection = numpy.zeros((n1, n2))
+        dist = numpy.zeros((n1, n2))
+        for i1, i2 in product(range(n1), range(n2)):
+            dist[i1, i2] = numpy.abs(numpy.sum((sensors[i1, :] - centers[i2, :]) ** 2))
+            projection[i1, i2] = 1 / dist[i1, i2]
+        if normalize:
+            projection /= numpy.percentile(projection, normalize)
+        if ceil:
+            if ceil is True:
+                ceil = 1.0
+            projection[projection > ceil] = ceil
 
-        for iS, iR in product(range(n_sensors), range(n_regions)):
-            dist[iS, iR] = numpy.sqrt(numpy.sum((sensors[iS, :] - centers[iR, :]) ** 2))
-            projection[iS, iR] = 1 / dist[iS, iR] ** 2
-
-        projection /= numpy.percentile(projection, 95)
-        # projection[projection > 1.0] = 1.0
         numpy.savetxt(out_matrix, projection)
