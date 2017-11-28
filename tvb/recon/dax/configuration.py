@@ -30,6 +30,7 @@ class ConfigKey(Enum):
     STRMLNS_STEP = "strmlns_step"
     CT_FLAG = "ct.flag"
     CT_FRMT = "ct.format"
+    BEM_SURFACES = "bem.surfaces"
     USE_OPENMEEG = "use.openmeeg"
     CT_ELEC_INTENSITY_TH = "ct.elec.intensity.th"
     SEEG_FLAG = "seeg.flag"

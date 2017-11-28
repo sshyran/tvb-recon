@@ -175,6 +175,7 @@ class SEEGCompFiles(Enum):
 
 class HeadModelJobNames(Enum):
     MNE_WATERSHED_BEM = "mne_watershed_bem"
+    GEN_SURFACE_ZIP = "generate_surface_zip"
     CONVERT_TO_BRAIN_VISA = "convert_to_brain_visa"
     GEN_HEAD_MODEL = "gen_head_model"
     OM_ASSEMBLE = "om_assemble"
@@ -186,6 +187,14 @@ class HeadModelFiles(Enum):
     INNER_SKULL_SURFACE = "%s_inner_skull_surface"
     OUTER_SKIN_SURFACE = "%s_outer_skin_surface"
     OUTER_SKULL_SURFACE = "%s_outer_skull_surface"
+    BRAIN_SURFACE_CENTERED = "rh.centered.%s_brain_surface"
+    INNER_SKULL_SURFACE_CENTERED = "rh.centered.%s_inner_skull_surface"
+    OUTER_SKIN_SURFACE_CENTERED = "rh.centered.%s_outer_skin_surface"
+    OUTER_SKULL_SURFACE_CENTERED = "rh.centered.%s_outer_skull_surface"
+    BRAIN_SURFACE_ZIP = "%s_brain_surface.zip"
+    INNER_SKULL_SURFACE_ZIP = "%s_inner_skull_surface.zip"
+    OUTER_SKIN_SURFACE_ZIP = "%s_outer_skin_surface.zip"
+    OUTER_SKULL_SURFACE_ZIP = "%s_outer_skull_surface.zip"
     BRAIN_SURFACE_LOW = "%s_brain_surface_low"
     INNER_SKULL_SURFACE_LOW = "%s_inner_skull_surface_low"
     OUTER_SKIN_SURFACE_LOW = "%s_outer_skin_surface_low"

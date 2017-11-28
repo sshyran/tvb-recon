@@ -55,6 +55,11 @@ def merge_surfs(surf_lh, surf_rh, out_surf_path):
     IOUtils.write_surface(out_surf_path, surf)
 
 
+def generate_surface_zip(in_file, out_file):
+    surface = IOUtils.read_surface(in_file, False)
+    IOUtils.write_surface(out_file, surface)
+
+
 # ---------------------------------Volumes--------------------------------------
 
 

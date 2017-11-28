@@ -74,13 +74,18 @@ if __name__ == "__main__":
     job_conn = output_conversion.add_conversion_steps(dax, job_aparc_aseg, job_mapping_details, job_weights,
                                                       job_lengths)
 
+    head_model = None
+    job_bem_surfaces = None
+    if config.props[ConfigKey.BEM_SURFACES] == "True" or config.props[ConfigKey.USE_OPENMEEG] == "True":
+        head_model = HeadModel(subject)
+        job_bem_surfaces = head_model.generate_bem_surfaces(dax, job_t1)
+
     if config.props[ConfigKey.CT_FLAG] == "True":
         if config.props[ConfigKey.SEEG_FLAG] == "True":
             job_seeg_xyz = seeg_computation.add_seeg_positions_computation_steps(dax)
 
             if config.props[ConfigKey.USE_OPENMEEG] == "True":
-                head_model = HeadModel(subject, config.props[ConfigKey.RESAMPLE_FLAG])
-                job_head_model = head_model.add_head_model_steps(dax, job_t1)
+                job_head_model = head_model.add_head_model_steps(dax, job_bem_surfaces)
 
                 source_model = SourceModel(subject, trg_subject)
                 job_source_model = source_model.add_source_model_steps(dax, job_head_model, job_mapping_details)
