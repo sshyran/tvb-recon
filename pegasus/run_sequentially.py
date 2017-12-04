@@ -7,14 +7,14 @@ import shutil
 from enum import Enum
 from string import Template
 
-PATH_TO_INPUT_SUBJ_FOLDERS = "/WORK/Cleveland_datasets/raw_datasets"
-PATH_TO_SUBJ_CONFIG_FOLDERS = "/WORK/Cleveland_datasets/configurations"
-PATH_TO_OUTPUT_SUBJ_FOLDER = "/WORK/pegasus-4.7.4"
+PATH_TO_INPUT_SUBJ_FOLDERS = "/Users/dionperd/Dropbox/Work/VBtech/VEP/data/CC"
+PATH_TO_SUBJ_CONFIG_FOLDERS = "/Users/dionperd/Dropbox/Work/VBtech/VEP/data/CC"
+PATH_TO_OUTPUT_SUBJ_FOLDER = "/Users/dionperd/Dropbox/Work/VBtech/VEP/data/CC"
 
 PREFIX_SUBJECT_FOLDER = "TVB"
 
-FIRST_SUBJECT_NUMBER = 25
-LAST_SUBJECT_NUMBER = 27
+FIRST_SUBJECT_NUMBER = 5
+LAST_SUBJECT_NUMBER = 6
 
 PATH_TO_DEFAULT_PEGASUS_CONFIGURATION = os.path.join(os.getcwd(), "config")
 
