@@ -13,8 +13,7 @@ PATH_TO_OUTPUT_SUBJ_FOLDER = "/Users/dionperd/Dropbox/Work/VBtech/VEP/data/CC"
 
 PREFIX_SUBJECT_FOLDER = "TVB"
 
-FIRST_SUBJECT_NUMBER = 5
-LAST_SUBJECT_NUMBER = 6
+SUBJECT_IDS = [5, 6]
 
 PATH_TO_DEFAULT_PEGASUS_CONFIGURATION = os.path.join(os.getcwd(), "config")
 
@@ -70,7 +69,7 @@ def create_config_files_for_subj(current_subject):
     default_rc_out_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC_OUT.value)
     with open(default_rc_out_path) as default_rc_out_file:
         template = Template(default_rc_out_file.read())
-        rc_out_config = template.substitute(path=os.path.join(PATH_TO_OUTPUT_SUBJ_FOLDER, current_subject))
+        rc_out_config = template.substitute(path=os.path.join(PATH_TO_OUTPUT_SUBJ_FOLDER, current_subject, "output"))
         subj_rc_out_path = os.path.join(current_dir, configs.RC_OUT.value)
         with open(subj_rc_out_path, "w+") as subj_rc_out_file:
             subj_rc_out_file.write(rc_out_config)
@@ -127,11 +126,11 @@ if __name__ == "__main__":
         os.mkdir(PATH_TO_SUBJ_CONFIG_FOLDERS)
         print "Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS
 
-    for i in range(FIRST_SUBJECT_NUMBER, LAST_SUBJECT_NUMBER + 1):
-        current_subject = PREFIX_SUBJECT_FOLDER + str(i)
+    for subj_id in SUBJECT_IDS:  # range(FIRST_SUBJECT_NUMBER, LAST_SUBJECT_NUMBER + 1):
+        current_subject = PREFIX_SUBJECT_FOLDER + str(subj_id)
         print "Starting to process the subject: %s" % current_subject
 
-        current_dir = os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, current_subject)
+        current_dir = os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, current_subject, "pegasus-config")
         if not os.path.exists(current_dir):
             os.mkdir(current_dir)
             print "Folder %s has been created..." % current_dir
