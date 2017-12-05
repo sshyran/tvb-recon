@@ -61,7 +61,7 @@ def create_config_files_for_subj(current_subject):
     default_rc_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC.value)
     with open(default_rc_path) as default_rc_file:
         template = Template(default_rc_file.read())
-        rc_config = template.substitute(path=os.path.join(PATH_TO_INPUT_SUBJ_FOLDERS, current_subject, "NII"),
+        rc_config = template.substitute(path=os.path.join(PATH_TO_INPUT_SUBJ_FOLDERS, current_subject),
                                         subject=current_subject)
         subj_rc_path = os.path.join(current_dir, configs.RC.value)
         with open(subj_rc_path, "w+") as subj_rc_file:
