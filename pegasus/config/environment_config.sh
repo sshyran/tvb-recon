@@ -18,7 +18,7 @@ export MRTRIX_BIN=/Users/dionperd/CBR/software/git/mrtrix3/release/bin
 export MRTRIX_SCRIPTS=/Users/dionperd/CBR/software/git/mrtrix3/scripts
 
 export ANACONDA_ACTIVATE=/Users/dionperd/anaconda/anaconda/bin/activate
-export PYTHON3_ENVIRONMENT=python2_7
+export PYTHON3_ENVIRONMENT=python_3_6
 
 export SH_CUSTOM_FILES=/Users/dionperd/CBR/software/git/tvb-recon/pegasus/config/scripts
 
