@@ -13,7 +13,7 @@ PATH_TO_OUTPUT_SUBJ_FOLDER = "/Users/dionperd/Dropbox/Work/VBtech/VEP/data/CC"
 
 PREFIX_SUBJECT_FOLDER = "TVB"
 
-SUBJECT_IDS = [5, 6]
+SUBJECT_IDS = [6, 9, 13, 5]
 
 PATH_TO_DEFAULT_PEGASUS_CONFIGURATION = os.path.join(os.getcwd(), "config")
 
