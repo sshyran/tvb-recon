@@ -23,7 +23,7 @@ export MRTRIX_SCRIPTS=/Users/dionperd/mrtrix3/scripts
 # export MRTRIX_SCRIPTS=/Users/dionperd/CBR/git/software/mrtrix3/scripts
 
 export ANACONDA_ACTIVATE=/Users/dionperd/anaconda/bin/activate
-export PYTHON3_ENVIRONMENT=root
+export PYTHON3_ENVIRONMENT=python_3_6
 # export ANACONDA_ACTIVATE=/Users/dionperd/anaconda/anaconda/bin/activate
 # export PYTHON3_ENVIRONMENT=python3_6
 
