@@ -93,6 +93,10 @@ def remove_zero_connectivity_nodes(
 def simple_label_config(aparc_fname, out_fname):
     volumeService.simple_label_config(aparc_fname, out_fname)
 
+
+def transform(coords, src_img, dest_img, transform_mat):
+    volumeService.transform(coords, src_img, dest_img, transform_mat)
+
     # -------------------------Surfaces from/to volumes----------------------------
 
 
