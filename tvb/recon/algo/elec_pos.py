@@ -1,35 +1,14 @@
 import numpy as np
 import os
-import subprocess
+from tvb.recon.algo.service.utils import execute_command
+
 import nibabel as nib
 
+from tvb.recon.algo.service.volume import VolumeService
+from tvb.recon.algo.service.sensor import SensorService
 
-# This is just a helper function I use to run command line stuff
-# It is not needed in the workflow that can directly run system commands
-def execute_command(command, cwd=os.getcwd(), shell=True):
-    import time
-    import sys
-    print("Running process in directory:\n" + cwd)
-    print("Command:\n" + command)
-    tic = time.time()
-    process = subprocess.Popen(command, shell=shell, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                               universal_newlines=True)
-    output = []
-    while True:
-        nextline = process.stdout.readline()
-        if nextline == '' and process.poll() is not None:
-            break
-        sys.stdout.write(nextline)
-        sys.stdout.flush()
-        output.append(nextline)
-    output = "\n".join(output)
-    # output = process.communicate()[0]
-    exit_code = process.returncode
-    if exit_code == 0:
-        return output, sys.stdout, time.time() - tic
-    else:
-        print("The process ran for " + str(time.time() - tic))
-        raise subprocess.CalledProcessError(exit_code, command)
+volume_service = VolumeService()
+sensor_service = SensorService()
 
 # Search a line in a file starting with a string pattern
 def find_line_starting_with(line_list, string):
@@ -46,26 +25,6 @@ def save_xyz_file(coords, names, filename):
             fl.write("%s %8.2f %8.2f %8.2f\n" % (name, coord[0], coord[1], coord[2]))
 
 
-# I don't know what this is... I have to ask Viktor...
-def add_min_max(volume):
-    """Ugly hack to deal with the MRtrix bug (?) that causes MRview to crop min/max values"""
-
-    volume[0, 0, 0] = np.nanmin(volume) - 1
-    volume[0, 0, 1] = np.nanmax(volume) + 1
-
-
-# This function creates a new volume matrix from an input label volume matrix
-# by setting values[i] to all voxels where input_volume == i
-def gen_volume_regions(values, label_volume):
-    new_volume = np.zeros(label_volume.shape)
-    new_volume[:, :] = np.nan
-
-    for i, value in enumerate(values):
-        region = i + 1
-        mask = label_volume[:, :, :] == region
-        new_volume[mask] = value
-
-    return new_volume
 
 
 # This function creates a new volume matrix of similar shape to a reference volume volume matrix
@@ -83,16 +42,6 @@ def gen_volume_points(values, positions, ref_volume, ref_aff, dist=0):
         new_volume[ix + kx, iy + ky, iz + kz] = val
 
     return new_volume
-
-
-# Create and save a new nifti label volume with values[i] to all voxels where input_volume == i
-def save_nifti_regions(values, label_volume_file, out_file):
-    label_nii = nib.load(label_volume_file)
-    label_volume = label_nii.get_data()
-    new_volume = gen_volume_regions(values, label_volume)
-    add_min_max(new_volume)
-    new_nii = nib.Nifti1Image(new_volume, label_nii.affine)
-    nib.save(new_nii, out_file)
 
 
 # Create and save a new nifti label volume of similar shape to a reference volume
@@ -126,7 +75,7 @@ def save_nifti_points(values, names, position_file, ref_volume_file, out_file, s
         # np.array(names)[missing_mask]))
 
     new_volume = gen_volume_points(values, positions, ref_nii.get_data(), ref_nii.affine, dist=dist)
-    add_min_max(new_volume)
+    # add_min_max(new_volume)
 
     new_nii = nib.Nifti1Image(new_volume, ref_nii.affine)
     nib.save(new_nii, out_file)
@@ -203,35 +152,31 @@ def pom_in_mrielec_transform(coords_from, coords_to):
 
 
 # Transform the coordinates along (pom file ->) mri_elec -> t1
-def transform(elec_file_pom, src_img, dest_img, elec_file_t1, elec_nii_t1, transform_mat, aff_transform=None):
-    names = []
-    coords = []
-    with open(elec_file_pom) as fl:
-        lines = fl.readlines()
-    for line in lines:
-        split_line = line.split()
-        names.append(split_line[0])
-        coords.append([float(s) for s in [split_line[1], split_line[2], split_line[3]]])
-    coords = np.array(coords)
+def transform(elec_file_pom, mri_elec, t1, elec_file_t1, elec_nii_t1, transform_mat, aff_transform=None):
+    labels, coords = sensor_service.read_seeg_labels_coords_file(elec_file_pom)
     if aff_transform is not None:
         coords = aff_transform(coords.reshape((1, 3))).reshape((3,))
     dirname = os.path.dirname(elec_file_pom)
     coords_file = os.path.join(dirname, "seeg_coords.xyz")
     np.savetxt(coords_file, coords, fmt='%.3e', delimiter=' ')
     coords_file_t1 = os.path.join(dirname, "seeg_coords_in_t1.xyz")
-    output, std_out, time = \
-        execute_command("img2imgcoord %s -mm -src %s -dest %s -xfm %s > %s" \
-                            % (coords_file, src_img, dest_img, transform_mat, coords_file_t1),
-                        cwd=os.path.dirname(transform_mat), shell=True)
+    coords_in_t1, coords_file_t1 = volume_service.transform(coords_file, mri_elec, t1, transform_mat,
+                                                            coords_file_t1)
+    # output, std_out, time = \
+    #     execute_command("img2imgcoord %s -mm -src %s -dest %s -xfm %s > %s" \
+    #                         % (coords_file, src_img, dest_img, transform_mat, coords_file_t1),
+    #                     cwd=os.path.dirname(transform_mat), shell=True)
     # Save final coordinates in t1 space to text and nifti files
     with open(coords_file_t1) as fl:
         lines = fl.readlines()
     newlines = []
-    for line, name in zip(lines[1:], names):
-        newlines.append(name + " " + line)
+    for line, label in zip(lines[1:], labels):
+        newlines.append(label + " " + line)
     with open(elec_file_t1, "w") as fl:
         fl.writelines(newlines)
-    save_nifti_points(np.ones(len(names)), names, elec_file_t1, dest_img, elec_nii_t1, dist=1)
+    volume_service.gen_label_volume_from_coords(np.ones(len(labels)), coords_in_t1, labels, t1, elec_nii_t1,
+                                                skip_missing=False, dist=1)
+    save_nifti_points(np.ones(len(labels)), labels, elec_file_t1, t1, elec_nii_t1, dist=1)
     # # Originally in Viktor's code (but I was getting an error that there is no run attribute for module...:
     # cp = subprocess.run("echo %s | img2imgcoord -mm -src %s -dest %s -xfm %s" \
     #                     % (coords_str, src_img, dest_img, transform_mat),
@@ -294,7 +239,7 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
 
     # D. Make the actual transformation from pom/mri_elec space to t1 space
     # Transform the coordinates along (pom file ->) mri_elec -> t1 and save the to text and nifti files
-    transform(elec_file_pom, mrielec,  t1,   elec_file_t1, elec_nii_t1, mrielec_to_t1, aff_transform)
+    transform(elec_file_pom, mrielec, t1, elec_file_t1, elec_nii_t1, mrielec_to_t1, aff_transform)
 
 if __name__ == "__main__":
 

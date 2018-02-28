@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from typing import Optional
 import numpy
 from tvb.recon.algo.service.surface import SurfaceService
 from tvb.recon.io.factory import IOUtils
@@ -10,7 +11,7 @@ from tvb.recon.io.tvb_writer import TVBWriter
 class TVBService(object):
     surface_service = SurfaceService()
 
-    def convert_fs_subj_to_tvb_surf(self, subject=None):
+    def convert_fs_subj_to_tvb_surf(self, subject: Optional[str]=None):
         """
         Merge surfaces and roi maps. Write out in TVB format.
         """

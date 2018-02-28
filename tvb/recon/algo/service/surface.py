@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from typing import Optional, Union
 import glob
 import os
 import gdist
@@ -15,7 +16,6 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, shortest_path
 from sklearn.metrics.pairwise import paired_distances
 from scipy.spatial.distance import cdist
-from copy import deepcopy
 from tvb.recon.algo.service.annotation import default_lut_path  # TODO into fs module
 
 
@@ -45,24 +45,24 @@ class SurfaceService(object):
     #     mask[index]=True
     #     return mask
 
-    def tri_area(self, tri):
+    def tri_area(self, tri: numpy.ndarray) -> numpy.ndarray:
         i, j, k = numpy.transpose(tri, (1, 0, 2))
         ij = j - i
         ik = k - i
         return numpy.sqrt(numpy.sum(numpy.cross(ij, ik) ** 2, axis=1)) / 2.0
 
-    def convert_fs_to_brain_visa(self, in_surf_path, out_surf_path=None):
+    def convert_fs_to_brain_visa(self, in_surf_path: str, out_surf_path: Optional[str]=None):
         surface = IOUtils.read_surface(in_surf_path, False)
         if out_surf_path is None:
             out_surf_path = in_surf_path + '.tri'
         IOUtils.write_surface(out_surf_path, surface)
 
-    def convert_bem_to_tri(self, surfaces_directory_path):
+    def convert_bem_to_tri(self, surfaces_directory_path: str):
         surfs_glob = '%s/*_surface-low' % (surfaces_directory_path)
         for surf_name in glob.glob(surfs_glob):
             self.convert_fs_to_brain_visa(surf_name)
 
-    def merge_surfaces(self, surfaces):
+    def merge_surfaces(self, surfaces: Surface) -> Surface:
         """
         Merge several surfaces, and their region mappings.
         :return: the merge result surface and region mapping.
@@ -93,7 +93,7 @@ class SurfaceService(object):
             #     setattr(out_surface,attribute,out_surface_attributes[attribute])
         return out_surface
 
-    def compute_gdist_mat(self, surf_name='pial', max_distance=40.0):
+    def compute_gdist_mat(self, surf_name: str='pial', max_distance: float=40.0) -> numpy.ndarray:
         max_distance = float(max_distance)  # in case passed from sys.argv
         for h in 'rl':
             subjects_dir = os.environ['SUBJECTS_DIR']
@@ -107,9 +107,11 @@ class SurfaceService(object):
                 surface.vertices, surface.triangles.astype('<i4'), max_distance=max_distance)
             scipy.io.savemat(mat_path, {'gdist': mat})
 
+            return mat
+
     # TODO: maybe create a new "connectome" service and transfer this function there
     # TODO: add more normalizations modes
-    def compute_geodesic_dist_affinity(self, dist, norm=None):
+    def compute_geodesic_dist_affinity(self, dist: numpy.ndarray, norm: bool=False) -> numpy.ndarray:
         """
         This function calculates geodesic distances among nodes of a mesh,
         starting from the array of the distances between directly connected nodes.
@@ -126,12 +128,13 @@ class SurfaceService(object):
         # Find the maximum non infinite geodesic distance:
         max_gdist = numpy.max(geodist, axis=None)
         assert numpy.isfinite(max_gdist)
-        if norm is not None:
+        if norm:
             geodist /= max_gdist
         # Convert them to normalized distances and return them
         return geodist
 
-    def extract_subsurf(self, surface, verts_mask, output='surface'):
+    def extract_subsurf(self, surface: Surface, verts_mask: Union[numpy.ndarray, list], output: str='surface')\
+            -> Surface:
         """
         Extracts a sub-surface that contains only the masked vertices and the corresponding faces.
         An important step is to replace old vertices indexes of faces to the new ones.
@@ -162,7 +165,7 @@ class SurfaceService(object):
             return (verts_out, triangles_out,
                     surface.area_mask[verts_out_inds])
 
-    def compute_surface_area(self, surface, area_mask=None):
+    def compute_surface_area(self, surface: Surface, area_mask: Optional[Union[numpy.ndarray, list]]=None):
         """
             This function computes the surface area, after optionally applying a mask to choose a sub-surface
             :param: surface: input surface object
@@ -177,8 +180,9 @@ class SurfaceService(object):
             surface, area_mask, output='verts_triangls')[:2]
         return numpy.sum(self.tri_area(vertices[triangles]))
 
-    def vertex_connectivity(self, surface, mode="sparse",
-                            metric=None, symmetric=False, verts_mask=None):
+    def vertex_connectivity(self, surface: Surface, mode: str="sparse", metric: Optional[str]=None,
+                            symmetric: bool=False, verts_mask: Union[numpy.ndarray, list]=None) \
+            -> Union[numpy.ndarray, scipy.sparse.csr.csr_matrix]:
         """
         It computes a sparse matrix of the connectivity among the vertices of a surface.
         :param surface: input surface object
@@ -234,8 +238,9 @@ class SurfaceService(object):
 
     # TODO: use surface instead of verts and faces?? Denis: not sure about
     # this!..
-    def connected_surface_components(
-            self, surface=None, connectivity=None, verts_mask=None):
+    def connected_surface_components(self, surface: Optional[Surface]=None, connectivity: Optional[numpy.ndarray]=None,
+                                     verts_mask: Optional[Union[numpy.ndarray, list]]=None) \
+            -> (int, numpy.ndarray,  numpy.ndarray):
         """
         This function returns all the different disconnected components of a surface, their number and their areas,
         after applying an optional boolean mask to exclude some subsurface from the whole computation.
@@ -278,10 +283,10 @@ class SurfaceService(object):
         # Prepare final components' labels output:
         components = -numpy.ones((n_verts,)).astype('i')
         components[verts_mask] = components_masked
-        return n_components, components, comp_area
+        return n_components, components, numpy.array(comp_area)
 
-    def aseg_surf_conc_annot(self, surf_path, out_surf_path, annot_path,
-                             label_indices, lut_path=None):
+    def aseg_surf_conc_annot(self, surf_path: str, out_surf_path: str, annot_path: str,
+                             label_indices: Union[numpy.ndarray, list], lut_path: Optional[str]=None) -> Surface:
         """
         Concatenate surfaces of one specific label of interest each, to create a single annotated surface.
         """
@@ -316,7 +321,9 @@ class SurfaceService(object):
         IOUtils.write_surface(out_surf_path, out_surface)
         IOUtils.write_annotation(annot_path, out_annotation)
 
-    def __prepare_grid(self, vertex_neighbourhood):
+        return out_surface
+
+    def __prepare_grid(self, vertex_neighbourhood: int) -> (numpy.ndarray, int):
         # Prepare grid if needed for possible use:
         if vertex_neighbourhood > 0:
             grid = numpy.meshgrid(list(range(-vertex_neighbourhood, vertex_neighbourhood + 1, 1)),
@@ -329,9 +336,9 @@ class SurfaceService(object):
 
             return grid, n_grid
 
-    def sample_vol_on_surf(self, surf_path, vol_path, annot_path, out_surf_path,
-                           cras_path, add_string='', vertex_neighbourhood=1,
-                           add_lbl=[], lut_path=None):
+    def sample_vol_on_surf(self, surf_path: str, vol_path: str, annot_path: str, out_surf_path: str,
+                           cras_path: str, add_string: str='', vertex_neighbourhood: int=1,
+                           add_lbl: list=[], lut_path: Optional[str]=None) -> (Surface, Annotation):
         """
         Sample a volume of a specific label on a surface, by keeping only those surface vertices, the nearest voxel of
         which is of the given label (+ of possibly additional target labels, such as white matter).
@@ -455,9 +462,12 @@ class SurfaceService(object):
         numpy.save(out_surf_path + "-idx.npy", verts_out_indices)
         numpy.savetxt(out_surf_path + "-idx.txt", verts_out_indices, fmt='%d')
 
+        return surface, annotation
+
     # TODO: maybe create a new "connectome" service and transfer this function
     # there
-    def compute_consim_affinity(self, verts, vox, voxxzy, con, cras=None):
+    def compute_consim_affinity(self, verts: numpy.ndarray, vox: Union[numpy.ndarray, list], voxxzy: numpy.ndarray,
+                                con: numpy.ndarray, cras: Optional[Union[numpy.ndarray, list]]=None) -> numpy.ndarray:
         """
         This function creates a connectome affinity matrix among vertices,
         starting from an affinity matrix among voxels,
@@ -489,8 +499,7 @@ class SurfaceService(object):
         return affinity
 
     # TODO: keep the commented methods definition in py3
-    # def compute_areas_for_regions(self, regions: list, surface: Surface, region_mapping: list) -> numpy.array:
-    def compute_areas_for_regions(self, regions, surface, region_mapping):
+    def compute_areas_for_regions(self, regions: list, surface: Surface, region_mapping: list) -> numpy.array:
         """Compute the areas of given regions"""
 
         region_surface_area = numpy.zeros(len(regions))
@@ -507,8 +516,7 @@ class SurfaceService(object):
 
         return region_surface_area
 
-    # def compute_orientations_for_regions(self, regions, surface, region_mapping) -> numpy.ndarray:
-    def compute_orientations_for_regions(self, regions, surface, region_mapping):
+    def compute_orientations_for_regions(self, regions, surface, region_mapping) -> numpy.ndarray:
         """Compute the orientation of given regions from vertex_normals and region mapping"""
 
         average_orientation = numpy.zeros((len(regions), 3))
@@ -522,8 +530,7 @@ class SurfaceService(object):
 
         return average_orientation
 
-    # def compute_centers_for_regions(self, regions, surface, region_mapping) -> numpy.ndarray:
-    def compute_centers_for_regions(self, regions, surface, region_mapping):
+    def compute_centers_for_regions(self, regions, surface, region_mapping) -> numpy.ndarray:
         region_centers = numpy.zeros((len(regions), 3))
         for i, k in enumerate(regions):
             vert = surface.vertices[numpy.array(region_mapping) == k, :]

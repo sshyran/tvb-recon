@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import glob
+from typing import Optional, Union
 import numpy
 import os
 import matplotlib
@@ -18,12 +19,19 @@ from tvb.recon.algo.reconutils import transform
 matplotlib.use(os.environ.get('MPLBACKEND', 'Agg'))
 import pylab
 from tvb.recon.model.surface import Surface
+from tvb.recon.algo.service.volume import VolumeService
 
 SIGMA = 1.0
 
 
 class SensorService(object):
-    def gen_head_model(self, subjects_dir, subject, decimated=False, fs_bem_folder=False):
+
+    def read_seeg_labels_coords_file(self, seeg_label_coords_file: os.PathLike) -> (list, numpy.ndarray):
+        labels = list(numpy.genfromtxt(seeg_label_coords_file, dtype=str, usecols=(0,)))
+        coords = numpy.genfromtxt(seeg_label_coords_file, dtype=float, usecols=(1, 2, 3))
+        return labels, coords
+
+    def gen_head_model(self, subjects_dir: os.PathLike, subject: str, decimated: bool=False, fs_bem_folder: bool=False):
         surface_suffix = "surface"
         surface_prefix = subject
         hm_base = 'head_model'
@@ -73,24 +81,29 @@ class SensorService(object):
     """)
         print(('%s written.' % (hm_cond,)))
 
-    def gen_dipole_triplets(self, pos):
+    def gen_dipole_triplets(self, pos: Union[numpy.ndarray, list]) -> (numpy.ndarray, numpy.ndarray):
         pos3 = numpy.repeat(pos, 3, axis=0)
         ori3 = numpy.tile(numpy.eye(3), (len(pos), 1))
         return pos3, ori3
 
-    def gen_dipoles(self, pos, ori_or_face=None, out_fname=None):
+    def gen_dipoles(self, pos: Union[numpy.ndarray, list], ori_or_face: Optional[numpy.float]=None,
+                    out_fname: Optional[os.PathLike]=None) -> numpy.ndarray:
         "Generate dipoles (or equiv. file) for OpenMEEG."
         if ori_or_face is None:
             pos, ori = self.gen_dipole_triplets(pos)
         else:
-            if ori_or_face.dtype in numpy.floattypes:
+            if ori_or_face.dtype is not None:
                 ori = ori_or_face
             else:
                 surface = Surface(pos, ori_or_face, [], None)
                 ori = surface.vertex_normals()
-        numpy.savetxt(out_fname, numpy.c_[pos, ori], fmt='%f')
+        dipoles = numpy.c_[pos, ori]
+        numpy.savetxt(out_fname, dipoles, fmt='%f')
 
-    def gen_contacts_on_electrode(self, name, target, entry, ncontacts, spacing_pattern):
+        return dipoles
+
+    def gen_contacts_on_electrode(self, name: str, target: numpy.ndarray, entry: numpy.ndarray, ncontacts: int,
+                                  spacing_pattern) -> list:
 
         # TODO: check that it does what we expect!
         def accumulate(iterable, func=add): # a fix for missing itertools.accumulate
@@ -117,7 +130,8 @@ class SensorService(object):
             contacts.append((contact_name, position))
         return contacts
 
-    def periodic_xyz_for_object(self, lab, val, aff, bw=0.1, doplot=False):
+    def periodic_xyz_for_object(self, lab: numpy.ndarray, val: float, aff: numpy.ndarray, bw: float=0.1,
+                                doplot: bool=False) -> numpy.ndarray:
         "Find blob centers for object in lab volume having value val."
         # TODO handle oblique with multiple spacing
         # vox coords onto first mode
@@ -157,8 +171,9 @@ class SensorService(object):
             pylab.show()
         return xyz_pos
 
-    def gen_seeg_xyz_from_endpoints(self, scheme_fname, out_fname, transform_mat=None,
-                                    src_img=None, dest_img=None):
+    def gen_seeg_xyz_from_endpoints(self, scheme_fname: os.PathLike, out_fname: os.PathLike,
+                                    transform_mat: Optional[os.PathLike]=None, src_img: Optional[os.PathLike]=None,
+                                    dest_img: Optional[os.PathLike]=None):
         """
         Read the file with electrode endpoints (`scheme_fname`) and write the file with position of the electrode contacts
         (`out_fname`), possibly including linear transformation given either by the transformation matrix (`transform_mat`)
@@ -197,8 +212,9 @@ class SensorService(object):
             spacing_pattern = [float(x) for x in spacing_pattern_str.split()]
             if transform_mat is not None:
                 assert src_img is not None and dest_img is not None
-                target = transform(target, src_img, dest_img, transform_mat)
-                entry = transform(entry, src_img, dest_img, transform_mat)
+                volume_service = VolumeService()
+                target = volume_service.transform(target, src_img, dest_img, transform_mat)
+                entry = volume_service.transform(entry, src_img, dest_img, transform_mat)
             contacts = self.gen_contacts_on_electrode(name, target, entry, ncontacts, spacing_pattern)
             for contact_name, pos in contacts:
                 outfile.write("%-6s %7.2f %7.2f %7.2f\n" % (contact_name, pos[0], pos[1], pos[2]))
@@ -207,7 +223,7 @@ class SensorService(object):
 
     # This is from tvb_make/util/gain_matrix_seeg.py
     def _gain_matrix_dipole(self, vertices: numpy.ndarray, orientations: numpy.ndarray, areas: numpy.ndarray,
-                            sensors: numpy.ndarray):
+                            sensors: numpy.ndarray) -> numpy.ndarray:
         """
         Parameters
         ----------
@@ -232,7 +248,8 @@ class SensorService(object):
 
         return gain_mtx_vert
 
-    def _gain_matrix_inv_square(self, vertices: numpy.ndarray, areas: numpy.ndarray, sensors: numpy.ndarray):
+    def _gain_matrix_inv_square(self, vertices: numpy.ndarray, areas: numpy.ndarray, sensors: numpy.ndarray) \
+            -> numpy.ndarray:
         nverts = vertices.shape[0]
         nsens = sensors.shape[0]
 
@@ -244,7 +261,8 @@ class SensorService(object):
 
         return gain_mtx_vert
 
-    def _get_verts_regions_matrix(self, nvertices: int, nregions: int, region_mapping: list):
+    def _get_verts_regions_matrix(self, nvertices: int, nregions: int, region_mapping: list) \
+            -> numpy.ndarray:
         reg_map_mtx = numpy.zeros((nvertices, nregions), dtype=int)
         for i, region in enumerate(region_mapping):
             if region >= 0:
@@ -252,7 +270,9 @@ class SensorService(object):
 
         return reg_map_mtx
 
-    def compute_seeg_gain_matrix(self, seeg_xyz, cort_file, subcort_file, cort_rm, subcort_rm, out_gain_mat):
+    def compute_seeg_gain_matrix(self, seeg_xyz: os.PathLike, cort_file: os.PathLike, subcort_file: os.PathLike,
+                                 cort_rm: os.PathLike, subcort_rm: os.PathLike,
+                                 out_gain_mat: os.PathLike) -> numpy.ndarray:
         genericIO = GenericIO()
 
         sensors = numpy.genfromtxt(seeg_xyz, usecols=[1, 2, 3])
@@ -283,10 +303,15 @@ class SensorService(object):
 
         gain_total = numpy.concatenate((gain_matrix, gain_matrix_subcort), axis=1)
 
-        numpy.savetxt(out_gain_mat, gain_total @ verts_regions_mat)
+        gain_out = gain_total @ verts_regions_mat
+        numpy.savetxt(out_gain_mat, gain_out)
+
+        return gain_out
 
     # This is from tvb-epilepsy
-    def compute_sensors_projection(self, sensors_file, centers_file, out_matrix, normalize=95, ceil=True):
+    def compute_sensors_projection(self, sensors_file: os.PathLike, centers_file: os.PathLike,
+                                   out_matrix_file: os.PathLike, normalize :float=95 , ceil: bool=True) \
+            -> numpy.ndarray:
         sensors = numpy.genfromtxt(sensors_file, usecols=[1, 2, 3])
         centers = numpy.genfromtxt(centers_file, usecols=[1, 2, 3])
 
@@ -304,4 +329,6 @@ class SensorService(object):
                 ceil = 1.0
             projection[projection > ceil] = ceil
 
-        numpy.savetxt(out_matrix, projection)
+        numpy.savetxt(out_matrix_file, projection)
+
+        return projection

@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
+from typing import Optional, Union
 import numpy
 import scipy.ndimage
+import nibabel
 from tvb.recon.logger import get_logger
-from tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
+from tvb.recon.algo.service.utils import execute_command
+from tvb.recon.algo.service.annotation import AnnotationService
 from tvb.recon.io.factory import IOUtils
 from tvb.recon.model.volume import Volume
 from tvb.recon.model.constants import NPY_EXTENSION
@@ -16,8 +19,90 @@ class VolumeService(object):
     def __init__(self):
         self.annotation_service = AnnotationService()
 
-    def vol_to_ext_surf_vol(self, in_vol_path, labels=None, ctx=None, out_vol_path=None, labels_surf=None,
-                            labels_inner='0'):
+    def gen_label_volume_from_labels_inds(self, values: Union[numpy.ndarray, list],
+                                          input_label_volume_file: os.PathLike, output_label_volume_file: os.PathLike) \
+            -> nibabel.nifti1.Nifti1Image:
+        """
+        This function creates a new volume matrix from an input label_volume matrix
+        by setting values[i] to all voxels where label_volume == i
+        """
+            
+        label_nii = nibabel.load(input_label_volume_file)
+        label_volume = label_nii.get_data()
+        
+        new_volume = numpy.zeros(label_volume.shape)
+        new_volume[:, :] = numpy.nan
+
+        for i, value in enumerate(values):
+            region = i + 1
+            mask = label_volume[:, :, :] == region
+            new_volume[mask] = value
+
+        # TODO: I don't know what this is... I have to ask Viktor...
+        def add_min_max(volume):
+            """Ugly hack to deal with the MRtrix bug (?) that causes MRview to crop min/max values"""
+            volume[0, 0, 0] = numpy.nanmin(volume) - 1
+            volume[0, 0, 1] = numpy.nanmax(volume) + 1
+        
+        # add_min_max(new_volume)
+        new_nii = nibabel.Nifti1Image(new_volume, label_nii.affine)
+        nibabel.save(new_nii, output_label_volume_file)
+
+        return new_nii
+
+    def gen_label_volume_from_coords(self, values: Union[numpy.ndarray, list], coords: Union[str, numpy.ndarray],
+                                     labels: Union[str, numpy.ndarray, list], ref_volume_file: os.PathLike,
+                                     out_volume_file: os.PathLike, skip_missing: bool=False, dist: int=0) \
+            -> numpy.ndarray:
+        ref_volume = nibabel.load(ref_volume_file)
+
+        if os.path.isfile(str(labels)):
+            labels = list(numpy.genfromtxt(labels, dtype=str, usecols=(0,)))
+
+        if os.path.isfile(str(coords)):
+            coords = numpy.genfromtxt(coords, dtype=float, usecols=(1, 2, 3))
+
+        positions = numpy.zeros((len(values), 3))
+        for i, label in enumerate(labels):
+            try:
+                contact_ind = labels.index(label)
+                coord = coords[contact_ind, :]
+            except ValueError:
+                coord = numpy.array([numpy.nan, numpy.nan, numpy.nan])
+
+            positions[i, :] = coord
+
+        missing_mask = numpy.isnan(positions[:, 0])
+        if skip_missing:
+            values = values[~missing_mask]
+            positions = positions[~missing_mask, :]
+        else:
+            if numpy.any(missing_mask):
+                raise ValueError("Missing contact position(s) for: %s." % ", ".join([
+                    name for name, missing in zip(labels, missing_mask) if missing]))
+
+            # numpy.array(names)[missing_mask]))
+
+        new_volume = numpy.zeros(ref_volume.shape)
+        new_volume[:, :] = numpy.nan
+
+        kx, ky, kz = numpy.mgrid[-dist:dist + 1, -dist:dist + 1, -dist:dist + 1]
+
+        for val, pos in zip(values, positions):
+            ix, iy, iz = numpy.linalg.solve(ref_volume.affine, numpy.append(pos, 1.0))[0:3].astype(int)
+            # new_volume[inds[0], inds[1], inds[2]] = val
+            new_volume[ix + kx, iy + ky, iz + kz] = val
+
+        # add_min_max(new_volume)
+
+        new_nii = nibabel.Nifti1Image(new_volume, ref_volume.affine)
+        nibabel.save(new_nii, out_volume_file)
+
+        return nibabel.nifti1.Nifti1Image
+        
+    def vol_to_ext_surf_vol(self, in_vol_path: os.PathLike, labels: Optional[Union[numpy.ndarray, list]]=None,
+                            ctx: Optional[os.PathLike]=None, out_vol_path: Optional[os.PathLike]=None,
+                            labels_surf: Optional[Union(numpy.ndarray, list)]=None, labels_inner: str='0'):
         """
         Separate the voxels of the outer surface of a structure, from the inner ones. Default behavior: surface voxels
         retain their label, inner voxels get the label 0, and the input file is overwritten by the output.
@@ -125,8 +210,10 @@ class VolumeService(object):
         numpy.save(filepath + "-idx.npy", out_ijk)
         numpy.savetxt(filepath + "-idx.txt", out_ijk, fmt='%d')
 
-    def mask_to_vol(self, in_vol_path, mask_vol_path, out_vol_path=None, labels=None, ctx=None, vol2mask_path=None,
-                    vn=1, th=0.999, labels_mask=None, labels_nomask='0'):
+    def mask_to_vol(self, in_vol_path: os.PathLike, mask_vol_path: os.PathLike,
+                    out_vol_path: Optional[os.PathLike]=None, labels: Optional[Union[numpy.ndarray, list]]=None,
+                    ctx: Optional[str]=None, vol2mask_path: Optional[os.PathLike]=None, vn: int=1, th: float=0.999,
+                    labels_mask: Optional[os.PathLike]=None, labels_nomask: str='0'):
         """
         Identify the voxels that are neighbors within a voxel distance vn, to a mask volume, with a mask threshold of th
         Default behavior: we assume a binarized mask and set th=0.999, no neighbors search, only looking at the exact
@@ -284,22 +371,20 @@ class VolumeService(object):
         numpy.save(filepath + "-idx.npy", out_ijk)
         numpy.savetxt(filepath + "-idx.txt", out_ijk, fmt='%d')
 
-    def vol_val_xyz(self, vol, aff, val):
+    def vol_val_xyz(self, vol: numpy.ndarray, aff: numpy.ndarray, val: float) -> numpy.ndarray:
         vox_idx = numpy.argwhere(vol == val)
         xyz = aff.dot(numpy.c_[vox_idx, numpy.ones(vox_idx.shape[0])].T)[:3].T
         return xyz
 
-    def compute_label_volume_centers(self, label_volume, affine=None):
+    def compute_label_volume_centers(self, label_volume: numpy.ndarray, affine: numpy.ndarray):
 
-        vol = label_volume
-        aff = affine
-        for val in numpy.unique(vol):
-            xyz = self.vol_val_xyz(vol, aff, val)
+        for val in numpy.unique(label_volume):
+            xyz = self.vol_val_xyz(label_volume, affine, val)
             x, y, z = xyz.mean(axis=0)
             yield val, (x, y, z)
 
-    def label_with_dilation(self, to_label_nii_fname,
-                            dilated_nii_fname, out_nii_fname):
+    def label_with_dilation(self, to_label_nii_fname: os.PathLike, dilated_nii_fname: os.PathLike,
+                            out_nii_fname: os.PathLike):
         """
         Labels a volume using its labeled dilation. The dilated volume is labeled using scipy.ndimage.label function.
         :param to_label_nii_fname: usually a CT-mask.nii.gz
@@ -326,14 +411,14 @@ class VolumeService(object):
 
         IOUtils.write_volume(out_nii_fname, mask)
 
-    def _label_config(self, aparc):
+    def _label_config(self, aparc: nibabel.nifti1.Nifti1Image) -> nibabel.nifti1.Nifti1Image:
         unique_data = numpy.unique(aparc.data)
         unique_data_map = numpy.r_[:unique_data.max() + 1]
         unique_data_map[unique_data] = numpy.r_[:unique_data.size]
         aparc.data = unique_data_map[aparc.data]
         return aparc
 
-    def simple_label_config(self, in_aparc_path, out_volume_path):
+    def simple_label_config(self, in_aparc_path: os.PathLike, out_volume_path: os.PathLike):
         """
         Relabel volume to have contiguous values like Mrtrix' labelconfig.
         :param in_aparc_path: volume voxel value is the index of the region it belongs to.
@@ -344,13 +429,13 @@ class VolumeService(object):
         aparc = self._label_config(aparc)
         IOUtils.write_volume(out_volume_path, aparc)
 
-    def _label_volume(self, tdi_volume, lo=0.5):
+    def _label_volume(self, tdi_volume: nibabel.nifti1.Nifti1Image, lo: float=0.5) -> nibabel.nifti1.Nifti1Image:
         mask = tdi_volume.data > lo
         tdi_volume.data[~mask] = 0
         tdi_volume.data[mask] = numpy.r_[1:mask.sum() + 1]
         return tdi_volume
 
-    def label_vol_from_tdi(self, tdi_volume_path, out_volume_path, lo=0.5):
+    def label_vol_from_tdi(self, tdi_volume_path: os.PathLike, out_volume_path: os.PathLike, lo: float=0.5):
         """
         Creates a mask of the voxels with tract ends > lo and any other voxels become 0.
         Labels each voxel different from 0 with integer labels starting from 1.
@@ -363,8 +448,8 @@ class VolumeService(object):
         tdi_volume = self._label_volume(nii_volume, lo)
         IOUtils.write_volume(out_volume_path, tdi_volume)
 
-    def remove_zero_connectivity_nodes(
-            self, node_volume_path, connectivity_matrix_path, tract_length_path=None):
+    def remove_zero_connectivity_nodes(self, node_volume_path: os.PathLike, connectivity_matrix_path: os.PathLike,
+                                       tract_length_path: Optional[str]=None):
         """
         It removes network nodes with zero connectivity from the volume and connectivity matrices.
         The zero connectivity nodes will be labeled with 0 in the volume and the remaining labels will be updated.
@@ -414,7 +499,7 @@ class VolumeService(object):
 
         IOUtils.write_volume(node_volume_path, node_volume)
 
-    def con_vox_in_ras(self, ref_vol_path):
+    def con_vox_in_ras(self, ref_vol_path: os.PathLike) -> (numpy.ndarray, numpy.ndarray):
         """
         This function reads a tdi_lbl volume and returns the voxels that correspond to connectome nodes,
         and their coordinates in ras space, simply by applying the affine transform of the volume
@@ -434,7 +519,8 @@ class VolumeService(object):
             2], numpy.ones(vox.shape[0])].T)[:3].T
         return vox, voxxzy
 
-    def change_labels_of_aparc_aseg(self, volume, mapping_dict, conn_regs_nr):
+    def change_labels_of_aparc_aseg(self, volume: numpy.ndarray, mapping_dict: dict, conn_regs_nr: int) \
+            -> nibabel.Nifti1Image:
         not_matched = set()
         for i in range(volume.data.shape[0]):
             for j in range(volume.data.shape[1]):
@@ -452,12 +538,25 @@ class VolumeService(object):
 
         return volume
 
-    def transform(self, coords, src_img, dest_img, transform_mat):
-        import subprocess
-        coords_str = " ".join([str(x) for x in coords])
+    def transform(self, coords: Union[list, numpy.ndarray, str], src_img: os.PathLike, dest_img: os.PathLike,
+                  transform_mat: os.PathLike, output_file: Optional[str]=None) \
+            -> (numpy.array, Union[numpy.ndarray, type(None)]):
 
-        cp = subprocess.run("echo %s | img2imgcoord -mm -src %s -dest %s -xfm %s" \
-                            % (coords_str, src_img, dest_img, transform_mat),
-                            shell=True, stdout=subprocess.PIPE)
-        transformed_coords_str = cp.stdout.decode('ascii').strip().split('\n')[-1]
-        return numpy.array([float(x) for x in transformed_coords_str.split(" ") if x])
+        if os.path.isfile(coords):
+            command = "img2imgcoord %s -mm -src %s -dest %s -xfm %s"
+            args = [coords, src_img, dest_img, transform_mat]
+        else:
+            coords_str = " ".join([str(x) for x in coords])
+            command = "echo %s | img2imgcoord -mm -src %s -dest %s -xfm %s"
+            args = [coords_str, src_img, dest_img, transform_mat]
+
+        if os.path.isdir(os.path.dirname(output_file)):
+            command += " > %s"
+            args += output_file
+
+        output, std_out, time = \
+            execute_command(command % tuple(args), cwd=os.path.dirname(transform_mat), shell=True)
+
+        transformed_coords_str = output.strip().split('\n')[-1]
+        
+        return numpy.array([float(x) for x in transformed_coords_str.split(" ") if x]), output_file
