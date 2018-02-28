@@ -312,7 +312,7 @@ class VolumeService(object):
 
         lab, n = scipy.ndimage.label(dil_mask.data)
 
-        # TODO: this change is from tvb-make. Keep it or not?
+        # TODO: this change is from tvb-make. Keep it or not? It returns a different result than the old version.
         lab_xyz = list(self.compute_label_volume_centers(lab, dil_mask.affine_matrix))
         lab_sort = numpy.r_[:n + 1]
         # sort labels along AP axis
