@@ -7,7 +7,6 @@ from tvb.recon.algo.service.subparcellation import SubparcellationService
 from tvb.recon.algo.service.sensor import SensorService
 from tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
 from tvb.recon.io.factory import IOUtils
-from tvb.recon.io.sensor import read_sensors_positions
 from tvb.recon.io.generic import GenericIO
 
 try:
@@ -95,7 +94,7 @@ def simple_label_config(aparc_fname, out_fname):
 
 
 def transform(coords, src_img, dest_img, transform_mat):
-    volumeService.transform(coords, src_img, dest_img, transform_mat)
+    volumeService.transform_coords(coords, src_img, dest_img, transform_mat)
 
     # -------------------------Surfaces from/to volumes----------------------------
 

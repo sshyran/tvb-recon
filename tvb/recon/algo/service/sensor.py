@@ -12,9 +12,7 @@ from csv import reader
 # ensure default behavior is headless. If you want, e.g. Qt5Agg, use the
 # MPLBACKEND environment variable.
 # cf. http://matplotlib.org/faq/environment_variables_faq.html
-from tvb.recon.io.factory import IOUtils
 from tvb.recon.io.generic import GenericIO
-from tvb.recon.algo.reconutils import transform
 
 matplotlib.use(os.environ.get('MPLBACKEND', 'Agg'))
 import pylab
@@ -213,8 +211,8 @@ class SensorService(object):
             if transform_mat is not None:
                 assert src_img is not None and dest_img is not None
                 volume_service = VolumeService()
-                target = volume_service.transform(target, src_img, dest_img, transform_mat)
-                entry = volume_service.transform(entry, src_img, dest_img, transform_mat)
+                target = volume_service.transform_coords(target, src_img, dest_img, transform_mat)
+                entry = volume_service.transform_coords(entry, src_img, dest_img, transform_mat)
             contacts = self.gen_contacts_on_electrode(name, target, entry, ncontacts, spacing_pattern)
             for contact_name, pos in contacts:
                 outfile.write("%-6s %7.2f %7.2f %7.2f\n" % (contact_name, pos[0], pos[1], pos[2]))
@@ -310,7 +308,7 @@ class SensorService(object):
 
     # This is from tvb-epilepsy
     def compute_sensors_projection(self, sensors_file: os.PathLike, centers_file: os.PathLike,
-                                   out_matrix_file: os.PathLike, normalize :float=95 , ceil: bool=True) \
+                                   out_matrix_file: os.PathLike, normalize:float=95, ceil: bool=True) \
             -> numpy.ndarray:
         sensors = numpy.genfromtxt(sensors_file, usecols=[1, 2, 3])
         centers = numpy.genfromtxt(centers_file, usecols=[1, 2, 3])

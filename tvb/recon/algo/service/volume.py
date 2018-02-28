@@ -10,7 +10,7 @@ from tvb.recon.algo.service.utils import execute_command
 from tvb.recon.algo.service.annotation import AnnotationService
 from tvb.recon.io.factory import IOUtils
 from tvb.recon.model.volume import Volume
-from tvb.recon.model.constants import NPY_EXTENSION
+from tvb.recon.model.constants import NPY_EXTENSION, FLIRT_COREGISTRATION_OPTIONS
 
 
 class VolumeService(object):
@@ -50,14 +50,31 @@ class VolumeService(object):
 
         return new_nii
 
-    def gen_label_volume_from_coords(self, values: Union[numpy.ndarray, list], coords: Union[str, numpy.ndarray],
-                                     labels: Union[str, numpy.ndarray, list], ref_volume_file: os.PathLike,
+    def gen_label_volume_from_coords(self, values: Union[numpy.ndarray, list],
+                                     coords: Union[os.PathLike, numpy.ndarray],
+                                     labels: Union[os.PathLike, numpy.ndarray, list], ref_volume_file: os.PathLike,
                                      out_volume_file: os.PathLike, skip_missing: bool=False, dist: int=0) \
             -> numpy.ndarray:
+        """
+        # Create and save a new nifti label volume of similar shape to a reference volume
+        # by setting input values at input positions (optionally + & - (int) dist)
+        # after applying to them the ref_aff transform
+
+        :param values: vector of values to be included in the output volume, numpy.ndarray of shape (n_vals, )
+        :param coords: array or list of 3D point coordinates, numpy.ndarray of shape (n_coords, 3), or file to read array
+        :param labels: array or list of labels'names, or file to read them
+        :param ref_volume_file: path to nifti volume
+        :param out_volume_file: file path for the output nifti volume to be written
+        :param skip_missing: flag
+        :param dist: integer indicating the size of the neighborhood around the coords' positions to be labeled
+        :return: output nifti volume
+        """
         ref_volume = nibabel.load(ref_volume_file)
 
         if os.path.isfile(str(labels)):
             labels = list(numpy.genfromtxt(labels, dtype=str, usecols=(0,)))
+        else:
+            labels = list(labels)
 
         if os.path.isfile(str(coords)):
             coords = numpy.genfromtxt(coords, dtype=float, usecols=(1, 2, 3))
@@ -84,7 +101,8 @@ class VolumeService(object):
             # numpy.array(names)[missing_mask]))
 
         new_volume = numpy.zeros(ref_volume.shape)
-        new_volume[:, :] = numpy.nan
+        # TODO: Find out the use of the following commented line:
+        # new_volume[:, :] = numpy.nan
 
         kx, ky, kz = numpy.mgrid[-dist:dist + 1, -dist:dist + 1, -dist:dist + 1]
 
@@ -102,7 +120,7 @@ class VolumeService(object):
         
     def vol_to_ext_surf_vol(self, in_vol_path: os.PathLike, labels: Optional[Union[numpy.ndarray, list]]=None,
                             ctx: Optional[os.PathLike]=None, out_vol_path: Optional[os.PathLike]=None,
-                            labels_surf: Optional[Union(numpy.ndarray, list)]=None, labels_inner: str='0'):
+                            labels_surf: Optional[Union[numpy.ndarray, list]]=None, labels_inner: str='0'):
         """
         Separate the voxels of the outer surface of a structure, from the inner ones. Default behavior: surface voxels
         retain their label, inner voxels get the label 0, and the input file is overwritten by the output.
@@ -538,7 +556,7 @@ class VolumeService(object):
 
         return volume
 
-    def transform(self, coords: Union[list, numpy.ndarray, str], src_img: os.PathLike, dest_img: os.PathLike,
+    def transform_coords(self, coords: Union[list, numpy.ndarray, str], src_img: os.PathLike, dest_img: os.PathLike,
                   transform_mat: os.PathLike, output_file: Optional[str]=None) \
             -> (numpy.array, Union[numpy.ndarray, type(None)]):
 
@@ -552,7 +570,7 @@ class VolumeService(object):
 
         if os.path.isdir(os.path.dirname(output_file)):
             command += " > %s"
-            args += output_file
+            args.append(output_file)
 
         output, std_out, time = \
             execute_command(command % tuple(args), cwd=os.path.dirname(transform_mat), shell=True)
