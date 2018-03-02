@@ -8,8 +8,8 @@ class MappingService(object):
     CORT_TYPE = "aparc"
     SUBCORT_TYPE = "aseg"
 
-    fs_prefix_lh = "ctx-lh-"
-    fs_prefix_rh = "ctx-rh-"
+    fs_prefix_lh = "ctx_lh_"
+    fs_prefix_rh = "ctx_rh_"
     unknown_subcort_region = "Unknown"
     unknown_region = "unknown"
     corpuscallosum_region = "corpuscallosum"
