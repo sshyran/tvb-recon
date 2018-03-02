@@ -2,6 +2,7 @@ import os
 import sys
 import time
 from Pegasus.DAX3 import ADAG
+from tvb.recon.dax import AtlasSuffix, Atlas
 from tvb.recon.dax.aseg_generation import AsegGeneration
 from tvb.recon.dax.configuration import Configuration, ConfigKey, SensorsType
 from tvb.recon.dax.coregistration import Coregistration
@@ -33,26 +34,33 @@ if __name__ == "__main__":
     subject = config.props[ConfigKey.SUBJECT]
     trg_subject = config.props[ConfigKey.TRGSUBJECT]
 
+    atlas_suffix = AtlasSuffix.DEFAULT
+
+    if config.props[ConfigKey.ATLAS] == Atlas.A2009S:
+        atlas_suffix = AtlasSuffix.A2009S
+
     t1_processing = T1Processing(subject, config.props[ConfigKey.T1_FRMT], config.props[ConfigKey.T2_FLAG],
                                  config.props[ConfigKey.T2_FRMT], config.props[ConfigKey.FLAIR_FLAG],
-                                 config.props[ConfigKey.FLAIR_FRMT], config.props[ConfigKey.OPENMP_THRDS])
+                                 config.props[ConfigKey.FLAIR_FRMT], config.props[ConfigKey.OPENMP_THRDS],
+                                 atlas_suffix)
 
-    resampling = Resampling(subject, trg_subject, config.props[ConfigKey.DECIM_FACTOR])
+    resampling = Resampling(subject, trg_subject, config.props[ConfigKey.DECIM_FACTOR], atlas_suffix)
 
     dwi_processing = DWIProcessing(config.props[ConfigKey.DWI_IS_REVERSED], config.props[ConfigKey.DWI_FRMT],
                                    config.props[ConfigKey.DWI_USE_GRADIENT], config.props[ConfigKey.MRTRIX_THRDS],
                                    config.props[ConfigKey.DWI_SCAN_DIRECTION])
 
-    coregistration = Coregistration(subject, config.props[ConfigKey.USE_FLIRT])
+    coregistration = Coregistration(subject, config.props[ConfigKey.USE_FLIRT], atlas_suffix)
 
     tracts_generation = TractsGeneration(config.props[ConfigKey.DWI_MULTI_SHELL], config.props[ConfigKey.MRTRIX_THRDS],
                                          config.props[ConfigKey.STRMLNS_NO], config.props[ConfigKey.STRMLNS_SIFT_NO],
-                                         config.props[ConfigKey.STRMLNS_LEN], config.props[ConfigKey.STRMLNS_STEP])
+                                         config.props[ConfigKey.STRMLNS_LEN], config.props[ConfigKey.STRMLNS_STEP],
+                                         atlas_suffix)
 
     aseg_generation = AsegGeneration(subject, config.props[ConfigKey.ASEG_LH_LABELS],
-                                     config.props[ConfigKey.ASEG_RH_LABELS], trg_subject)
+                                     config.props[ConfigKey.ASEG_RH_LABELS], trg_subject, atlas_suffix)
 
-    output_conversion = OutputConversion()
+    output_conversion = OutputConversion(atlas_suffix)
 
     seeg_computation = SEEGComputation(subject, config.props[ConfigKey.CT_FRMT],
                                        config.props[ConfigKey.CT_ELEC_INTENSITY_TH])
