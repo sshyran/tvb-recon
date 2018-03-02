@@ -13,6 +13,7 @@ class MappingService(object):
     unknown_subcort_region = "Unknown"
     unknown_region = "unknown"
     corpuscallosum_region = "corpuscallosum"
+    corpuscallosum_region_a2009s = "Corpus_callosum"
 
     logger = get_logger(__name__)
 
@@ -49,7 +50,8 @@ class MappingService(object):
 
         region_names = annot.region_names
 
-        for unwanted_region in (self.unknown_region, self.corpuscallosum_region):
+        for unwanted_region in (self.unknown_region, self.unknown_subcort_region, self.corpuscallosum_region,
+                                self.corpuscallosum_region_a2009s):
             if unwanted_region in region_names and region_names.index(unwanted_region) in vtx_rm_unique_vals:
                 self.logger.warn("This annotation contains vertices for %s" % unwanted_region)
 
@@ -61,7 +63,7 @@ class MappingService(object):
                              % (0, len(region_names) - 1))
             self.logger.warn("These values are: %s" % outside_range_values)
             self.logger.info("Vertices mapped to these values will be mapped to %s" % self.unknown_region)
-            region_names_to_keep.append(self.unknown_region)
+            region_names_to_keep.append(self.unknown_subcort_region)
 
         for idx, name in enumerate(region_names_to_keep):
             annot_dict[idx] = name
