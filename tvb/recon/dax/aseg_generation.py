@@ -1,13 +1,15 @@
 from Pegasus.DAX3 import File, Job, Link
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.dax.mappings import AsegFiles, AsegGenJobNames, Inputs, T1Files, T1JobNames, ResamplingFiles
 
 
 class AsegGeneration(object):
-    def __init__(self, subject, lh_labels, rh_labels, trg_subj):
+    def __init__(self, subject, lh_labels, rh_labels, trg_subj, atlas_suffix=AtlasSuffix.DEFAULT):
         self.subject = subject
         self.lh_labels = lh_labels
         self.rh_labels = rh_labels
         self.trg_subj = trg_subj
+        self.atlas_suffix = atlas_suffix
 
     def add_aseg_generation_steps(self, dax, job_recon):
         lh_aseg = File(AsegFiles.LH_ASEG.value)
@@ -32,7 +34,7 @@ class AsegGeneration(object):
 
         lbl_list = map(int, self.lh_labels.strip('"').split() + self.rh_labels.strip('"').split())
         for aseg_label in lbl_list:
-            aparc_aseg_mgz = File(T1Files.APARC_ASEG_MGZ.value)
+            aparc_aseg_mgz = File(T1Files.APARC_ASEG_MGZ.value % self.atlas_suffix)
             norm_mgz = File(T1Files.NORM_MGZ.value)
             aseg_mgz = File(AsegFiles.ASEG_MGZ.value % aseg_label)
             job1 = Job(AsegGenJobNames.MRI_PRETESS.value)
@@ -120,13 +122,15 @@ class AsegGeneration(object):
         if job_resampling is None:
             lh_cortical_file = File(T1Files.LH_CENTERED_PIAL.value)
             rh_cortical_file = File(T1Files.RH_CENTERED_PIAL.value)
-            lh_cortical_annot_file = File(T1Files.LH_APARC_ANNOT.value)
-            rh_cortical_annot_file = File(T1Files.RH_APARC_ANNOT.value)
+            lh_cortical_annot_file = File(T1Files.LH_APARC_ANNOT.value % self.atlas_suffix)
+            rh_cortical_annot_file = File(T1Files.RH_APARC_ANNOT.value % self.atlas_suffix)
         else:
             lh_cortical_file = File(ResamplingFiles.LH_CENTERED_PIAL_RESAMP.value % self.trg_subj)
             rh_cortical_file = File(ResamplingFiles.RH_CENTERED_PIAL_RESAMP.value % self.trg_subj)
-            lh_cortical_annot_file = File(ResamplingFiles.LH_APARC_ANNOT_RESAMP.value % self.trg_subj)
-            rh_cortical_annot_file = File(ResamplingFiles.RH_APARC_ANNOT_RESAMP.value % self.trg_subj)
+            lh_cortical_annot_file = File(
+                ResamplingFiles.LH_APARC_ANNOT_RESAMP.value % (self.trg_subj, self.atlas_suffix))
+            rh_cortical_annot_file = File(
+                ResamplingFiles.RH_APARC_ANNOT_RESAMP.value % (self.trg_subj, self.atlas_suffix))
 
         # Output files:
         fs_custom = File(AsegFiles.FS_CUSTOM_TXT.value)
