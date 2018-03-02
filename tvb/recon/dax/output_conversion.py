@@ -1,8 +1,12 @@
 from Pegasus.DAX3 import File, Job, Link
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.dax.mappings import TractsGenFiles, OutputConvFiles, T1Files, AsegFiles
 
 
 class OutputConversion(object):
+    def __init__(self, atlas_suffix=AtlasSuffix.DEFAULT):
+        self.atlas_suffix = atlas_suffix
+
     def add_conversion_steps(self, dax, job_aparc_aseg, job_mapping_details, job_weights, job_lengths):
         weights_csv = File(TractsGenFiles.TRACT_COUNTS.value)
         lenghts_csv = File(TractsGenFiles.TRACT_LENGHTS.value)
@@ -30,7 +34,7 @@ class OutputConversion(object):
         job.uses(File(OutputConvFiles.CONNECTIVITY_ZIP.value), link=Link.OUTPUT, transfer=True, register=False)
 
         job.uses(File(T1Files.T1_NII_GZ.value), link=Link.INPUT)
-        job.uses(File(T1Files.APARC_ASEG_NII_GZ.value), link=Link.INPUT)
+        job.uses(File(T1Files.APARC_ASEG_NII_GZ.value % self.atlas_suffix), link=Link.INPUT)
 
         dax.addJob(job)
 
