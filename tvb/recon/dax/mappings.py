@@ -35,6 +35,13 @@ class T1Files(Enum):
     RH_APARC_ANNOT = "rh.aparc%s.annot"
 
 
+class T1FilesPy3(Enum):
+    APARC_ASEG_MGZ = "aparc{}+aseg.mgz"
+    APARC_ASEG_NII_GZ = "aparc{}+aseg.nii.gz"
+    LH_APARC_ANNOT = "lh.aparc{}.annot"
+    RH_APARC_ANNOT = "rh.aparc{}.annot"
+
+
 class T1JobNames(Enum):
     MRI_CONVERT = "mri_convert"
     RECON_ALL = "recon"
@@ -140,6 +147,21 @@ class AsegFiles(Enum):
     RH_DIPOLES_TXT = "rh_dipoles%s.txt"
 
 
+class AsegFilesPy3(Enum):
+    FS_CUSTOM_TXT = "fs_custom{}.txt"
+    CENTERS_TXT = "centers{}.txt"
+    AREAS_TXT = "areas{}.txt"
+    ORIENTATIONS_TXT = "average_orientations{}.txt"
+    CORTICAL_TXT = "cortical{}.txt"
+    RM_TO_APARC_ASEG_TXT = "rm_to_aparc_aseg{}.txt"
+    RM_CORT_TXT = "region_mapping_cort{}.txt"
+    RM_SUBCORT_TXT = "region_mapping_subcort{}.txt"
+    SURF_CORT_ZIP = "surface_cort.zip"
+    SURF_SUBCORT_ZIP = "surface_subcort.zip"
+    LH_DIPOLES_TXT = "lh_dipoles{}.txt"
+    RH_DIPOLES_TXT = "rh_dipoles{}.txt"
+
+
 class AsegGenJobNames(Enum):
     MRI_PRETESS = "mri_pretess"
     MRI_TESSELLATE = "mri_tessellate"
@@ -152,6 +174,11 @@ class AsegGenJobNames(Enum):
 class OutputConvFiles(Enum):
     APARC_ASEG_COR_NII_GZ = "aparc+aseg-cor%s.nii.gz"
     CONNECTIVITY_ZIP = "connectivity%s.zip"
+
+
+class OutputConvFilesPy3(Enum):
+    APARC_ASEG_COR_NII_GZ = "aparc+aseg-cor{}.nii.gz"
+    CONNECTIVITY_ZIP = "connectivity{}.zip"
 
 
 class SEEGCompJobNames(Enum):
