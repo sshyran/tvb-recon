@@ -39,8 +39,9 @@ def compute_region_details(atlas: AtlasSuffix, fs_color_lut: os.PathLike, t1: os
 
     full_subcort_surface = surface_service.merge_surfaces([surf_subcort_lh, surf_subcort_rh])
 
-    genericIO.write_list_to_txt_file(mapping.cort_region_mapping, str(AsegFiles.RM_CORT_TXT).replace("%s", atlas))
-    genericIO.write_list_to_txt_file(mapping.subcort_region_mapping, str(AsegFiles.RM_SUBCORT_TXT).replace("%s", atlas))
+    genericIO.write_list_to_txt_file(mapping.cort_region_mapping, AsegFiles.RM_CORT_TXT.value.replace("%s", atlas))
+    genericIO.write_list_to_txt_file(mapping.subcort_region_mapping,
+                                     AsegFiles.RM_SUBCORT_TXT.value.replace("%s", atlas))
 
     vox2ras_file = "vox2ras.txt"
     subprocess.call(["mri_info", "--vox2ras", t1, "--o", vox2ras_file])
@@ -57,18 +58,18 @@ def compute_region_details(atlas: AtlasSuffix, fs_color_lut: os.PathLike, t1: os
     cort_subcort_full_region_mapping = mapping.cort_region_mapping + mapping.subcort_region_mapping
 
     dict_fs_custom = mapping.get_mapping_for_connectome_generation()
-    genericIO.write_dict_to_txt_file(dict_fs_custom, str(AsegFiles.FS_CUSTOM_TXT).replace("%s", atlas))
+    genericIO.write_dict_to_txt_file(dict_fs_custom, AsegFiles.FS_CUSTOM_TXT.value.replace("%s", atlas))
 
     region_areas = surface_service.compute_areas_for_regions(mapping.get_all_regions(), cort_subcort_full_surf,
                                                              cort_subcort_full_region_mapping)
-    genericIO.write_list_to_txt_file(region_areas, str(AsegFiles.AREAS_TXT).replace("%s", atlas))
+    genericIO.write_list_to_txt_file(region_areas, AsegFiles.AREAS_TXT.value.replace("%s", atlas))
 
     region_centers = surface_service.compute_centers_for_regions(mapping.get_all_regions(), cort_subcort_full_surf,
                                                                  cort_subcort_full_region_mapping)
     cort_subcort_lut = mapping.get_entire_lut()
     region_names = list(cort_subcort_lut.values())
 
-    with open(str(AsegFiles.CENTERS_TXT).replace("%s", atlas), "w") as f:
+    with open(AsegFiles.CENTERS_TXT.value.replace("%s", atlas), "w") as f:
         for idx, (val_x, val_y, val_z) in enumerate(region_centers):
             f.write("%s %.2f %.2f %.2f\n" % (region_names[idx], val_x, val_y, val_z))
 
@@ -80,7 +81,7 @@ def compute_region_details(atlas: AtlasSuffix, fs_color_lut: os.PathLike, t1: os
                                                                     mapping.lh_region_mapping)
     lh_region_orientations = surface_service.compute_orientations_for_regions(mapping.get_lh_regions(), surf_cort_lh,
                                                                               mapping.lh_region_mapping)
-    with open(str(AsegFiles.LH_DIPOLES_TXT).replace("%s", atlas), "w") as f:
+    with open(AsegFiles.LH_DIPOLES_TXT.value.replace("%s", atlas), "w") as f:
         for idx, (val_x, val_y, val_z) in enumerate(lh_region_centers):
             f.write("%.2f %.2f %.2f %.2f %.2f %.2f\n" % (
                 val_x, val_y, val_z, lh_region_orientations[idx][0], lh_region_orientations[idx][1],
@@ -90,20 +91,21 @@ def compute_region_details(atlas: AtlasSuffix, fs_color_lut: os.PathLike, t1: os
                                                                     mapping.rh_region_mapping)
     rh_region_orientations = surface_service.compute_orientations_for_regions(mapping.get_rh_regions(), surf_cort_rh,
                                                                               mapping.rh_region_mapping)
-    with open(str(AsegFiles.RH_DIPOLES_TXT).replace("%s", atlas), "w") as f:
+    with open(AsegFiles.RH_DIPOLES_TXT.value.replace("%s", atlas), "w") as f:
         for idx, (val_x, val_y, val_z) in enumerate(rh_region_centers):
             f.write("%.2f %.2f %.2f %.2f %.2f %.2f\n" % (
                 val_x, val_y, val_z, rh_region_orientations[idx][0], rh_region_orientations[idx][1],
                 rh_region_orientations[idx][2]))
 
-    numpy.savetxt(str(AsegFiles.ORIENTATIONS_TXT).replace("%s", atlas), region_orientations, fmt='%.2f %.2f %.2f')
+    numpy.savetxt(AsegFiles.ORIENTATIONS_TXT.value.replace("%s", atlas), region_orientations, fmt='%.2f %.2f %.2f')
 
     annotation_service = AnnotationService()
     lut_dict, _, _ = annotation_service.read_lut(fs_color_lut, "name")
     rm_index_dict = mapping.get_mapping_for_aparc_aseg(lut_dict)
-    genericIO.write_dict_to_txt_file(rm_index_dict, str(AsegFiles.RM_TO_APARC_ASEG_TXT).replace("%s", atlas))
+    genericIO.write_dict_to_txt_file(rm_index_dict, AsegFiles.RM_TO_APARC_ASEG_TXT.value.replace("%s", atlas))
 
-    genericIO.write_list_to_txt_file(mapping.is_cortical_region_mapping(), str(AsegFiles.CORTICAL_TXT).replace("%s", atlas))
+    genericIO.write_list_to_txt_file(mapping.is_cortical_region_mapping(),
+                                     AsegFiles.CORTICAL_TXT.value.replace("%s", atlas))
 
 
 def parse_arguments():

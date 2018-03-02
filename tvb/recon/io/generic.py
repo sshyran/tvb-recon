@@ -66,7 +66,7 @@ class GenericIO(object):
         numpy.savetxt(file_areas, areas, fmt='%.2f')
         numpy.savetxt(file_orientations, orientations, fmt='%.2f %.2f %.2f')
 
-        filename = os.path.join(conn_dir, str(OutputConvFiles.CONNECTIVITY_ZIP).replace("%s", atlas))
+        filename = os.path.join(conn_dir, OutputConvFiles.CONNECTIVITY_ZIP.value.replace("%s", atlas))
         with ZipFile(filename, 'w') as zip_file:
             zip_file.write(file_weigths, os.path.basename(file_weigths))
             zip_file.write(file_tracts, os.path.basename(file_tracts))
