@@ -133,23 +133,24 @@ class AsegGeneration(object):
                 ResamplingFiles.RH_APARC_ANNOT_RESAMP.value % (self.trg_subj, self.atlas_suffix))
 
         # Output files:
-        fs_custom = File(AsegFiles.FS_CUSTOM_TXT.value)
-        centers = File(AsegFiles.CENTERS_TXT.value)
-        areas = File(AsegFiles.AREAS_TXT.value)
-        orientations = File(AsegFiles.ORIENTATIONS_TXT.value)
-        cortical = File(AsegFiles.CORTICAL_TXT.value)
-        rm_to_aparc_aseg = File(AsegFiles.RM_TO_APARC_ASEG_TXT.value)
-        cort_region_mapping = File(AsegFiles.RM_CORT_TXT.value)
-        subcort_region_mapping = File(AsegFiles.RM_SUBCORT_TXT.value)
+        fs_custom = File(AsegFiles.FS_CUSTOM_TXT.value % self.atlas_suffix)
+        centers = File(AsegFiles.CENTERS_TXT.value % self.atlas_suffix)
+        areas = File(AsegFiles.AREAS_TXT.value % self.atlas_suffix)
+        orientations = File(AsegFiles.ORIENTATIONS_TXT.value % self.atlas_suffix)
+        cortical = File(AsegFiles.CORTICAL_TXT.value % self.atlas_suffix)
+        rm_to_aparc_aseg = File(AsegFiles.RM_TO_APARC_ASEG_TXT.value % self.atlas_suffix)
+        cort_region_mapping = File(AsegFiles.RM_CORT_TXT.value % self.atlas_suffix)
+        subcort_region_mapping = File(AsegFiles.RM_SUBCORT_TXT.value % self.atlas_suffix)
         cort_surface = File(AsegFiles.SURF_CORT_ZIP.value)
         subcort_surface = File(AsegFiles.SURF_SUBCORT_ZIP.value)
-        lh_dipoles = File(AsegFiles.LH_DIPOLES_TXT.value)
-        rh_dipoles = File(AsegFiles.RH_DIPOLES_TXT.value)
+        lh_dipoles = File(AsegFiles.LH_DIPOLES_TXT.value % self.atlas_suffix)
+        rh_dipoles = File(AsegFiles.RH_DIPOLES_TXT.value % self.atlas_suffix)
 
         # Job config:
         job9 = Job(AsegGenJobNames.GEN_MAPPING_DETAILS.value)
-        job9.addArguments(fs_lut, t1_file, lh_cortical_file, rh_cortical_file, lh_cortical_annot_file,
-                          rh_cortical_annot_file, lh_subcort, rh_subcort, lh_aseg_annot, rh_aseg_annot)
+        job9.addArguments(self.atlas_suffix, fs_lut, t1_file, lh_cortical_file, rh_cortical_file,
+                          lh_cortical_annot_file, rh_cortical_annot_file, lh_subcort, rh_subcort, lh_aseg_annot,
+                          rh_aseg_annot)
         job9.uses(fs_lut, link=Link.INPUT)
         job9.uses(t1_file, link=Link.INPUT)
         job9.uses(lh_cortical_annot_file, link=Link.INPUT)

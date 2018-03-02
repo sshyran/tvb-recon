@@ -20,9 +20,9 @@ class T1Files(Enum):
     T2_CONVERTED = "t2.nii.gz"
     FLAIR_CONVERTED = "flair.nii.gz"
     T1_MGZ = "T1.mgz"
-    APARC_ASEG_MGZ = "aparc+aseg.mgz"
+    APARC_ASEG_MGZ = "aparc%s+aseg.mgz"
     T1_NII_GZ = "T1.nii.gz"
-    APARC_ASEG_NII_GZ = "aparc+aseg.nii.gz"
+    APARC_ASEG_NII_GZ = "aparc%s+aseg.nii.gz"
     NORM_MGZ = "norm.mgz"
     BRAIN_MGZ = "brain.mgz"
     LH_PIAL = "lh.pial"
@@ -31,8 +31,8 @@ class T1Files(Enum):
     RH_WHITE = "rh.white"
     LH_CENTERED_PIAL = "lh.centered.pial"
     RH_CENTERED_PIAL = "rh.centered.pial"
-    LH_APARC_ANNOT = "lh.aparc.annot"
-    RH_APARC_ANNOT = "rh.aparc.annot"
+    LH_APARC_ANNOT = "lh.aparc%s.annot"
+    RH_APARC_ANNOT = "rh.aparc%s.annot"
 
 
 class T1JobNames(Enum):
@@ -66,7 +66,7 @@ class CoregFiles(Enum):
     B0_IN_T1 = "b0-in-t1.nii.gz"
     B0_IN_T1_MGZ = "b0-in-t1.mgz"
     T1_IN_D = "t1-in-d.nii.gz"
-    APARC_AGEG_IN_D = "aparc+aseg-in-d.nii.gz"
+    APARC_ASEG_IN_D = "aparc%s+aseg-in-d.nii.gz"
 
 
 class CoregJobNames(Enum):
@@ -92,9 +92,9 @@ class TractsGenFiles(Enum):
     RF_GM = "RF_GM.txt"
     RF_CSF = "RF_CSF.txt"
     RF_VOXELS = "RF_voxels.mif"
-    VOLUME_LBL_NII_GZ = "volume_lbl.nii.gz"
-    TRACT_COUNTS = "tract_counts.csv"
-    TRACT_LENGHTS = "tract_lengths.csv"
+    VOLUME_LBL_NII_GZ = "volume_lbl%s.nii.gz"
+    TRACT_COUNTS = "tract_counts%s.csv"
+    TRACT_LENGHTS = "tract_lengths%s.csv"
     GMWMI_NII_GZ = "gmwmi.nii.gz"
     TDI_ENDS_NII_GZ = "tdi_ends.nii.gz"
 
@@ -126,18 +126,18 @@ class AsegFiles(Enum):
     RH_CENTERED_ASEG = "rh.centered.aseg"
     LH_ASEG_ANNOT = "lh.aseg.annot"
     RH_ASEG_ANNOT = "rh.aseg.annot"
-    FS_CUSTOM_TXT = "fs_custom.txt"
-    CENTERS_TXT = "centers.txt"
-    AREAS_TXT = "areas.txt"
-    ORIENTATIONS_TXT = "average_orientations.txt"
-    CORTICAL_TXT = "cortical.txt"
-    RM_TO_APARC_ASEG_TXT = "rm_to_aparc_aseg.txt"
-    RM_CORT_TXT = "region_mapping_cort.txt"
-    RM_SUBCORT_TXT = "region_mapping_subcort.txt"
+    FS_CUSTOM_TXT = "fs_custom%s.txt"
+    CENTERS_TXT = "centers%s.txt"
+    AREAS_TXT = "areas%s.txt"
+    ORIENTATIONS_TXT = "average_orientations%s.txt"
+    CORTICAL_TXT = "cortical%s.txt"
+    RM_TO_APARC_ASEG_TXT = "rm_to_aparc_aseg%s.txt"
+    RM_CORT_TXT = "region_mapping_cort%s.txt"
+    RM_SUBCORT_TXT = "region_mapping_subcort%s.txt"
     SURF_CORT_ZIP = "surface_cort.zip"
     SURF_SUBCORT_ZIP = "surface_subcort.zip"
-    LH_DIPOLES_TXT = "lh_dipoles.txt"
-    RH_DIPOLES_TXT = "rh_dipoles.txt"
+    LH_DIPOLES_TXT = "lh_dipoles%s.txt"
+    RH_DIPOLES_TXT = "rh_dipoles%s.txt"
 
 
 class AsegGenJobNames(Enum):
@@ -150,8 +150,8 @@ class AsegGenJobNames(Enum):
 
 
 class OutputConvFiles(Enum):
-    APARC_ASEG_COR_NII_GZ = "aparc+aseg-cor.nii.gz"
-    CONNECTIVITY_ZIP = "connectivity.zip"
+    APARC_ASEG_COR_NII_GZ = "aparc+aseg-cor%s.nii.gz"
+    CONNECTIVITY_ZIP = "connectivity%s.zip"
 
 
 class SEEGCompJobNames(Enum):
@@ -235,8 +235,8 @@ class ResamplingFiles(Enum):
     RH_PIAL_RESAMP = "rh.pial-%s"
     LH_CENTERED_PIAL_RESAMP = "lh.centered.pial-%s"
     RH_CENTERED_PIAL_RESAMP = "rh.centered.pial-%s"
-    LH_APARC_ANNOT_RESAMP = "lh.aparc-%s.annot"
-    RH_APARC_ANNOT_RESAMP = "rh.aparc-%s.annot"
+    LH_APARC_ANNOT_RESAMP = "lh.aparc-%s%s.annot"
+    RH_APARC_ANNOT_RESAMP = "rh.aparc-%s%s.annot"
 
     LH_ASEG_RESAMP = "lh.aseg-%s"
     RH_ASEG_RESAMP = "rh.aseg-%s"

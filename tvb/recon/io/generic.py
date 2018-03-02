@@ -3,8 +3,8 @@
 import os
 import tempfile
 from zipfile import ZipFile
-
 import numpy
+from tvb.recon.dax.mappings import OutputConvFiles
 from tvb.recon.model.constants import CC_POINT_FILE
 
 try:
@@ -45,7 +45,7 @@ class GenericIO(object):
         numpy.savetxt(string_io, out_array, fmt)
         return string_io
 
-    def write_connectivity_zip(self, conn_dir, weigths, tracts, cortical, region_names, centers, areas, orientations):
+    def write_connectivity_zip(self, conn_dir, weigths, tracts, cortical, region_names, centers, areas, orientations, atlas):
         tmpdir = tempfile.TemporaryDirectory()
 
         file_weigths = os.path.join(tmpdir.name, 'weights.txt')
@@ -66,7 +66,7 @@ class GenericIO(object):
         numpy.savetxt(file_areas, areas, fmt='%.2f')
         numpy.savetxt(file_orientations, orientations, fmt='%.2f %.2f %.2f')
 
-        filename = os.path.join(conn_dir, "connectivity.zip")
+        filename = os.path.join(conn_dir, OutputConvFiles.CONNECTIVITY_ZIP % atlas)
         with ZipFile(filename, 'w') as zip_file:
             zip_file.write(file_weigths, os.path.basename(file_weigths))
             zip_file.write(file_tracts, os.path.basename(file_tracts))
