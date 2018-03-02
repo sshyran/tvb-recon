@@ -1,11 +1,12 @@
 from Pegasus.DAX3 import File, Job, Link
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.dax.mappings import T1JobNames, Inputs, T1Files
 from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class T1Processing(object):
     def __init__(self, subject, t1_frmt="nii", use_t2=False, t2_frmt="nii", use_flair=False, flair_frmt="nii",
-                 openmp_thrds="4"):
+                 openmp_thrds="4", atlas_suffix=AtlasSuffix.DEFAULT):
         self.subject = subject
         self.t1_format = t1_frmt
         self.t2_flag = use_t2
@@ -14,6 +15,7 @@ class T1Processing(object):
         self.flair_format = flair_frmt
         self.openmp_threads = openmp_thrds
         self.qc_snapshots = QCSnapshots.get_instance()
+        self.atlas_suffix = atlas_suffix
 
     def _ensure_input_format(self, file_format, input_name, output_name, dax):
         input_file = File(input_name)
@@ -42,13 +44,13 @@ class T1Processing(object):
         t1_converted = T1Files.T1_INPUT_CONVERTED.value
         t1_output, job1 = self._ensure_input_format(self.t1_format, t1_input, t1_converted, dax)
 
-        aparc_aseg_mgz_vol = File(T1Files.APARC_ASEG_MGZ.value)
+        aparc_aseg_mgz_vol = File(T1Files.APARC_ASEG_MGZ.value % self.atlas_suffix)
         lh_pial = File(T1Files.LH_PIAL.value)
         rh_pial = File(T1Files.RH_PIAL.value)
         lh_white = File(T1Files.LH_WHITE.value)
         rh_white = File(T1Files.RH_WHITE.value)
-        lh_aparc_annot = File(T1Files.LH_APARC_ANNOT.value)
-        rh_aparc_annot = File(T1Files.RH_APARC_ANNOT.value)
+        lh_aparc_annot = File(T1Files.LH_APARC_ANNOT.value % self.atlas_suffix)
+        rh_aparc_annot = File(T1Files.RH_APARC_ANNOT.value % self.atlas_suffix)
 
         out_files_list = [aparc_aseg_mgz_vol, lh_pial, rh_pial, lh_white, rh_white, lh_aparc_annot, rh_aparc_annot]
 
@@ -119,7 +121,7 @@ class T1Processing(object):
 
         dax.depends(job3, last_job)
 
-        aparc_aseg_nii_gz_vol = File(T1Files.APARC_ASEG_NII_GZ.value)
+        aparc_aseg_nii_gz_vol = File(T1Files.APARC_ASEG_NII_GZ.value % self.atlas_suffix)
         job4 = Job(T1JobNames.MRI_CONVERT.value, node_label="Convert APARC+ASEG to NIFTI with good orientation")
         job4.addArguments(aparc_aseg_mgz_vol, aparc_aseg_nii_gz_vol, "--out_orientation", "RAS", "-rt", "nearest")
         job4.uses(aparc_aseg_mgz_vol, link=Link.INPUT)
