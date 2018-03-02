@@ -1,13 +1,15 @@
 from Pegasus.DAX3 import File, Job, Link
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.dax.mappings import DWIFiles, T1Files, CoregFiles, CoregJobNames, T1JobNames
 from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class Coregistration(object):
-    def __init__(self, subject, use_flirt=True):
+    def __init__(self, subject, use_flirt=True, atlas_suffix=AtlasSuffix.DEFAULT):
         self.subject = subject
         self.use_flirt = use_flirt
         self.qc_snapshots = QCSnapshots.get_instance()
+        self.atlas_suffix = atlas_suffix
 
     def _add_flirt_steps(self, dax, job_b0, job_t1, job_aparc_aseg):
         b0_nii_gz = File(DWIFiles.B0_NII_GZ.value)
@@ -49,8 +51,8 @@ class Coregistration(object):
 
         self.qc_snapshots.add_2vols_snapshot_step(dax, [job3], t1_in_d_nii_gz, b0_nii_gz)
 
-        aparc_aseg_nii_gz = File(T1Files.APARC_ASEG_NII_GZ.value)
-        aparc_aseg_in_d_nii_gz = File(CoregFiles.APARC_AGEG_IN_D.value)
+        aparc_aseg_nii_gz = File(T1Files.APARC_ASEG_NII_GZ.value % self.atlas_suffix)
+        aparc_aseg_in_d_nii_gz = File(CoregFiles.APARC_ASEG_IN_D.value % self.atlas_suffix)
         job4 = Job(CoregJobNames.FLIRT_REVERSED.value, node_label="Register APARC+ASEG to DWI")
         job4.addArguments(aparc_aseg_nii_gz, b0_nii_gz, aparc_aseg_in_d_nii_gz, t2d_mat)
         job4.uses(aparc_aseg_nii_gz, link=Link.INPUT)
@@ -114,8 +116,8 @@ class Coregistration(object):
 
         # self.qc_snapshots.add_2vols_snapshot_step(dax, [job3], b0_nii_gz, t1_in_d_nii_gz)
 
-        aparc_aseg_mgz = File(T1Files.APARC_ASEG_MGZ.value)
-        aparc_aseg_in_d_nii_gz = File(CoregFiles.APARC_AGEG_IN_D.value)
+        aparc_aseg_mgz = File(T1Files.APARC_ASEG_MGZ.value % self.atlas_suffix)
+        aparc_aseg_in_d_nii_gz = File(CoregFiles.APARC_ASEG_IN_D.value % self.atlas_suffix)
         job4 = Job(CoregJobNames.MRI_VOL2VOL.value)
         job4.addArguments("--mov", aparc_aseg_mgz, "--targ", b0_nii_gz, "--o", aparc_aseg_in_d_nii_gz, "--reg",
                           t1_in_d_lta, "--nearest")
