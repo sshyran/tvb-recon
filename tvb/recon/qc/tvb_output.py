@@ -5,7 +5,7 @@ import numpy
 import shutil
 from tvb.recon.algo.service.volume import VolumeService
 from tvb.recon.dax import AtlasSuffix
-from tvb.recon.dax.mappings import OutputConvFilesPy3, AsegFilesPy3, T1FilesPy3
+from tvb.recon.dax.mappings import OutputConvFiles, AsegFiles, T1Files
 from tvb.recon.io.factory import IOUtils
 from tvb.recon.io.generic import GenericIO
 
@@ -23,18 +23,20 @@ def create_tvb_dataset(atlas_suffix: AtlasSuffix, mri_direc: os.PathLike,
     tracts_matrix += tracts_matrix.T
 
     is_cortical_rm = numpy.genfromtxt(
-        os.path.join(region_details_direc, AsegFilesPy3.CORTICAL_TXT.format(atlas_suffix)),
-        usecols=[0], dtype='i')
-    region_names = numpy.genfromtxt(os.path.join(region_details_direc, AsegFilesPy3.CENTERS_TXT.format(atlas_suffix)),
-                                    usecols=[0], dtype="str")
-    region_centers = numpy.genfromtxt(os.path.join(region_details_direc, AsegFilesPy3.CENTERS_TXT.format(atlas_suffix)),
-                                      usecols=[1, 2, 3])
-    region_areas = numpy.genfromtxt(os.path.join(region_details_direc, AsegFilesPy3.AREAS_TXT.format(atlas_suffix)),
-                                    usecols=[0])
+        os.path.join(region_details_direc, str(AsegFiles.CORTICAL_TXT).replace("%s", atlas_suffix)), usecols=[0],
+        dtype='i')
+    region_names = numpy.genfromtxt(
+        os.path.join(region_details_direc, str(AsegFiles.CENTERS_TXT).replace("%s", atlas_suffix)), usecols=[0],
+        dtype="str")
+    region_centers = numpy.genfromtxt(
+        os.path.join(region_details_direc, str(AsegFiles.CENTERS_TXT).replace("%s", atlas_suffix)), usecols=[1, 2, 3])
+    region_areas = numpy.genfromtxt(
+        os.path.join(region_details_direc, str(AsegFiles.AREAS_TXT).replace("%s", atlas_suffix)), usecols=[0])
     region_orientations = numpy.genfromtxt(
-        os.path.join(region_details_direc, AsegFilesPy3.ORIENTATIONS_TXT.format(atlas_suffix)), usecols=[0, 1, 2])
+        os.path.join(region_details_direc, str(AsegFiles.ORIENTATIONS_TXT).replace("%s", atlas_suffix)),
+        usecols=[0, 1, 2])
     rm_idx = numpy.genfromtxt(
-        os.path.join(region_details_direc, AsegFilesPy3.RM_TO_APARC_ASEG_TXT.format(atlas_suffix)),
+        os.path.join(region_details_direc, str(AsegFiles.RM_TO_APARC_ASEG_TXT).replace("%s", atlas_suffix)),
         usecols=[0, 1], dtype='i')
     rm_index_dict = dict(zip(rm_idx[:, 0], rm_idx[:, 1]))
     print(rm_index_dict)
@@ -43,13 +45,13 @@ def create_tvb_dataset(atlas_suffix: AtlasSuffix, mri_direc: os.PathLike,
     genericIO.write_connectivity_zip(out_dir, weights_matrix, tracts_matrix, is_cortical_rm, region_names,
                                      region_centers, region_areas, region_orientations, atlas_suffix)
 
-    aparc_aseg_file = os.path.join(mri_direc, T1FilesPy3.APARC_ASEG_NII_GZ.format(atlas_suffix))
+    aparc_aseg_file = os.path.join(mri_direc, str(T1Files.APARC_ASEG_NII_GZ).replace("%s", atlas_suffix))
     aparc_aseg_volume = IOUtils.read_volume(aparc_aseg_file)
 
     volume_service = VolumeService()
     aparc_aseg_cor_volume = volume_service.change_labels_of_aparc_aseg(aparc_aseg_volume, rm_index_dict,
                                                                        weights_matrix.shape[0])
-    IOUtils.write_volume(os.path.join(out_dir, OutputConvFilesPy3.APARC_ASEG_COR_NII_GZ.format(atlas_suffix)),
+    IOUtils.write_volume(os.path.join(out_dir, str(OutputConvFiles.APARC_ASEG_COR_NII_GZ).replace("%s", atlas_suffix)),
                          aparc_aseg_cor_volume)
 
     if bring_t1:
