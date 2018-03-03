@@ -8,6 +8,7 @@ class MappingService(object):
     CORT_TYPE = "aparc"
     SUBCORT_TYPE = "aseg"
 
+    #TODO: this works only for a2009s atlas. Needs ctx-lh- and ctx-rh- for desikan-killian
     fs_prefix_lh = "ctx_lh_"
     fs_prefix_rh = "ctx_rh_"
     unknown_subcort_region = "Unknown"
@@ -144,6 +145,8 @@ class MappingService(object):
 
         src_to_trg = dict()
         for trg_name, trg_ind in trg_names_labels_dict.items():
+            if "&" in trg_name:
+                trg_name = trg_name.replace("&", "_and_")
             src_ind = lut_idx_to_name_dict.get(trg_name, None)
             if src_ind is not None:
                 if trg_name == self.unknown_subcort_region:

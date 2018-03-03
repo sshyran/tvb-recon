@@ -435,6 +435,9 @@ class VolumeService(object):
         return vox, voxxzy
 
     def change_labels_of_aparc_aseg(self, volume, mapping_dict, conn_regs_nr):
+        #TODO: for a2009s atlas we need to map 1000/2000 to 11100/12100. This is wrong for desikan-killiany
+        volume.data[volume.data == 1000] = 11100
+        volume.data[volume.data == 2000] = 12100
         not_matched = set()
         for i in range(volume.data.shape[0]):
             for j in range(volume.data.shape[1]):
