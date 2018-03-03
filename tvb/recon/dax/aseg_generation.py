@@ -1,13 +1,15 @@
 from Pegasus.DAX3 import File, Job, Link
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.dax.mappings import AsegFiles, AsegGenJobNames, Inputs, T1Files, T1JobNames, ResamplingFiles
 
 
 class AsegGeneration(object):
-    def __init__(self, subject, lh_labels, rh_labels, trg_subj):
+    def __init__(self, subject, lh_labels, rh_labels, trg_subj, atlas_suffix=AtlasSuffix.DEFAULT):
         self.subject = subject
         self.lh_labels = lh_labels
         self.rh_labels = rh_labels
         self.trg_subj = trg_subj
+        self.atlas_suffix = atlas_suffix
 
     def add_aseg_generation_steps(self, dax, job_recon):
         lh_aseg = File(AsegFiles.LH_ASEG.value)
@@ -32,7 +34,7 @@ class AsegGeneration(object):
 
         lbl_list = map(int, self.lh_labels.strip('"').split() + self.rh_labels.strip('"').split())
         for aseg_label in lbl_list:
-            aparc_aseg_mgz = File(T1Files.APARC_ASEG_MGZ.value)
+            aparc_aseg_mgz = File(T1Files.APARC_ASEG_MGZ.value % self.atlas_suffix)
             norm_mgz = File(T1Files.NORM_MGZ.value)
             aseg_mgz = File(AsegFiles.ASEG_MGZ.value % aseg_label)
             job1 = Job(AsegGenJobNames.MRI_PRETESS.value)
@@ -120,32 +122,35 @@ class AsegGeneration(object):
         if job_resampling is None:
             lh_cortical_file = File(T1Files.LH_CENTERED_PIAL.value)
             rh_cortical_file = File(T1Files.RH_CENTERED_PIAL.value)
-            lh_cortical_annot_file = File(T1Files.LH_APARC_ANNOT.value)
-            rh_cortical_annot_file = File(T1Files.RH_APARC_ANNOT.value)
+            lh_cortical_annot_file = File(T1Files.LH_APARC_ANNOT.value % self.atlas_suffix)
+            rh_cortical_annot_file = File(T1Files.RH_APARC_ANNOT.value % self.atlas_suffix)
         else:
             lh_cortical_file = File(ResamplingFiles.LH_CENTERED_PIAL_RESAMP.value % self.trg_subj)
             rh_cortical_file = File(ResamplingFiles.RH_CENTERED_PIAL_RESAMP.value % self.trg_subj)
-            lh_cortical_annot_file = File(ResamplingFiles.LH_APARC_ANNOT_RESAMP.value % self.trg_subj)
-            rh_cortical_annot_file = File(ResamplingFiles.RH_APARC_ANNOT_RESAMP.value % self.trg_subj)
+            lh_cortical_annot_file = File(
+                ResamplingFiles.LH_APARC_ANNOT_RESAMP.value % (self.trg_subj, self.atlas_suffix))
+            rh_cortical_annot_file = File(
+                ResamplingFiles.RH_APARC_ANNOT_RESAMP.value % (self.trg_subj, self.atlas_suffix))
 
         # Output files:
-        fs_custom = File(AsegFiles.FS_CUSTOM_TXT.value)
-        centers = File(AsegFiles.CENTERS_TXT.value)
-        areas = File(AsegFiles.AREAS_TXT.value)
-        orientations = File(AsegFiles.ORIENTATIONS_TXT.value)
-        cortical = File(AsegFiles.CORTICAL_TXT.value)
-        rm_to_aparc_aseg = File(AsegFiles.RM_TO_APARC_ASEG_TXT.value)
-        cort_region_mapping = File(AsegFiles.RM_CORT_TXT.value)
-        subcort_region_mapping = File(AsegFiles.RM_SUBCORT_TXT.value)
+        fs_custom = File(AsegFiles.FS_CUSTOM_TXT.value % self.atlas_suffix)
+        centers = File(AsegFiles.CENTERS_TXT.value % self.atlas_suffix)
+        areas = File(AsegFiles.AREAS_TXT.value % self.atlas_suffix)
+        orientations = File(AsegFiles.ORIENTATIONS_TXT.value % self.atlas_suffix)
+        cortical = File(AsegFiles.CORTICAL_TXT.value % self.atlas_suffix)
+        rm_to_aparc_aseg = File(AsegFiles.RM_TO_APARC_ASEG_TXT.value % self.atlas_suffix)
+        cort_region_mapping = File(AsegFiles.RM_CORT_TXT.value % self.atlas_suffix)
+        subcort_region_mapping = File(AsegFiles.RM_SUBCORT_TXT.value % self.atlas_suffix)
         cort_surface = File(AsegFiles.SURF_CORT_ZIP.value)
         subcort_surface = File(AsegFiles.SURF_SUBCORT_ZIP.value)
-        lh_dipoles = File(AsegFiles.LH_DIPOLES_TXT.value)
-        rh_dipoles = File(AsegFiles.RH_DIPOLES_TXT.value)
+        lh_dipoles = File(AsegFiles.LH_DIPOLES_TXT.value % self.atlas_suffix)
+        rh_dipoles = File(AsegFiles.RH_DIPOLES_TXT.value % self.atlas_suffix)
 
         # Job config:
         job9 = Job(AsegGenJobNames.GEN_MAPPING_DETAILS.value)
-        job9.addArguments(fs_lut, t1_file, lh_cortical_file, rh_cortical_file, lh_cortical_annot_file,
-                          rh_cortical_annot_file, lh_subcort, rh_subcort, lh_aseg_annot, rh_aseg_annot)
+        job9.addArguments(self.atlas_suffix, fs_lut, t1_file, lh_cortical_file, rh_cortical_file,
+                          lh_cortical_annot_file, rh_cortical_annot_file, lh_subcort, rh_subcort, lh_aseg_annot,
+                          rh_aseg_annot)
         job9.uses(fs_lut, link=Link.INPUT)
         job9.uses(t1_file, link=Link.INPUT)
         job9.uses(lh_cortical_annot_file, link=Link.INPUT)

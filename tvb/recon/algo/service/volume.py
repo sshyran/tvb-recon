@@ -26,10 +26,10 @@ class VolumeService(object):
         This function creates a new volume matrix from an input label_volume matrix
         by setting values[i] to all voxels where label_volume == i
         """
-            
+
         label_nii = nibabel.load(input_label_volume_file)
         label_volume = label_nii.get_data()
-        
+
         new_volume = numpy.zeros(label_volume.shape)
         new_volume[:, :] = numpy.nan
 
@@ -43,7 +43,7 @@ class VolumeService(object):
             """Ugly hack to deal with the MRtrix bug (?) that causes MRview to crop min/max values"""
             volume[0, 0, 0] = numpy.nanmin(volume) - 1
             volume[0, 0, 1] = numpy.nanmax(volume) + 1
-        
+
         # add_min_max(new_volume)
         new_nii = nibabel.Nifti1Image(new_volume, label_nii.affine)
         nibabel.save(new_nii, output_label_volume_file)
@@ -117,7 +117,7 @@ class VolumeService(object):
         nibabel.save(new_nii, out_volume_file)
 
         return nibabel.nifti1.Nifti1Image
-        
+
     def vol_to_ext_surf_vol(self, in_vol_path: os.PathLike, labels: Optional[Union[numpy.ndarray, list]]=None,
                             ctx: Optional[os.PathLike]=None, out_vol_path: Optional[os.PathLike]=None,
                             labels_surf: Optional[Union[numpy.ndarray, list]]=None, labels_inner: str='0'):
@@ -415,7 +415,7 @@ class VolumeService(object):
 
         lab, n = scipy.ndimage.label(dil_mask.data)
 
-        # TODO: this change is from tvb-make. Keep it or not?
+        # TODO: this change is from tvb-make. Keep it or not? It returns a different result than the old version.
         lab_xyz = list(self.compute_label_volume_centers(lab, dil_mask.affine_matrix))
         lab_sort = numpy.r_[:n + 1]
         # sort labels along AP axis
@@ -539,6 +539,9 @@ class VolumeService(object):
 
     def change_labels_of_aparc_aseg(self, volume: numpy.ndarray, mapping_dict: dict, conn_regs_nr: int) \
             -> nibabel.Nifti1Image:
+        # TODO: for a2009s atlas we need to map 1000/2000 to 11100/12100. This is wrong for desikan-killiany
+        volume.data[volume.data == 1000] = 11100
+        volume.data[volume.data == 2000] = 12100
         not_matched = set()
         for i in range(volume.data.shape[0]):
             for j in range(volume.data.shape[1]):
@@ -576,5 +579,5 @@ class VolumeService(object):
             execute_command(command % tuple(args), cwd=os.path.dirname(transform_mat), shell=True)
 
         transformed_coords_str = output.strip().split('\n')[-1]
-        
+
         return numpy.array([float(x) for x in transformed_coords_str.split(" ") if x]), output_file

@@ -1,4 +1,5 @@
 from Pegasus.DAX3 import File, Job, Link
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.dax.mappings import CoregFiles, TractsGenFiles, TractsGenJobNames, DWIJobNames, DWIFiles, AsegFiles, \
     Inputs
 from tvb.recon.dax.qc_snapshots import QCSnapshots
@@ -6,7 +7,7 @@ from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 class TractsGeneration(object):
     def __init__(self, dwi_multi_shell=False, mrtrix_threads="2", strmlns_no="25M", strmlns_sift_no="5M",
-                 strmlns_size="250", strmlns_step="0.5"):
+                 strmlns_size="250", strmlns_step="0.5", atlas_suffix=AtlasSuffix.DEFAULT):
         self.dwi_multi_shell = dwi_multi_shell
         self.mrtrix_threads = mrtrix_threads
         self.strmlns_no = strmlns_no
@@ -14,6 +15,7 @@ class TractsGeneration(object):
         self.strmlns_size = strmlns_size
         self.strmlns_step = strmlns_step
         self.qc_snapshots = QCSnapshots.get_instance()
+        self.atlas_suffix = atlas_suffix
 
     # job_t1_in_d = job12, job_mask = job5, job_aparc_aseg_in_d = job21
     def add_tracts_generation_steps(self, dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_fs_custom):
@@ -176,9 +178,9 @@ class TractsGeneration(object):
 
         self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_tdi_ends], t1_in_d, file_tdi_ends_nii_gz)
 
-        fs_custom = File(AsegFiles.FS_CUSTOM_TXT.value)
-        aparc_aseg_in_d = File(CoregFiles.APARC_AGEG_IN_D.value)
-        file_vol_lbl = File(TractsGenFiles.VOLUME_LBL_NII_GZ.value)
+        fs_custom = File(AsegFiles.FS_CUSTOM_TXT.value % self.atlas_suffix)
+        aparc_aseg_in_d = File(CoregFiles.APARC_ASEG_IN_D.value % self.atlas_suffix)
+        file_vol_lbl = File(TractsGenFiles.VOLUME_LBL_NII_GZ.value % self.atlas_suffix)
         fs_color_lut = File(Inputs.FS_LUT.value)
         job9 = Job(TractsGenJobNames.LABEL_CONVERT.value, node_label="Compute APARC+ASEG labeled for tracts")
         job9.addArguments(aparc_aseg_in_d, fs_color_lut, fs_custom, file_vol_lbl)
@@ -193,7 +195,7 @@ class TractsGeneration(object):
 
         self.qc_snapshots.add_2vols_snapshot_step(dax, [job9], t1_in_d, file_vol_lbl)
 
-        file_aparc_aseg_counts5M_csv = File(TractsGenFiles.TRACT_COUNTS.value)
+        file_aparc_aseg_counts5M_csv = File(TractsGenFiles.TRACT_COUNTS.value % self.atlas_suffix)
         job10 = Job(TractsGenJobNames.TCK2CONNECTOME.value, node_label="Generate weigths")
         job10.addArguments(file_strmlns_sift, file_vol_lbl, "-assignment_radial_search", "2",
                            file_aparc_aseg_counts5M_csv)
@@ -205,7 +207,7 @@ class TractsGeneration(object):
         dax.depends(job10, job7)
         dax.depends(job10, job9)
 
-        file_aparc_aseg_mean_tract_lengths5M_csv = File(TractsGenFiles.TRACT_LENGHTS.value)
+        file_aparc_aseg_mean_tract_lengths5M_csv = File(TractsGenFiles.TRACT_LENGHTS.value % self.atlas_suffix)
         job11 = Job(TractsGenJobNames.TCK2CONNECTOME.value, node_label="Generate tract lengths")
         job11.addArguments(file_strmlns_sift, file_vol_lbl, "-assignment_radial_search", "2", "-scale_length",
                            "-stat_edge", "mean", file_aparc_aseg_mean_tract_lengths5M_csv)

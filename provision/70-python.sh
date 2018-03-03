@@ -81,7 +81,7 @@ EOF
 
 
     py_pkgs="numpy scipy matplotlib cython scikit-learn pandas h5py nibabel"
-    py_pkgs="$py_pkgs nibabel anytree trimesh flake8 mypy mne jupyterlab"
+    py_pkgs="$py_pkgs nibabel lxml anytree trimesh flake8 mypy mne jupyterlab"
     py_pkgs="$py_pkgs gdist pytest pytest-cov autopep8"
 
     for pkg in $py_pkgs

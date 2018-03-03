@@ -15,6 +15,7 @@ class ConfigKey(Enum):
     FLAIR_FLAG = "flair.flag"
     FLAIR_FRMT = "flair.format"
     OPENMP_THRDS = "openmp.threads"
+    ATLAS = "parcelation.atlas"
     DWI_IS_REVERSED = "dwi.is.reversed"
     DWI_FRMT = "dwi.format"
     DWI_USE_GRADIENT = "dwi.use.gradient"

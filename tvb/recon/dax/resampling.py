@@ -1,15 +1,16 @@
 from Pegasus.DAX3 import File, Link, Job
-
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.dax.mappings import ResamplingFiles, T1Files, ResamplingJobNames, T1JobNames
 from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class Resampling(object):
-    def __init__(self, subject, trg_subject, decim_factor):
+    def __init__(self, subject, trg_subject, decim_factor, atlas_suffix=AtlasSuffix.DEFAULT):
         self.subject = subject
         self.trg_subject = trg_subject
         self.decim_factor = decim_factor
         self.qc_snapshots = QCSnapshots.get_instance()
+        self.atlas_suffix = atlas_suffix
 
     def add_surface_resampling_steps(self, dax, job_recon):
         t1_mgz = File(T1Files.T1_MGZ.value)
@@ -18,16 +19,20 @@ class Resampling(object):
         rh_pial = File(T1Files.RH_PIAL.value)
         pials = [lh_pial, rh_pial]
 
-        lh_aparc_annot = File(T1Files.LH_APARC_ANNOT.value)
-        rh_aparc_annot = File(T1Files.RH_APARC_ANNOT.value)
+        lh_aparc_annot = File(T1Files.LH_APARC_ANNOT.value % self.atlas_suffix)
+        rh_aparc_annot = File(T1Files.RH_APARC_ANNOT.value % self.atlas_suffix)
+
         aparcs = [lh_aparc_annot, rh_aparc_annot]
 
         lh_pial_resamp = File(ResamplingFiles.LH_PIAL_RESAMP.value % self.trg_subject)
         rh_pial_resamp = File(ResamplingFiles.RH_PIAL_RESAMP.value % self.trg_subject)
         pials_resamp = [lh_pial_resamp, rh_pial_resamp]
 
-        lh_aparc_annot_resamp = File(ResamplingFiles.LH_APARC_ANNOT_RESAMP.value % self.trg_subject)
-        rh_aparc_annot_resamp = File(ResamplingFiles.RH_APARC_ANNOT_RESAMP.value % self.trg_subject)
+        lh_aparc_annot_resamp = File(
+            ResamplingFiles.LH_APARC_ANNOT_RESAMP.value % (self.trg_subject, self.atlas_suffix))
+        rh_aparc_annot_resamp = File(
+            ResamplingFiles.RH_APARC_ANNOT_RESAMP.value % (self.trg_subject, self.atlas_suffix))
+
         aparcs_resamp = [lh_aparc_annot_resamp, rh_aparc_annot_resamp]
 
         last_job = None

@@ -5,13 +5,16 @@ import numpy
 from tvb.recon.algo.service.annotation import AnnotationService
 from tvb.recon.algo.service.mapping_service import MappingService
 from tvb.recon.algo.service.surface import SurfaceService
+from tvb.recon.dax import AtlasSuffix
+from tvb.recon.dax.mappings import AsegFiles
 from tvb.recon.io.factory import IOUtils
 from tvb.recon.io.generic import GenericIO
 
 genericIO = GenericIO()
 
 
-def compute_region_details(fs_color_lut: os.PathLike, t1: os.PathLike, lh_cort: os.PathLike, rh_cort: os.PathLike,
+def compute_region_details(atlas: AtlasSuffix, fs_color_lut: os.PathLike, t1: os.PathLike, lh_cort: os.PathLike,
+                           rh_cort: os.PathLike,
                            lh_cort_annot: os.PathLike, rh_cort_annot: os.PathLike, lh_subcort: os.PathLike,
                            rh_subcort: os.PathLike, lh_subcort_annot: os.PathLike, rh_subcort_annot: os.PathLike):
     annot_cort_lh = IOUtils.read_annotation(lh_cort_annot)
@@ -36,8 +39,9 @@ def compute_region_details(fs_color_lut: os.PathLike, t1: os.PathLike, lh_cort: 
 
     full_subcort_surface = surface_service.merge_surfaces([surf_subcort_lh, surf_subcort_rh])
 
-    genericIO.write_list_to_txt_file(mapping.cort_region_mapping, "region_mapping_cort.txt")
-    genericIO.write_list_to_txt_file(mapping.subcort_region_mapping, "region_mapping_subcort.txt")
+    genericIO.write_list_to_txt_file(mapping.cort_region_mapping, AsegFiles.RM_CORT_TXT.value.replace("%s", atlas))
+    genericIO.write_list_to_txt_file(mapping.subcort_region_mapping,
+                                     AsegFiles.RM_SUBCORT_TXT.value.replace("%s", atlas))
 
     vox2ras_file = "vox2ras.txt"
     subprocess.call(["mri_info", "--vox2ras", t1, "--o", vox2ras_file])
@@ -54,18 +58,18 @@ def compute_region_details(fs_color_lut: os.PathLike, t1: os.PathLike, lh_cort: 
     cort_subcort_full_region_mapping = mapping.cort_region_mapping + mapping.subcort_region_mapping
 
     dict_fs_custom = mapping.get_mapping_for_connectome_generation()
-    genericIO.write_dict_to_txt_file(dict_fs_custom, "fs_custom.txt")
+    genericIO.write_dict_to_txt_file(dict_fs_custom, AsegFiles.FS_CUSTOM_TXT.value.replace("%s", atlas))
 
     region_areas = surface_service.compute_areas_for_regions(mapping.get_all_regions(), cort_subcort_full_surf,
                                                              cort_subcort_full_region_mapping)
-    genericIO.write_list_to_txt_file(region_areas, "areas.txt")
+    genericIO.write_list_to_txt_file(region_areas, AsegFiles.AREAS_TXT.value.replace("%s", atlas))
 
     region_centers = surface_service.compute_centers_for_regions(mapping.get_all_regions(), cort_subcort_full_surf,
                                                                  cort_subcort_full_region_mapping)
     cort_subcort_lut = mapping.get_entire_lut()
     region_names = list(cort_subcort_lut.values())
 
-    with open("centers.txt", "w") as f:
+    with open(AsegFiles.CENTERS_TXT.value.replace("%s", atlas), "w") as f:
         for idx, (val_x, val_y, val_z) in enumerate(region_centers):
             f.write("%s %.2f %.2f %.2f\n" % (region_names[idx], val_x, val_y, val_z))
 
@@ -77,7 +81,7 @@ def compute_region_details(fs_color_lut: os.PathLike, t1: os.PathLike, lh_cort: 
                                                                     mapping.lh_region_mapping)
     lh_region_orientations = surface_service.compute_orientations_for_regions(mapping.get_lh_regions(), surf_cort_lh,
                                                                               mapping.lh_region_mapping)
-    with open("lh_dipoles.txt", "w") as f:
+    with open(AsegFiles.LH_DIPOLES_TXT.value.replace("%s", atlas), "w") as f:
         for idx, (val_x, val_y, val_z) in enumerate(lh_region_centers):
             f.write("%.2f %.2f %.2f %.2f %.2f %.2f\n" % (
                 val_x, val_y, val_z, lh_region_orientations[idx][0], lh_region_orientations[idx][1],
@@ -87,26 +91,28 @@ def compute_region_details(fs_color_lut: os.PathLike, t1: os.PathLike, lh_cort: 
                                                                     mapping.rh_region_mapping)
     rh_region_orientations = surface_service.compute_orientations_for_regions(mapping.get_rh_regions(), surf_cort_rh,
                                                                               mapping.rh_region_mapping)
-    with open("rh_dipoles.txt", "w") as f:
+    with open(AsegFiles.RH_DIPOLES_TXT.value.replace("%s", atlas), "w") as f:
         for idx, (val_x, val_y, val_z) in enumerate(rh_region_centers):
             f.write("%.2f %.2f %.2f %.2f %.2f %.2f\n" % (
                 val_x, val_y, val_z, rh_region_orientations[idx][0], rh_region_orientations[idx][1],
                 rh_region_orientations[idx][2]))
 
-    numpy.savetxt("average_orientations.txt", region_orientations, fmt='%.2f %.2f %.2f')
+    numpy.savetxt(AsegFiles.ORIENTATIONS_TXT.value.replace("%s", atlas), region_orientations, fmt='%.2f %.2f %.2f')
 
     annotation_service = AnnotationService()
     lut_dict, _, _ = annotation_service.read_lut(fs_color_lut, "name")
     rm_index_dict = mapping.get_mapping_for_aparc_aseg(lut_dict)
-    genericIO.write_dict_to_txt_file(rm_index_dict, "rm_to_aparc_aseg.txt")
+    genericIO.write_dict_to_txt_file(rm_index_dict, AsegFiles.RM_TO_APARC_ASEG_TXT.value.replace("%s", atlas))
 
-    genericIO.write_list_to_txt_file(mapping.is_cortical_region_mapping(), "cortical.txt")
+    genericIO.write_list_to_txt_file(mapping.is_cortical_region_mapping(),
+                                     AsegFiles.CORTICAL_TXT.value.replace("%s", atlas))
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Convert pipeline output to TVB format")
     parser.add_argument("-p", help="Call from Pegasus WMS", required=False, action="store_true")
 
+    parser.add_argument("atlas_suffix")
     parser.add_argument("fs_color_lut")
     parser.add_argument("t1")
     parser.add_argument("lh_cort")
@@ -125,6 +131,6 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     if args.p:
-        compute_region_details(args.fs_color_lut, args.t1, args.lh_cort, args.rh_cort, args.lh_cort_annot,
-                               args.rh_cort_annot, args.lh_subcort, args.rh_subcort, args.lh_subcort_annot,
-                               args.rh_subcort_annot)
+        compute_region_details(args.atlas_suffix, args.fs_color_lut, args.t1, args.lh_cort, args.rh_cort,
+                               args.lh_cort_annot, args.rh_cort_annot, args.lh_subcort, args.rh_subcort,
+                               args.lh_subcort_annot, args.rh_subcort_annot)
