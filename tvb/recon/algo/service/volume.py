@@ -10,7 +10,7 @@ from tvb.recon.algo.service.utils import execute_command
 from tvb.recon.algo.service.annotation import AnnotationService
 from tvb.recon.io.factory import IOUtils
 from tvb.recon.model.volume import Volume
-from tvb.recon.model.constants import NPY_EXTENSION, FLIRT_COREGISTRATION_OPTIONS
+from tvb.recon.model.constants import NPY_EXTENSION
 
 
 class VolumeService(object):
