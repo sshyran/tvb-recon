@@ -104,8 +104,8 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
     elec_folder = os.path.join(data_root, patient, "elecs")
     elec_file_pom = os.path.join(elec_folder, "seeg_pom.xyz")
     elec_nii_pom = os.path.join(elec_folder, "elec_pom.nii.gz")
-    mrielec_to_t1 = os.path.join(elec_folder, "mrielec_to_t1.mat")
-    mrielec_in_t1 = os.path.join(elec_folder, "mrielec_in_t1.nii.gz")
+    mrielec_to_t1 = os.path.join(elec_folder, "ELEC_to_T1.mat") # ELEC_to_T1 or mrielec_to_t1
+    mrielec_in_t1 = os.path.join(elec_folder, "ELEC_in_T1.nii.gz") # ELEC_in_T1 or mrielec_in_t1
     elec_file_t1 = os.path.join(elec_folder, "seeg.xyz")
     elec_nii_t1 = os.path.join(elec_folder, "elec_t1.nii.gz")
 
@@ -176,7 +176,7 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
                         " -out " + mrielec_in_t1)
 
     # D. Make the actual transformation from pom/mri_elec space to t1 space
-    # Transform the coordinates along (pom file ->) mri_elec -> t1 and save the to text and nifti files
+    # Transform the coordinates along (pom file ->) mri_elec -> t1 and save the result to text and nifti files
     transform(elec_file_pom, mrielec, t1, elec_file_t1, elec_nii_t1, mrielec_to_t1, aff_transform)
 
     # # Alternative way:
@@ -191,4 +191,4 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
 
 if __name__ == "__main__":
 
-    main_elec_pos("TVB3", False)
+    main_elec_pos("TVB4", False)

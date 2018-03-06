@@ -13,7 +13,7 @@ PATH_TO_OUTPUT_SUBJ_FOLDER = "/Users/dionperd/Dropbox/Work/VBtech/VEP/data/CC"
 
 PREFIX_SUBJECT_FOLDER = "TVB"
 
-SUBJECT_IDS = [6, 9, 13, 5]
+SUBJECT_IDS = [3] #, 4, 1, 2]
 
 PATH_TO_DEFAULT_PEGASUS_CONFIGURATION = os.path.join(os.getcwd(), "config")
 
@@ -80,11 +80,11 @@ def create_config_files_for_subj(current_subject):
     default_tc_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.TC.value)
     shutil.copy(default_tc_path, current_dir)
 
-    print "Configuration files for subject %s are ready!" % current_subject
+    print("Configuration files for subject %s are ready!" % current_subject)
 
 
 def get_currently_running_job_ids():
-    print "Checking currently running job ids..."
+    print("Checking currently running job ids...")
     status = subprocess.Popen("pegasus-status", stdout=subprocess.PIPE)
     output, error = status.communicate()
 
@@ -92,7 +92,7 @@ def get_currently_running_job_ids():
         existent_job_ids = []
     else:
         existent_job_ids = [m.replace(PREFIX_JOB_ID, "") for m in re.findall(REGEX_JOB_ID, output)]
-    print "Currently running job ids are: %s" % existent_job_ids
+    print("Currently running job ids are: %s" % existent_job_ids)
 
     return existent_job_ids
 
@@ -124,22 +124,22 @@ def get_specified_submit_folder(current_dir):
 if __name__ == "__main__":
     if not os.path.exists(PATH_TO_SUBJ_CONFIG_FOLDERS):
         os.mkdir(PATH_TO_SUBJ_CONFIG_FOLDERS)
-        print "Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS
+        print("Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS)
 
     for subj_id in SUBJECT_IDS:  # range(FIRST_SUBJECT_NUMBER, LAST_SUBJECT_NUMBER + 1):
         current_subject = PREFIX_SUBJECT_FOLDER + str(subj_id)
-        print "Starting to process the subject: %s" % current_subject
+        print("Starting to process the subject: %s" % current_subject)
 
         current_dir = os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, current_subject, "pegasus-config")
         if not os.path.exists(current_dir):
             os.mkdir(current_dir)
-            print "Folder %s has been created..." % current_dir
+            print("Folder %s has been created..." % current_dir)
 
         create_config_files_for_subj(current_subject)
 
         existent_job_ids = get_currently_running_job_ids()
 
-        print "Starting pegasus run for subject: " + current_subject
+        print("Starting pegasus run for subject: " + current_subject)
         current_dax_dir = os.path.join(current_dir, "dax")
         p = subprocess.call(["sh", "main_pegasus.sh", current_dir, current_dax_dir])
 
@@ -149,19 +149,19 @@ if __name__ == "__main__":
             new_job_ids.remove(job)
 
         current_job_id = new_job_ids[0]
-        print "The job that has been started has the id: %s" % current_job_id
+        print("The job that has been started has the id: %s" % current_job_id)
 
         submit_dir = os.path.join(get_specified_submit_folder(current_dir), getpass.getuser(), "pegasus",
                                   "TVB-PIPELINE", PREFIX_JOB_ID + current_job_id)
 
-        print "Starting to monitor the submit folder: %s ..." % submit_dir
+        print("Starting to monitor the submit folder: %s ..." % submit_dir)
 
         while True:
             if MONITORED_FILE in os.listdir(submit_dir):
                 break
             else:
-                print "Checked at %s and %s file was not generated yet!" % (
-                    str(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())), MONITORED_FILE)
+                print("Checked at %s and %s file was not generated yet!" % (
+                    str(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())), MONITORED_FILE))
                 time.sleep(1200)
 
-        print "The run has finished for job with id: %s" % current_job_id
+        print("The run has finished for job with id: %s" % current_job_id)
