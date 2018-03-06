@@ -8,7 +8,7 @@ class MappingService(object):
     CORT_TYPE = "aparc"
     SUBCORT_TYPE = "aseg"
 
-    #TODO: this works only for a2009s atlas. Needs ctx-lh- and ctx-rh- for desikan-killian
+    # TODO: this works only for a2009s atlas. Needs ctx-lh- and ctx-rh- for desikan-killian
     fs_prefix_lh = "ctx_lh_"
     fs_prefix_rh = "ctx_rh_"
     unknown_subcort_region = "Unknown"
@@ -50,6 +50,9 @@ class MappingService(object):
         vtx_rm_unique_vals = numpy.unique(vtx_rm)
 
         region_names = annot.region_names
+        for idx, region_name in enumerate(region_names):
+            if "&" in region_name:
+                region_names[idx] = region_name.replace("&", "_and_")
 
         for unwanted_region in (self.unknown_region, self.unknown_subcort_region, self.corpuscallosum_region,
                                 self.corpuscallosum_region_a2009s):
