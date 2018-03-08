@@ -211,8 +211,8 @@ class HeadModelFiles(Enum):
 
 class SeegGainFiles(Enum):
     CORTICAL_PIAL = "cortical.pial"
-    SEEG_GAIN_DP_MAT = "seeg_dp_gain.mat"
-    SEEG_GAIN_MRS_MAT = "seeg_mrs_gain.mat"
+    SEEG_GAIN_DP_MAT = "seeg_dp_gain%s.mat"
+    SEEG_GAIN_MRS_MAT = "seeg_mrs_gain%s.mat"
     SUBCORTICAL_ASEG = "subcortical.aseg"
 
 
@@ -223,7 +223,7 @@ class SeegGainJobNames(Enum):
 
 class ProjectionCompFiles(Enum):
     SENS_POSITIONS = "%s.xyz"
-    PROJECTION_MAT = "%s_gain.mat"
+    PROJECTION_MAT = "%s_gain%s.mat"
 
 
 class ProjectionCompJobNames(Enum):
@@ -256,19 +256,19 @@ class SourceModelFiles(Enum):
     RH_WHITE_RESAMP_TRI = "rh.white-%s.tri"
     LH_WHITE_RESAMP_SSM = "lh.white-%s.ssm"
     RH_WHITE_RESAMP_SSM = "rh.white-%s.ssm"
-    LH_WHITE_RESAMP_DSM = "lh.white-%s.dsm"
-    RH_WHITE_RESAMP_DSM = "rh.white-%s.dsm"
+    LH_WHITE_RESAMP_DSM = "lh.white-%s%s.dsm"
+    RH_WHITE_RESAMP_DSM = "rh.white-%s%s.dsm"
 
 
 class SensorModelFiles(Enum):
     SEEG_H2IPM = "seeg.h2ipm"
-    LH_DS2IPM = "lh.white-%s.ds2ipm"
-    RH_DS2IPM = "rh.white-%s.ds2ipm"
+    LH_DS2IPM = "lh.white-%s%s.ds2ipm"
+    RH_DS2IPM = "rh.white-%s%s.ds2ipm"
 
 
 class LeadFieldModelFiles(Enum):
-    LH_CORT_GAIN_H5 = "lh_cortical_gain.h5"
-    RH_CORT_GAIN_H5 = "rh_cortical_gain.h5"
+    LH_CORT_GAIN_H5 = "lh_cortical_gain%s.h5"
+    RH_CORT_GAIN_H5 = "rh_cortical_gain%s.h5"
 
 
 class LeadFieldModelJobNames(Enum):

@@ -95,28 +95,30 @@ if __name__ == "__main__":
             if config.props[ConfigKey.USE_OPENMEEG] == "True":
                 job_head_model = head_model.add_head_model_steps(dax, job_bem_surfaces)
 
-                source_model = SourceModel(subject, trg_subject)
+                source_model = SourceModel(subject, trg_subject, atlas_suffix)
                 job_source_model = source_model.add_source_model_steps(dax, job_head_model, job_mapping_details)
 
-                sensor_model = SensorModel(subject, trg_subject)
+                sensor_model = SensorModel(subject, trg_subject, atlas_suffix)
                 job_sensor_model_lh, job_sensor_model_rh = sensor_model.add_sensor_model_steps(dax, job_source_model)
 
-                lead_field_model = LeadFieldModel(subject, trg_subject)
+                lead_field_model = LeadFieldModel(subject, trg_subject, atlas_suffix)
                 lead_field_model.add_lead_field_model_steps(dax, job_sensor_model_lh, job_sensor_model_rh)
 
             else:
-                seeg_gain_computation = SeegGainComputation(config.props[ConfigKey.SUBJECT])
+                seeg_gain_computation = SeegGainComputation(config.props[ConfigKey.SUBJECT], atlas_suffix)
                 if config.props[ConfigKey.SEEG_GAIN_USE_DP] == "True":
                     seeg_gain_computation.add_seeg_gain_dp_computation_steps(dax, job_seeg_xyz, job_mapping_details)
                 if config.props[ConfigKey.SEEG_GAIN_USE_MRS] == "True":
                     seeg_gain_computation.add_seeg_mrs_gain_computation_steps(dax, job_seeg_xyz, job_mapping_details)
         else:
             if config.props[ConfigKey.EEG_FLAG] == "True":
-                projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT], SensorsType.EEG.value)
+                projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT], SensorsType.EEG.value,
+                                                               atlas_suffix)
                 projection_computation.add_projection_computation_steps(dax, job_mapping_details)
 
             if config.props[ConfigKey.MEG_FLAG] == "True":
-                projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT], SensorsType.MEG.value)
+                projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT], SensorsType.MEG.value,
+                                                               atlas_suffix)
                 projection_computation.add_projection_computation_steps(dax, job_mapping_details)
 
     out_dir = os.path.dirname(daxfile)
