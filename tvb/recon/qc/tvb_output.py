@@ -49,7 +49,7 @@ def create_tvb_dataset(atlas_suffix: AtlasSuffix, mri_direc: os.PathLike,
     aparc_aseg_volume = IOUtils.read_volume(aparc_aseg_file)
 
     volume_service = VolumeService()
-    aparc_aseg_cor_volume = volume_service.change_labels_of_aparc_aseg(aparc_aseg_volume, rm_index_dict,
+    aparc_aseg_cor_volume = volume_service.change_labels_of_aparc_aseg(atlas_suffix, aparc_aseg_volume, rm_index_dict,
                                                                        weights_matrix.shape[0])
     IOUtils.write_volume(os.path.join(out_dir, OutputConvFiles.APARC_ASEG_COR_NII_GZ.value.replace("%s", atlas_suffix)),
                          aparc_aseg_cor_volume)
