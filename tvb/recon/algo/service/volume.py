@@ -3,6 +3,7 @@
 import os
 import numpy
 import scipy.ndimage
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.logger import get_logger
 from tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
 from tvb.recon.io.factory import IOUtils
@@ -284,6 +285,20 @@ class VolumeService(object):
         numpy.save(filepath + "-idx.npy", out_ijk)
         numpy.savetxt(filepath + "-idx.txt", out_ijk, fmt='%d')
 
+    def vol_val_xyz(self, vol, aff, val):
+        vox_idx = numpy.argwhere(vol == val)
+        xyz = aff.dot(numpy.c_[vox_idx, numpy.ones(vox_idx.shape[0])].T)[:3].T
+        return xyz
+
+    def compute_label_volume_centers(self, label_volume, affine=None):
+
+        vol = label_volume
+        aff = affine
+        for val in numpy.unique(vol):
+            xyz = self.vol_val_xyz(vol, aff, val)
+            x, y, z = xyz.mean(axis=0)
+            yield val, (x, y, z)
+
     def label_with_dilation(self, to_label_nii_fname,
                             dilated_nii_fname, out_nii_fname):
         """
@@ -297,6 +312,15 @@ class VolumeService(object):
         dil_mask = IOUtils.read_volume(dilated_nii_fname)
 
         lab, n = scipy.ndimage.label(dil_mask.data)
+
+        # TODO: this change is from tvb-make. Keep it or not? It returns a different result than the old version.
+        lab_xyz = list(self.compute_label_volume_centers(lab, dil_mask.affine_matrix))
+        lab_sort = numpy.r_[:n + 1]
+        # sort labels along AP axis
+        for i, (val, _) in enumerate(sorted(lab_xyz, key=lambda t: t[1][1])):
+            lab_sort[val] = i
+        lab = lab_sort[lab]
+
         mask.data *= lab
         self.logger.info(
             '%d objects found when labeling the dilated volume.', n)
@@ -411,7 +435,10 @@ class VolumeService(object):
             2], numpy.ones(vox.shape[0])].T)[:3].T
         return vox, voxxzy
 
-    def change_labels_of_aparc_aseg(self, volume, mapping_dict, conn_regs_nr):
+    def change_labels_of_aparc_aseg(self, atlas_suffix, volume, mapping_dict, conn_regs_nr):
+        if atlas_suffix == AtlasSuffix.A2009S:
+            volume.data[volume.data == 1000] = 11100
+            volume.data[volume.data == 2000] = 12100
         not_matched = set()
         for i in range(volume.data.shape[0]):
             for j in range(volume.data.shape[1]):
@@ -428,3 +455,13 @@ class VolumeService(object):
         assert (volume.data.min() >= -1 and volume.data.max() < conn_regs_nr)
 
         return volume
+
+    def transform(self, coords, src_img, dest_img, transform_mat):
+        import subprocess
+        coords_str = " ".join([str(x) for x in coords])
+
+        cp = subprocess.run("echo %s | img2imgcoord -mm -src %s -dest %s -xfm %s" \
+                            % (coords_str, src_img, dest_img, transform_mat),
+                            shell=True, stdout=subprocess.PIPE)
+        transformed_coords_str = cp.stdout.decode('ascii').strip().split('\n')[-1]
+        return numpy.array([float(x) for x in transformed_coords_str.split(" ") if x])

@@ -6,6 +6,9 @@ from tvb.recon.algo.service.volume import VolumeService
 from tvb.recon.algo.service.subparcellation import SubparcellationService
 from tvb.recon.algo.service.sensor import SensorService
 from tvb.recon.algo.service.annotation import AnnotationService, DEFAULT_LUT
+from tvb.recon.io.factory import IOUtils
+from tvb.recon.io.sensor import read_sensors_positions
+from tvb.recon.io.generic import GenericIO
 
 try:
     import gdist
@@ -13,25 +16,26 @@ except ImportError:
     warnings.warn(
         'Geodesic distance module unavailable; please pip install gdist.')
 
-
 SUBJECTS_DIR, SUBJECT, FREESURFER_HOME = [os.environ[
-    key] for key in 'SUBJECTS_DIR SUBJECT FREESURFER_HOME'.split()]
+                                              key] for key in 'SUBJECTS_DIR SUBJECT FREESURFER_HOME'.split()]
 
 surfaceService = SurfaceService()
 volumeService = VolumeService()
 subparcelatioService = SubparcellationService()
 sensorService = SensorService()
 annotationService = AnnotationService()
+genericIO = GenericIO()
 
 
-def gen_head_model():
-    sensorService.gen_head_model()
-
-#-----------------------------Freesurfer surfaces------------------------------
+def gen_head_model(subjs=SUBJECTS_DIR, subj=SUBJECT, decimated=False):
+    sensorService.gen_head_model(subjs, subj, decimated)
 
 
-def convert_fs_to_brain_visa(fs_surf):
-    surfaceService.convert_fs_to_brain_visa(fs_surf)
+# -----------------------------Freesurfer surfaces------------------------------
+
+
+def convert_fs_to_brain_visa(fs_surf, bv_surf=None):
+    surfaceService.convert_fs_to_brain_visa(fs_surf, bv_surf)
 
 
 def compute_gdist_mat(surf_name='pial', max_distance=40.0):
@@ -43,7 +47,20 @@ def aseg_surf_conc_annot(surf_path, out_surf_path, annot_path, labels,
     surfaceService.aseg_surf_conc_annot(
         surf_path, out_surf_path, annot_path, labels, lut_path)
 
-#---------------------------------Volumes--------------------------------------
+
+def merge_surfs(surf_lh, surf_rh, out_surf_path):
+    s_lh = IOUtils.read_surface(surf_lh, False)
+    s_rh = IOUtils.read_surface(surf_rh, False)
+    surf = surfaceService.merge_surfaces([s_lh, s_rh])
+    IOUtils.write_surface(out_surf_path, surf)
+
+
+def generate_surface_zip(in_file, out_file):
+    surface = IOUtils.read_surface(in_file, False)
+    IOUtils.write_surface(out_file, surface)
+
+
+# ---------------------------------Volumes--------------------------------------
 
 
 def vol_to_ext_surf_vol(in_vol_path, labels=None, ctx=None,
@@ -76,7 +93,7 @@ def remove_zero_connectivity_nodes(
 def simple_label_config(aparc_fname, out_fname):
     volumeService.simple_label_config(aparc_fname, out_fname)
 
- #-------------------------Surfaces from/to volumes----------------------------
+    # -------------------------Surfaces from/to volumes----------------------------
 
 
 def sample_vol_on_surf(surf_path, vol_path, annot_path, out_surf_path, cras_path,
@@ -85,7 +102,8 @@ def sample_vol_on_surf(surf_path, vol_path, annot_path, out_surf_path, cras_path
     surfaceService.sample_vol_on_surf(surf_path, vol_path, annot_path, out_surf_path, cras_path,
                                       add_string, vertex_neighbourhood, add_lbl, lut_path)
 
-#------------------Subparcellation-subsegmentation-----------------------------
+
+# ------------------Subparcellation-subsegmentation-----------------------------
 
 
 def subparc_files(surf_path, annot_path, out_annot_parc_name, trg_area):
@@ -102,11 +120,14 @@ def connectivity_geodesic_subparc(self, surf_path, annot_path, con_verts_idx, ou
                                       os.environ['FREESURFER_HOME'], DEFAULT_LUT),
                                   out_lut_path=os.path.join(os.environ['FREESURFER_HOME'], DEFAULT_LUT)):
     subparcelatioService.connectivity_geodesic_subparc(surf_path, annot_path, con_verts_idx,
-                                                       out_annot_path=out_annot_path, labels=labels, ctx=ctx, add_string=add_string,
-                                                       parc_area=parc_area, con_sim_aff=con_sim_aff, geod_dist_aff=geod_dist_aff,
+                                                       out_annot_path=out_annot_path, labels=labels, ctx=ctx,
+                                                       add_string=add_string,
+                                                       parc_area=parc_area, con_sim_aff=con_sim_aff,
+                                                       geod_dist_aff=geod_dist_aff,
                                                        structural_connectivity_constraint=structural_connectivity_constraint,
                                                        clustering_mode=clustering_mode,
-                                                       cras_path=cras_path, ref_vol_path=ref_vol_path, consim_path=consim_path,
+                                                       cras_path=cras_path, ref_vol_path=ref_vol_path,
+                                                       consim_path=consim_path,
                                                        in_lut_path=in_lut_path, out_lut_path=out_lut_path)
 
 
@@ -115,11 +136,20 @@ def node_connectivity_metric(
     subparcelatioService.node_connectivity_metric(
         con_mat_path, metric, out_consim_path)
 
-#-------------------------------Contacts---------------------------------------
+
+# -------------------------------Contacts---------------------------------------
 
 
 def periodic_xyz_for_object(lab, val, aff, bw=0.1, doplot=False):
     return sensorService.periodic_xyz_for_object(lab, val, aff, bw, doplot)
+
+
+def compute_seeg_gain_matrix(seeg_xyz, cort_surf, subcort_surf, cort_rm, subcort_rm, out_gain_mat):
+    sensorService.compute_seeg_gain_matrix(seeg_xyz, cort_surf, subcort_surf, cort_rm, subcort_rm, out_gain_mat)
+
+
+def compute_projection_matrix(sensor_positions_file, centers_file, out_matrix):
+    sensorService.compute_sensors_projection(sensor_positions_file, centers_file, out_matrix)
 
 
 if __name__ == '__main__':

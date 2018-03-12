@@ -5,8 +5,8 @@
 
     <!-- The local site contains information about the submit host -->
     <site handle="local" arch="x86_64" os="${OS}">
-        <directory type="shared-scratch" path="${PEGASUSHOME}/scratch">
-            <file-server operation="all" url="file://${PEGASUSHOME}/scratch"/>
+        <directory type="shared-scratch" path="${PEGASUSSCRATCH}">
+            <file-server operation="all" url="file://${PEGASUSSCRATCH}"/>
         </directory>
     </site>
 

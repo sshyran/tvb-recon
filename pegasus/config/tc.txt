@@ -11,6 +11,8 @@ tr mri_convert {
 
 tr recon {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
     profile env "HOME" "${HOME}"
 
     site condorpool {
@@ -219,7 +221,11 @@ tr tck2connectome {
 }
 
 tr convert_output {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/convert_output.sh"
@@ -274,7 +280,11 @@ tr mris_smooth {
 }
 
 tr aseg_concatenation {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/aseg_concatenation.sh"
@@ -299,6 +309,8 @@ tr bbregister {
     profile env "HOME" "${HOME}"
     profile env "FSL_DIR" "${FSL_DIR}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/bbregister.sh"
@@ -320,7 +332,11 @@ tr mri_vol2vol {
 }
 
 tr qc_snapshot {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/qc_snapshot.sh"
@@ -330,11 +346,14 @@ tr qc_snapshot {
     }
 }
 
-tr gen_fs_custom {
+tr gen_mapping_details {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
 
     site condorpool {
-        pfn "${SH_CUSTOM_FILES}/gen_fs_custom.sh"
+        pfn "${SH_CUSTOM_FILES}/gen_mapping_details.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -344,6 +363,8 @@ tr gen_fs_custom {
 tr autorecon3-t2 {
     profile env "HOME" "${HOME}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/autorecon3-t2.sh"
@@ -356,9 +377,213 @@ tr autorecon3-t2 {
 tr autorecon3-flair {
     profile env "HOME" "${HOME}"
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FUNCTIONALS_DIR" "${FUNCTIONALS_DIR}"
 
     site condorpool {
         pfn "${SH_CUSTOM_FILES}/autorecon3-flair.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr mri_binarize {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+
+    site condorpool {
+        pfn "${FREESURFER_HOME}/bin/mri_binarize"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr label_ct_with_dilation {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/label_ct_with_dilation.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr gen_seeg_xyz {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/gen_seeg_xyz.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr gen_schema_txt {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/gen_schema_txt.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr mne_watershed_bem {
+    profile env "MNE_ROOT" "${MNE_ROOT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/mne_watershed_bem.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr convert_to_brain_visa {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${FREESURFER_HOME}/subjects"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/convert_to_brain_visa.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+
+tr gen_head_model {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/gen_head_model.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr om_assemble {
+
+    site condorpool {
+        pfn "/usr/local/bin/om_assemble"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr om_minverser {
+
+    site condorpool {
+        pfn "/usr/local/bin/om_minverser"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr om_gain {
+
+    site condorpool {
+        pfn "/usr/local/bin/om_gain"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr merge_surfaces {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/merge_surfaces.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr compute_seeg_gain {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/compute_seeg_gain.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr compute_projection_matrix {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/compute_projection_matrix.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr mri_surf2surf {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/mri_surf2surf.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr mris_decimate {
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+
+    site condorpool {
+        pfn "${FREESURFER_HOME}/bin/mris_decimate"
+        arch "x86_64"
+        os "${OS}"
+        type "INSTALLED"
+    }
+}
+
+tr generate_surface_zip {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/generate_surface_zip.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"

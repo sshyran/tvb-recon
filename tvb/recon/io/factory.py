@@ -2,13 +2,12 @@
 
 import os
 from tvb.recon.io.annotation import H5AnnotationIO, AnnotationIO
-from tvb.recon.io.surface import GiftiSurfaceIO, FreesurferIO, H5SurfaceIO, ZipSurfaceIO
+from tvb.recon.io.surface import GiftiSurfaceIO, FreesurferIO, H5SurfaceIO, ZipSurfaceIO, BrainVisaIO
 from tvb.recon.io.volume import VolumeIO, H5VolumeIO
 from tvb.recon.model.constants import GIFTI_EXTENSION, H5_EXTENSION
 
 
 class IOUtils(object):
-
     @staticmethod
     def __get_extension(file_path):
         _, extension = os.path.splitext(file_path)
@@ -25,6 +24,8 @@ class IOUtils(object):
                 return H5SurfaceIO()
             elif extension == ".zip":
                 return ZipSurfaceIO()
+            elif extension == ".tri":
+                return BrainVisaIO()
             else:
                 return FreesurferIO()
 

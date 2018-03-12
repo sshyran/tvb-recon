@@ -1,6 +1,8 @@
-# file-based replica catalog: 2017-07-26T11:52:22.361+03:00
-t1_input.nii.gz file:///WORK/datasets/Cleveland/TVB2_raw/TVB2d.nii.gz site="local"
-t2_input.nii file:///WORK/datasets/Cleveland/TVB2_raw/TVB2e.nii site="local"
-dwi_input.mif file:///WORK/datasets/Cleveland/TVB2_raw/dwi_raw.mif site="local"
+# file-based replica catalog: 2017-10-27T17:44:33.859+03:00
+t1_input.nii.gz file://${path}/${subject}j.nii site="local"
+dwi_input_no_grad.nii file://${path}/${subject}f.nii site="local"
+dwi.bvec file://${path}/${subject}f.bvec site="local"
+dwi.bval file://${path}/${subject}f.bval site="local"
+ct_input.nii.gz file://$path/MRIelectrode.nii.gz site="local"
 fs_color_lut.txt file:///WORK/FS_NEW/freesurfer/FreeSurferColorLUT.txt site="local"
-fs_default.txt file:///WORK/MRtrix/mrtrix3/src/connectome/tables/fs_default.txt site="local"
+fs_default.txt file:///WORK/MRtrix/mrtrix3/src/connectome/tables/fs_default.txt site="local

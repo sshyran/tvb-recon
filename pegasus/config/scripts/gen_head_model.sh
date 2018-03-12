@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
 source ${ANACONDA_ACTIVATE} ${PYTHON3_ENVIRONMENT}
-
 export FREESURFER_HOME
 export SUBJECTS_DIR
-source ${FREESURFER_HOME}/FreeSurferEnv.sh
+export SUBJECT=$1
 
-python -m tvb.recon.qc.tvb_output -p $3 $PWD $PWD $1 $2 $PWD
+python <<EOF
+from tvb.recon.algo.reconutils import gen_head_model
+gen_head_model(decimated=$2)
+EOF

@@ -15,8 +15,10 @@ class ConfigKey(Enum):
     FLAIR_FLAG = "flair.flag"
     FLAIR_FRMT = "flair.format"
     OPENMP_THRDS = "openmp.threads"
+    ATLAS = "parcelation.atlas"
     DWI_IS_REVERSED = "dwi.is.reversed"
     DWI_FRMT = "dwi.format"
+    DWI_USE_GRADIENT = "dwi.use.gradient"
     DWI_MULTI_SHELL = "dwi.multi.shell"
     MRTRIX_THRDS = "mrtrix.threads"
     DWI_SCAN_DIRECTION = "dwi.scan.direction"
@@ -27,6 +29,19 @@ class ConfigKey(Enum):
     STRMLNS_SIFT_NO = "strmlns_sift_no"
     STRMLNS_LEN = "strmlns_len"
     STRMLNS_STEP = "strmlns_step"
+    CT_FLAG = "ct.flag"
+    CT_FRMT = "ct.format"
+    BEM_SURFACES = "bem.surfaces"
+    USE_OPENMEEG = "use.openmeeg"
+    CT_ELEC_INTENSITY_TH = "ct.elec.intensity.th"
+    SEEG_FLAG = "seeg.flag"
+    SEEG_GAIN_USE_DP = "seeg.gain.use.dp"
+    SEEG_GAIN_USE_MRS = "seeg.gain.use.mrs"
+    EEG_FLAG = "eeg.flag"
+    MEG_FLAG = "meg.flag"
+    RESAMPLE_FLAG = "resample.flag"
+    TRGSUBJECT = "trgsubject"
+    DECIM_FACTOR = "decim.factor"
 
 
 class Configuration(object):
@@ -51,3 +66,9 @@ class Configuration(object):
                 result_dict[key] = value.strip()
             LOGGER.debug("Read patient configuration %s" % result_dict)
             return result_dict
+
+
+class SensorsType(Enum):
+    SEEG = "seeg"
+    EEG = "eeg"
+    MEG = "meg"

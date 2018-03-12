@@ -4,9 +4,10 @@ from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class DWIProcessing(object):
-    def __init__(self, dwi_reversed=False, dwi_frmt="mif", mrtrix_thrds="2", dwi_pe_dir="ap"):
+    def __init__(self, dwi_reversed=False, dwi_frmt="mif", use_gradient=False, mrtrix_thrds="2", dwi_pe_dir="ap"):
         self.dwi_reversed = dwi_reversed
         self.dwi_format = dwi_frmt
+        self.use_gradient = use_gradient
         self.mrtrix_threads = mrtrix_thrds
         self.dwi_pe_dir = dwi_pe_dir
         self.qc_snapshots = QCSnapshots.get_instance()
@@ -14,6 +15,22 @@ class DWIProcessing(object):
     def add_dwi_processing_steps(self, dax):
         last_job = None
         dwi_input = File(Inputs.DWI_INPUT.value)
+
+        if self.use_gradient == "True":
+            dwi_input_no_gradient = File(Inputs.DWI_INPUT_NO_GRAD.value)
+            bvec_input = File(Inputs.DWI_BVEC.value)
+            bval_input = File(Inputs.DWI_BVAL.value)
+
+            job_gradient = Job(DWIJobNames.MRCONVERT.value)
+            job_gradient.addArguments(dwi_input_no_gradient, "-fsl", bvec_input, bval_input, dwi_input)
+            job_gradient.uses(dwi_input_no_gradient, link=Link.INPUT)
+            job_gradient.uses(bvec_input, link=Link.INPUT)
+            job_gradient.uses(bval_input, link=Link.INPUT)
+            job_gradient.uses(dwi_input, link=Link.OUTPUT, transfer=True, register=True)
+
+            last_job = job_gradient
+            dax.addJob(job_gradient)
+
         dwi_conv_output = None
 
         if self.dwi_reversed == "True":
@@ -25,7 +42,8 @@ class DWIProcessing(object):
                     # TODO: is mrconvert interactive for reversed aquisition data? Should we use the next lines?
                     # mrchoose 0 mrconvert $DATA/DWI ./dwi_raw.mif -force
                     # mrchoose 1 mrconvert $DATA/DWI ./dwi_raw_re.mif -force
-                    print "Not implemented!"
+                    print
+                    "Not implemented!"
                 else:
                     dwi_conv_output = File(DWIFiles.DWI_RAW_MIF.value)
                     job1 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI to MIF")
@@ -33,6 +51,8 @@ class DWIProcessing(object):
                     job1.uses(dwi_input, link=Link.INPUT)
                     job1.uses(dwi_conv_output, link=Link.OUTPUT, transfer=False, register=False)
                     dax.addJob(job1)
+                    if last_job is not None:
+                        dax.depends(job1, last_job)
 
                     dwi_re_input = File(DWIFiles.DWI_RE_NII_GZ.value)
                     dwi_re = File(DWIFiles.DWI_RE_MIF.value)
@@ -63,13 +83,17 @@ class DWIProcessing(object):
         else:
             job1 = None
 
-            if self.dwi_format != "mif":
+            if self.dwi_format != "mif" and self.use_gradient != "True":
                 dwi_conv_output = File(DWIFiles.DWI_RAW_MIF.value)
                 job1 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI to MIF")
                 job1.addArguments(dwi_input, dwi_conv_output)
                 job1.uses(dwi_input, link=Link.INPUT)
                 job1.uses(dwi_conv_output, link=Link.OUTPUT, transfer=False, register=False)
+
                 dax.addJob(job1)
+                if last_job is not None:
+                    dax.depends(job1, last_job)
+
 
             if dwi_conv_output is None:
                 dwi_conv_output = dwi_input
@@ -91,7 +115,7 @@ class DWIProcessing(object):
         job3 = Job(DWIJobNames.DWI2MASK.value, node_label="Create DWI mask")
         job3.addArguments(dwi_pre_output, mask_output, "-nthreads", self.mrtrix_threads)
         job3.uses(dwi_pre_output, link=Link.INPUT)
-        job3.uses(mask_output, link=Link.OUTPUT, transfer=True, register=False)
+        job3.uses(mask_output, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job3)
 
         dax.depends(job3, last_job)
@@ -109,7 +133,7 @@ class DWIProcessing(object):
         job_convert_mask = Job(DWIJobNames.MRCONVERT.value)
         job_convert_mask.addArguments(mask_output, file_mask_nii_gz)
         job_convert_mask.uses(mask_output, link=Link.INPUT)
-        job_convert_mask.uses(file_mask_nii_gz, link=Link.OUTPUT, transfer=False, register=False)
+        job_convert_mask.uses(file_mask_nii_gz, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job_convert_mask)
 
         dax.depends(job_convert_mask, job3)

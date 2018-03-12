@@ -16,7 +16,7 @@ from scipy.sparse.csgraph import connected_components, shortest_path
 from sklearn.metrics.pairwise import paired_distances
 from scipy.spatial.distance import cdist
 from copy import deepcopy
-from .annotation import default_lut_path  # TODO into fs module
+from tvb.recon.algo.service.annotation import default_lut_path  # TODO into fs module
 
 
 class SurfaceService(object):
@@ -51,9 +51,11 @@ class SurfaceService(object):
         ik = k - i
         return numpy.sqrt(numpy.sum(numpy.cross(ij, ik) ** 2, axis=1)) / 2.0
 
-    def convert_fs_to_brain_visa(self, in_surf_path):
+    def convert_fs_to_brain_visa(self, in_surf_path, out_surf_path=None):
         surface = IOUtils.read_surface(in_surf_path, False)
-        IOUtils.write_surface(in_surf_path + '.tri', surface)
+        if out_surf_path is None:
+            out_surf_path = in_surf_path + '.tri'
+        IOUtils.write_surface(out_surf_path, surface)
 
     def convert_bem_to_tri(self, surfaces_directory_path):
         surfs_glob = '%s/*_surface-low' % (surfaces_directory_path)
@@ -486,7 +488,9 @@ class SurfaceService(object):
         affinity = con[v2n - 1, :][:, v2n - 1]
         return affinity
 
-    def compute_areas_for_regions(self, regions: list, surface: Surface, region_mapping: list) -> numpy.array:
+    # TODO: keep the commented methods definition in py3
+    # def compute_areas_for_regions(self, regions: list, surface: Surface, region_mapping: list) -> numpy.array:
+    def compute_areas_for_regions(self, regions, surface, region_mapping):
         """Compute the areas of given regions"""
 
         region_surface_area = numpy.zeros(len(regions))
@@ -503,7 +507,8 @@ class SurfaceService(object):
 
         return region_surface_area
 
-    def compute_orientations_for_regions(self, regions, surface, region_mapping) -> numpy.ndarray:
+    # def compute_orientations_for_regions(self, regions, surface, region_mapping) -> numpy.ndarray:
+    def compute_orientations_for_regions(self, regions, surface, region_mapping):
         """Compute the orientation of given regions from vertex_normals and region mapping"""
 
         average_orientation = numpy.zeros((len(regions), 3))
@@ -517,7 +522,8 @@ class SurfaceService(object):
 
         return average_orientation
 
-    def compute_centers_for_regions(self, regions, surface, region_mapping) -> numpy.ndarray:
+    # def compute_centers_for_regions(self, regions, surface, region_mapping) -> numpy.ndarray:
+    def compute_centers_for_regions(self, regions, surface, region_mapping):
         region_centers = numpy.zeros((len(regions), 3))
         for i, k in enumerate(regions):
             vert = surface.vertices[numpy.array(region_mapping) == k, :]
