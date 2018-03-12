@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# This file expects 2 path arguments: 
+#   1. $1 = Path to the patient configurations folder (contains: environment_config.sh, patient_flow.properties, 
+#                                                       pegasus.properties, rc_out.txt, rc.txt, sites.xml, tc.txt)
+#   2. $2 = Path to the patient dax folder (contains: main_bnm.dax, main_bnm.dot, main_bnm.png)
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
