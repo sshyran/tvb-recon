@@ -39,8 +39,9 @@ class Resampling(object):
 
         for idx, hemi in enumerate(["lh", "rh"]):
             job1 = Job(ResamplingJobNames.MRI_SURF2SURF.value)
-            job1.addArguments("--srcsubject", self.subject, "--trgsubject", self.trg_subject, "--hemi", hemi,
-                              "--sval-xyz", "pial", "--tval", "pial-%s" % self.trg_subject, "--tval-xyz", t1_mgz)
+            job1.addArguments(self.atlas_suffix, "--srcsubject", self.subject, "--trgsubject", self.trg_subject,
+                              "--hemi", hemi, "--sval-xyz", "pial", "--tval", "pial-%s" % self.trg_subject,
+                              "--tval-xyz", t1_mgz)
             job1.uses(t1_mgz, link=Link.INPUT)
             job1.uses(pials[idx], link=Link.INPUT)
             job1.uses(pials_resamp[idx], link=Link.OUTPUT, transfer=True, register=True)
@@ -49,8 +50,8 @@ class Resampling(object):
             dax.depends(job1, job_recon)
 
             job2 = Job(ResamplingJobNames.MRI_SURF2SURF.value)
-            job2.addArguments("--srcsubject", self.subject, "--trgsubject", self.trg_subject, "--hemi", hemi,
-                              "--sval-annot", aparcs[idx], "--tval", aparcs_resamp[idx])
+            job2.addArguments(self.atlas_suffix, "--srcsubject", self.subject, "--trgsubject", self.trg_subject,
+                              "--hemi", hemi, "--sval-annot", aparcs[idx], "--tval", aparcs_resamp[idx])
             job2.uses(aparcs[idx], link=Link.INPUT)
             job2.uses(aparcs_resamp[idx], link=Link.OUTPUT, transfer=True, register=True)
             dax.addJob(job2)
@@ -82,7 +83,6 @@ class Resampling(object):
         self.qc_snapshots.add_surf_annot_snapshot_step(dax, [job5, job6], rh_centered_pial, rh_aparc_annot_resamp)
 
         return job6
-
 
         # def add_annotation_resampling_steps(self, dax, job_aseg):
         # lh_aseg = File(AsegFiles.LH_ASEG.value)

@@ -58,7 +58,7 @@ class T1Processing(object):
         norm_mgz_vol = File(T1Files.NORM_MGZ.value)
         brain_mgz_vol = File(T1Files.BRAIN_MGZ.value)
         job2 = Job(T1JobNames.RECON_ALL.value, node_label="Recon-all for T1")
-        job2.addArguments(self.subject, t1_output, self.openmp_threads)
+        job2.addArguments(self.subject, t1_output, self.openmp_threads, self.atlas_suffix)
         job2.uses(t1_output, link=Link.INPUT)
         job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=True, register=True)
         job2.uses(norm_mgz_vol, link=Link.OUTPUT, transfer=True, register=True)
