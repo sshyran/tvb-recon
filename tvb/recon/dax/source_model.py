@@ -5,9 +5,10 @@ from tvb.recon.dax.mappings import T1Files, ResamplingJobNames, SourceModelFiles
 
 
 class SourceModel(object):
-    def __init__(self, subject, trg_subject):
+    def __init__(self, subject, trg_subject, atlas_suffix):
         self.subject = subject
         self.trg_subject = trg_subject
+        self.atlas_suffix = atlas_suffix
 
     def add_source_model_steps(self, dax, job_head_model, job_mapping_details):
         t1_mgz = File(T1Files.T1_MGZ.value)
@@ -35,12 +36,12 @@ class SourceModel(object):
         rh_white_ssm = File(SourceModelFiles.RH_WHITE_RESAMP_SSM.value % self.trg_subject)
         whites_resamp_ssm = [lh_white_ssm, rh_white_ssm]
 
-        lh_dipoles_file = File(AsegFiles.LH_DIPOLES_TXT.value)
-        rh_dipoles_file = File(AsegFiles.RH_DIPOLES_TXT.value)
+        lh_dipoles_file = File(AsegFiles.LH_DIPOLES_TXT.value % self.atlas_suffix)
+        rh_dipoles_file = File(AsegFiles.RH_DIPOLES_TXT.value % self.atlas_suffix)
         dipoles_files = [lh_dipoles_file, rh_dipoles_file]
 
-        lh_white_dsm = File(SourceModelFiles.LH_WHITE_RESAMP_DSM.value % self.trg_subject)
-        rh_white_dsm = File(SourceModelFiles.RH_WHITE_RESAMP_DSM.value % self.trg_subject)
+        lh_white_dsm = File(SourceModelFiles.LH_WHITE_RESAMP_DSM.value % (self.trg_subject, self.atlas_suffix))
+        rh_white_dsm = File(SourceModelFiles.RH_WHITE_RESAMP_DSM.value % (self.trg_subject, self.atlas_suffix))
         whites_resamp_dsm = [lh_white_dsm, rh_white_dsm]
 
         last_job = None

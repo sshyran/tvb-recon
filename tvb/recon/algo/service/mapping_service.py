@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.logger import get_logger
 from tvb.recon.model.annotation import Annotation
 
@@ -8,18 +9,29 @@ class MappingService(object):
     CORT_TYPE = "aparc"
     SUBCORT_TYPE = "aseg"
 
-    #TODO: this works only for a2009s atlas. Needs ctx-lh- and ctx-rh- for desikan-killian
-    fs_prefix_lh = "ctx_lh_"
-    fs_prefix_rh = "ctx_rh_"
-    unknown_subcort_region = "Unknown"
-    unknown_region = "unknown"
-    corpuscallosum_region = "corpuscallosum"
-    corpuscallosum_region_a2009s = "Corpus_callosum"
+    FS_PREFIX_LH_DEFAULT = "ctx-lh-"
+    FS_PREFIX_RH_DEFAULT = "ctx-rh-"
+    FS_PREFIX_LH_A2009S = "ctx_lh_"
+    FS_PREFIX_RH_A2009S = "ctx_rh_"
+
+    UNKNOWN_REGION = "unknown"
+    CORPUSCALLOSUM_REGION = "corpuscallosum"
+    UNKNOWN_SUBCORTICAL_REGION = "Unknown"
+    CORPUSCALLOSUM_REGION_A2009S = "Corpus_callosum"
+
+    atlas_suffix = AtlasSuffix.DEFAULT
+    fs_prefix_lh = FS_PREFIX_LH_DEFAULT
+    fs_prefix_rh = FS_PREFIX_RH_DEFAULT
 
     logger = get_logger(__name__)
 
-    def __init__(self, cort_annot_lh: Annotation, cort_annot_rh: Annotation, subcort_annot_lh: Annotation,
-                 subcort_annot_rh: Annotation):
+    def __init__(self, atlas_suffix: AtlasSuffix, cort_annot_lh: Annotation, cort_annot_rh: Annotation,
+                 subcort_annot_lh: Annotation, subcort_annot_rh: Annotation):
+        self.atlas_suffix = atlas_suffix
+        if atlas_suffix == AtlasSuffix.A2009S:
+            self.fs_prefix_lh = self.FS_PREFIX_LH_A2009S
+            self.fs_prefix_rh = self.FS_PREFIX_RH_A2009S
+
         self.cort_lut_dict = self.generate_lut_dict_from_annot(cort_annot_lh, cort_annot_rh, self.CORT_TYPE, 0)
         self.subcort_lut_dict = self.generate_lut_dict_from_annot(subcort_annot_lh, subcort_annot_rh,
                                                                   self.SUBCORT_TYPE, len(self.cort_lut_dict))
@@ -50,9 +62,13 @@ class MappingService(object):
         vtx_rm_unique_vals = numpy.unique(vtx_rm)
 
         region_names = annot.region_names
+        for idx, region_name in enumerate(region_names):
+            if self.atlas_suffix == AtlasSuffix.A2009S:
+                if "&" in region_name:
+                    region_names[idx] = region_name.replace("&", "_and_")
 
-        for unwanted_region in (self.unknown_region, self.unknown_subcort_region, self.corpuscallosum_region,
-                                self.corpuscallosum_region_a2009s):
+        for unwanted_region in (self.UNKNOWN_REGION, self.UNKNOWN_SUBCORTICAL_REGION, self.CORPUSCALLOSUM_REGION,
+                                self.CORPUSCALLOSUM_REGION_A2009S):
             if unwanted_region in region_names and region_names.index(unwanted_region) in vtx_rm_unique_vals:
                 self.logger.warn("This annotation contains vertices for %s" % unwanted_region)
 
@@ -63,8 +79,11 @@ class MappingService(object):
             self.logger.warn("This annotation contains vertices associated to values outside the interval [ %d, %d]"
                              % (0, len(region_names) - 1))
             self.logger.warn("These values are: %s" % outside_range_values)
-            self.logger.info("Vertices mapped to these values will be mapped to %s" % self.unknown_region)
-            region_names_to_keep.append(self.unknown_subcort_region)
+            self.logger.info("Vertices mapped to these values will be mapped to %s" % self.UNKNOWN_REGION)
+            if self.atlas_suffix == AtlasSuffix.A2009S:
+                region_names_to_keep.append(self.UNKNOWN_SUBCORTICAL_REGION)
+            else:
+                region_names_to_keep.append(self.UNKNOWN_REGION)
 
         for idx, name in enumerate(region_names_to_keep):
             annot_dict[idx] = name
@@ -145,13 +164,11 @@ class MappingService(object):
 
         src_to_trg = dict()
         for trg_name, trg_ind in trg_names_labels_dict.items():
-            if "&" in trg_name:
-                trg_name = trg_name.replace("&", "_and_")
             src_ind = lut_idx_to_name_dict.get(trg_name, None)
             if src_ind is not None:
-                if trg_name == self.unknown_subcort_region:
+                if trg_name == self.UNKNOWN_SUBCORTICAL_REGION:
                     self.logger.warn(
-                        "The subcortical surfaces contain the region: %s and it will be mapped to -1 for aparc+aseg" % self.unknown_subcort_region)
+                        "The subcortical surfaces contain the region: %s and it will be mapped to -1 for aparc+aseg" % self.UNKNOWN_SUBCORTICAL_REGION)
                     src_to_trg[src_ind] = -1
                 else:
                     src_to_trg[src_ind] = trg_ind

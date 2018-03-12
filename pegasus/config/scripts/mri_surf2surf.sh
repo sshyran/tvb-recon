@@ -3,28 +3,28 @@
 export FREESURFER_HOME
 export SUBJECTS_DIR
 source ${FREESURFER_HOME}/FreeSurferEnv.sh
-export TRGSUBJECT=$4
-export SUBJECT=$2
+export TRGSUBJECT=$5
+export SUBJECT=$3
 
 f=$PWD
 
-mri_surf2surf $@
+mri_surf2surf ${@:2}
 
-if [ $8 == "pial" ] || [ $8 == "white" ]
+if [ $9 == "pial" ] || [ $9 == "white" ]
 then
     cd ${SUBJECTS_DIR}/${TRGSUBJECT}/surf
-    if [ $6 == "lh" ]
+    if [ $7 == "lh" ]
     then
-        mv lh.$8-${TRGSUBJECT} $f
+        mv lh.$9-${TRGSUBJECT} $f
     else
-        mv rh.$8-${TRGSUBJECT} $f
+        mv rh.$9-${TRGSUBJECT} $f
     fi
 else
     cd ${SUBJECTS_DIR}/${TRGSUBJECT}/label
-    if [ $6 == "lh" ]
+    if [ $7 == "lh" ]
     then
-        cp lh.aparc-${TRGSUBJECT}.annot $f
+        cp lh.aparc-${TRGSUBJECT}$1.annot $f
     else
-        cp rh.aparc-${TRGSUBJECT}.annot $f
+        cp rh.aparc-${TRGSUBJECT}$1.annot $f
     fi
 fi

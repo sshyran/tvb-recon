@@ -20,8 +20,7 @@ fi
 
 cd ${SUBJECTS_DIR}/$1/mri
 cp T1.mgz $f
-cp aparc+aseg.mgz $f
-cp aparc.a2009s+aseg.mgz $f
+cp aparc$4+aseg.mgz $f
 cp norm.mgz $f
 cp brain.mgz $f
 
@@ -32,7 +31,5 @@ cp lh.white $f
 cp rh.white $f
 
 cd ../label
-cp lh.aparc.annot $f
-cp rh.aparc.annot $f
-cp lh.aparc.a2009s.annot $f
-cp rh.aparc.a2009s.annot $f
+cp lh.aparc$4.annot $f
+cp rh.aparc$4.annot $f

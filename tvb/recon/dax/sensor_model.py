@@ -3,9 +3,10 @@ from tvb.recon.dax.mappings import SEEGCompFiles, SensorModelFiles, HeadModelJob
 
 
 class SensorModel(object):
-    def __init__(self, subject, trg_subject):
+    def __init__(self, subject, trg_subject, atlas_suffix):
         self.subject = subject
         self.trg_subject = trg_subject
+        self.atlas_suffix = atlas_suffix
 
     def add_sensor_model_steps(self, dax, job_source_model):
         # TODO: seeg positions file should contain only positions, not labels in order to work with OpenMEEG
@@ -33,8 +34,8 @@ class SensorModel(object):
 
         dax.depends(job1, job_source_model)
 
-        lh_white_dsm = File(SourceModelFiles.LH_WHITE_RESAMP_DSM.value % self.trg_subject)
-        lh_ds2ipm_file = File(SensorModelFiles.LH_DS2IPM.value % self.trg_subject)
+        lh_white_dsm = File(SourceModelFiles.LH_WHITE_RESAMP_DSM.value % (self.trg_subject, self.atlas_suffix))
+        lh_ds2ipm_file = File(SensorModelFiles.LH_DS2IPM.value % (self.trg_subject, self.atlas_suffix))
 
         job2 = Job(HeadModelJobNames.OM_ASSEMBLE.value)
         job2.addArguments("-ds2ipm", head_model_geom, head_model_cond, lh_white_dsm, seeg_xyz, lh_ds2ipm_file)
@@ -49,8 +50,8 @@ class SensorModel(object):
 
         dax.depends(job2, job1)
 
-        rh_white_dsm = File(SourceModelFiles.RH_WHITE_RESAMP_DSM.value % self.trg_subject)
-        rh_ds2ipm_file = File(SensorModelFiles.RH_DS2IPM.value % self.trg_subject)
+        rh_white_dsm = File(SourceModelFiles.RH_WHITE_RESAMP_DSM.value % (self.trg_subject, self.atlas_suffix))
+        rh_ds2ipm_file = File(SensorModelFiles.RH_DS2IPM.value % (self.trg_subject, self.atlas_suffix))
 
         job3 = Job(HeadModelJobNames.OM_ASSEMBLE.value)
         job3.addArguments("-ds2ipm", head_model_geom, head_model_cond, rh_white_dsm, seeg_xyz, rh_ds2ipm_file)
