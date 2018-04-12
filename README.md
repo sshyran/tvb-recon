@@ -161,6 +161,6 @@ The automatized workflow is based on:
 	Prepare environment:
 	- tar xzf ../pegasus-binary-4.8.1-x86_64_macos_10.tar.gz
 	- export PATH=../pegasus-4.8.1/bin/:$PATH
-	<br> Check it works by running: pegasus-status
+	- check it works by running: pegasus-status
 
 [![Build Status](https://travis-ci.org/the-virtual-brain/tvb-recon.svg?branch=master)](https://travis-ci.org/the-virtual-brain/tvb-recon) [![Coverage Status](https://coveralls.io/repos/github/the-virtual-brain/tvb-recon/badge.svg)](https://coveralls.io/github/the-virtual-brain/tvb-recon)
