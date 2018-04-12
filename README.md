@@ -30,8 +30,7 @@ We are using the Pegasus WMS in order to connect and automatize the pipeline ste
 ## Data structure
 For an automated pipeline run, the patient data is divided in three categories:
 - raw data
-    <br> Usually scans, that are used as input files for the pipeline.
-    <br> e.g. T1, DWI, CT
+    <br> Usually scans, that are used as input files for the pipeline (e.g. T1, DWI, CT).
 - configurations
     <br> This is a folder with configuration files. Each configuration file is described in the <b>How to launch</b> section. 
     <br> This folder is patient specific. These files should be filled in by the user or generated automatically with the <b>run_sequential.py</b> described also in <b>How to launch</b> section.
@@ -61,8 +60,9 @@ There are 2 available entry points for the pipeline. They are both under <i>pega
 
 The pipeline can be started using one of the following entry points:
 - <b>main_pegasus.sh</b>
-    <br> This is the most straight-forward one. It starts one pipeline run for a single patient based on a set of predefined configurations.
-    <br> Command to launch the pipeline with this script: <br><b><i>sh main_pegasus.sh path_to_configurations_folder path_to_dax_folder</i></b>
+    <br> This is the most straight-forward one. It starts one pipeline run for a single patient based on a set of predefined configurations. Command to launch the pipeline with this script: 
+    <br><b><i>sh main_pegasus.sh path_to_configurations_folder path_to_dax_folder</i></b>
+    
     <br> The arguments:
     - <i>path_to_configurations_folder</i> represents the path to the patient configuration files (e.g. data_folder/configurations) 
     - <i>path_to_dax_folder</i> represents the folder where the dax will be generated (e.g. data_folder/configurations/dax)
@@ -136,9 +136,30 @@ The pipeline steps are dependent on the following external tools:
 	<br> OpenMEEG can be used for sensor computations.
 
 The automatized workflow is based on:
-- <b>Pegasus</b>
-	<br> This is the workflow engine we have used for automatizing the pipeline steps.
 - <b>HTCondor</b>
 	<br> Pegasus uses HTCondor as a job scheduler.
+	<br> Download the tarballs (current stable release) from here: <l>http://research.cs.wisc.edu/htcondor/downloads/</l>
+	<br> Install for MacOS: 
+	- tar xzf condor-8.6.9-x86_64_MacOSX-stripped.tar.gz
+	- cd condor-8.6.9-x86_64_MacOSX10-stripped
+	- ./condor_install --type=execute, manager, submit
+	
+    <br>Prepare environment:
+    - optionally, it may need the next lines inside condor_config: 
+        - use ROLE : Personal
+	    - NETWORK_INTERFACE = $(CONDOR_HOST)
+	    - COLLECTOR_NAME = Personal Condor at $(CONDOR_HOST)
+	- export CONDOR_CONFIG=../condor-8.6.9-x86_64_MacOSX10-stripped/etc/condor_config
+    - source ../condor-8.6.9-x86_64_MacOSX10-stripped/condor.sh
+    - start it with: condor_master
+    - check it works by running: condor_status
+
+- <b>Pegasus</b>
+	<br> This is the workflow engine we have used for automatizing the pipeline steps.
+	<br> Download tarball for MacOSX from here: <l>https://pegasus.isi.edu/downloads/?filename=4.8.1%2Fpegasus-binary-4.8.1-x86_64_macos_10.tar.gz</l>
+	<br> Prepare environment:
+	- tar xzf ../pegasus-binary-4.8.1-x86_64_macos_10.tar.gz
+	- export PATH=../pegasus-4.8.1/bin/:$PATH
+	<br> Check it works by running: pegasus-status
 
 [![Build Status](https://travis-ci.org/the-virtual-brain/tvb-recon.svg?branch=master)](https://travis-ci.org/the-virtual-brain/tvb-recon) [![Coverage Status](https://coveralls.io/repos/github/the-virtual-brain/tvb-recon/badge.svg)](https://coveralls.io/github/the-virtual-brain/tvb-recon)
