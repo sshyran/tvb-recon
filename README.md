@@ -63,7 +63,7 @@ The pipeline can be started using one of the following entry points:
     <br> This is the most straight-forward one. It starts one pipeline run for a single patient based on a set of predefined configurations. Command to launch the pipeline with this script: 
     <br><b><i>sh main_pegasus.sh path_to_configurations_folder path_to_dax_folder</i></b>
     
-    <br> The arguments:
+    The arguments:
     - <i>path_to_configurations_folder</i> represents the path to the patient configuration files (e.g. data_folder/configurations) 
     - <i>path_to_dax_folder</i> represents the folder where the dax will be generated (e.g. data_folder/configurations/dax)
     <br> This entry point has the disadvantage that the user should manually fill in all the configuration files.
