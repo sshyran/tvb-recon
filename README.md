@@ -66,7 +66,8 @@ The pipeline can be started using one of the following entry points:
     The arguments:
     - <i>path_to_configurations_folder</i> represents the path to the patient configuration files (e.g. data_folder/configurations) 
     - <i>path_to_dax_folder</i> represents the folder where the dax will be generated (e.g. data_folder/configurations/dax)
-    <br> This entry point has the disadvantage that the user should manually fill in all the configuration files.
+    
+    This entry point has the disadvantage that the user should manually fill in all the configuration files.
 
 - <b>run_sequential.py</b> 
     <br> This is a little more complex. It is used to start pipeline runs for a list of patients with similar configurations. As the name is suggesting, the runs will be started sequentially.
