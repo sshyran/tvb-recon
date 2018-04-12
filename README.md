@@ -144,7 +144,7 @@ The automatized workflow is based on:
 	- cd condor-8.6.9-x86_64_MacOSX10-stripped
 	- ./condor_install --type=execute, manager, submit
 	
-    <br>Prepare environment:
+    Prepare environment:
     - optionally, it may need the next lines inside condor_config: 
         - use ROLE : Personal
 	    - NETWORK_INTERFACE = $(CONDOR_HOST)
@@ -157,7 +157,8 @@ The automatized workflow is based on:
 - <b>Pegasus</b>
 	<br> This is the workflow engine we have used for automatizing the pipeline steps.
 	<br> Download tarball for MacOSX from here: <l>https://pegasus.isi.edu/downloads/?filename=4.8.1%2Fpegasus-binary-4.8.1-x86_64_macos_10.tar.gz</l>
-	<br> Prepare environment:
+	
+	Prepare environment:
 	- tar xzf ../pegasus-binary-4.8.1-x86_64_macos_10.tar.gz
 	- export PATH=../pegasus-4.8.1/bin/:$PATH
 	<br> Check it works by running: pegasus-status
