@@ -1,17 +1,23 @@
 # Reconstruction pipeline
 
 This pipeline is offering a solution to build full brain network models starting from standard structural MR scans.
-It is used to preprocess the MR scans in order to get actual files that are compatible with TVB. The result can be later uploaded in TVB. 
+It is used to preprocess the MR scans in order to get actual files that are compatible with TVB. The result can be later uploaded in TVB or used independently for modeling. 
 
 The mandatory inputs are DWI and T1 scans. Optionally, CT scans can be given as input, if sensors preprocessing is needed.
 
-We are using the Pegasus WMS in order to connect and automatize the pipeline steps.
+We are using the [Pegasus WMS](https://pegasus.isi.edu/) in order to connect and automatize the pipeline steps. Pegasus is distributed under the Apache v2.0 license.
 
 ## Folder structure
 - data
 	<br> Here is where we keep some example data files. Some of them are intermediate files generated during pipeline run. There is also a minimal set of files that defines a TVB head. These files are currently used only for tests.  
 - docs
-	<br> This folder holds some visual hints of the dependencies between the pipeline steps. For example, there is an overview diagram representing the pipeline stages. These stages are defined by scripts that can be found inside the bin folder. On the other hand, there is also an example graph diagram which is displaying the more detailed steps. This kind of diagram is automatically generated at each pipeline run.  
+	<br> This folder holds some visual hints of the dependencies between the pipeline steps. 
+	<br> For example, there is an overview diagram representing the pipeline stages. 
+	These stages are defined by scripts that can be found inside the bin folder. 
+	These scripts are no longer maintained, nor used directly in the pipeline run. 
+	They belong under "docs" because are now used only for documentation purposes, or for some extreme partial debugging. 
+	<br> On the other hand, there is also an example graph diagram which is displaying the more detailed steps. 
+	This kind of diagram is automatically generated at each pipeline run.  
 - pegasus
 	<br> All the configuration files necessary for the software run are kept here. 
 	<br> At the first level there are the entry points which are explained bellow in the <b><i>Entry Point</i></b> section. 
@@ -67,12 +73,12 @@ The pipeline can be started using one of the following entry points:
     - <i>path_to_configurations_folder</i> represents the path to the patient configuration files (e.g. data_folder/configurations) 
     - <i>path_to_dax_folder</i> represents the folder where the dax will be generated (e.g. data_folder/configurations/dax)
     
-    This entry point has the disadvantage that the user should manually fill in all the configuration files.
+    This entry point has the disadvantage that the user should manually fill in all the configuration files under <i>configurations</i> folder.
 
 - <b>run_sequential.py</b> 
     <br> This is a little more complex. It is used to start pipeline runs for a list of patients with similar configurations. As the name is suggesting, the runs will be started sequentially.
     <br> Command to launch the pipeline with this script: <b><i>python run_sequentially.py</i></b>
-    <br> This script does not need arguments, but it needs the user to define the necessary configurations inside it. The necessary configurations are described bellow:
+    <br> This script does not need arguments, but it needs the user to edit the necessary configurations inside file <i>run_sequential.py</i>. The configurations to edit are described bellow:
     - <b>PATH_TO_INPUT_SUBJ_FOLDERS</b>: path to the folder where you keep your patient raw data (e.g. data_folder/raw_data)
     - <b>PATH_TO_SUBJ_CONFIG_FOLDERS</b>: path to the folder where you keep your patient configurations (e.g. data_folder/configurations)
     - <b>PATH_TO_OUTPUT_SUBJ_FOLDER</b>: path to the folder where you want your outputs to be saved (e.g. data_folder/outputs)
@@ -92,7 +98,7 @@ All the configuration files are under <i>pegasus/config</i> at the top level. Th
     <br> This is a pegasus specific configuration file. It just defined the paths to sites.xml, rc.txt, tc.txt and rc_out.txt.
 - rc.txt
     <br> Inside this file, the inputs should be defined in a key-value format, where value is the path to the input file.
-    <br> During the pipeline run, the rc.txt will be filled in with all the generated files and their paths.
+    <br> During the pipeline run, the rc.txt will be filled in with all the generated files and their paths. This mapping is important to keep especially in case of a partial rerun.
 - rc_out.txt
     <br> Using this file, the output can be structured in a similar way as the input.
 - sites.xml
@@ -115,7 +121,8 @@ In order to rerun with different parameters, the user has to:
 - remove the files (output files above) that need to be regenerated from <b>rc.txt</b>
 - start a pipeline run using one of the entry points
 
-<br> As stated before, the <b>rc.txt</b> contains a mapping between the generated file names and their paths. In order for Pegasus to rerun a group of steps, the user has to remove their output files from <b>rc.txt</b>. During the pipeline rerun, the <b>rc.txt</b> will be once again filled in.
+<br> As stated before, the <b>rc.txt</b> contains a mapping between the generated file names and their paths. In order for Pegasus to rerun a group of steps, the user has to remove their output files from <b>rc.txt</b>. 
+During the pipeline rerun, the <b>rc.txt</b> will be once again filled in, by re-running the steps (and all their dependencies) which are meant to produce the missing resources from <b>rc.txt</b>.
 <br> Inside the <b>main_bnm.dax</b> file, there is a XML representation of the workflow graph. Here is where the user can check all the pipeline steps and their input/output files.
 
 
