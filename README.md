@@ -170,5 +170,15 @@ The automatized workflow is based on:
 	- tar xzf ../pegasus-binary-4.8.1-x86_64_macos_10.tar.gz
 	- export PATH=../pegasus-4.8.1/bin/:$PATH
 	- check it works by running: pegasus-status
+	
+
+### Bibliography
+
+[1] Proix T, Spiegler A, Schirner M, Rothmeier S, Ritter P, Jirsa VK, How do parcellation size and short-range connectivity affect dynamics in large-scale brain network models?, Neuroimage (2016).
+
+[2] Schirner M, Rothmeier S, Jirsa VK, McIntosh AR, Ritter P, An automated pipeline for constructing personalized virtual brains from multimodal neuroimaging data, Neuroimage, (2015) Aug 15 117:343-357. [Available here](https://www.sciencedirect.com/science/article/pii/S1053811915002505)
+
+[3] Andre Santos Ribeiro, Luis Miguel Lacerda, Hugo Alexandre Ferreira, Multimodal Imaging Brain Connectivity Analysis (MIBCA) toolbox, 2015 Jul 14. [Available here](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4511822/)
+
 
 [![Build Status](https://travis-ci.org/the-virtual-brain/tvb-recon.svg?branch=master)](https://travis-ci.org/the-virtual-brain/tvb-recon) [![Coverage Status](https://coveralls.io/repos/github/the-virtual-brain/tvb-recon/badge.svg)](https://coveralls.io/github/the-virtual-brain/tvb-recon)
