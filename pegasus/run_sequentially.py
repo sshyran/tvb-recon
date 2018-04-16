@@ -7,13 +7,15 @@ import shutil
 from enum import Enum
 from string import Template
 
-PATH_TO_INPUT_SUBJ_FOLDERS = "/Users/dionperd/Dropbox/Work/VBtech/VEP/data/CC"
-PATH_TO_SUBJ_CONFIG_FOLDERS = "/Users/dionperd/Dropbox/Work/VBtech/VEP/data/CC"
-PATH_TO_OUTPUT_SUBJ_FOLDER = "/Users/dionperd/Dropbox/Work/VBtech/VEP/data/CC"
+PATH_TO_INPUT_SUBJ_FOLDERS = "/WORK/Cleveland_datasets/raw_datasets"
+PATH_TO_SUBJ_CONFIG_FOLDERS = "/WORK/Cleveland_datasets/configurations"
+PATH_TO_OUTPUT_SUBJ_FOLDER = "/WORK/pegasus-4.8.1"
 
 PREFIX_SUBJECT_FOLDER = "TVB"
 
-SUBJECT_IDS = [3] #, 4, 1, 2]
+SUBJECTS_TO_BE_PROCESSED = [24]
+
+ATLASES = ["default", "a2009s"]
 
 PATH_TO_DEFAULT_PEGASUS_CONFIGURATION = os.path.join(os.getcwd(), "config")
 
@@ -32,7 +34,7 @@ class configs(Enum):
     TC = "tc.txt"
 
 
-def create_config_files_for_subj(current_subject):
+def create_config_files_for_subj(current_subject, current_atlas):
     default_pegasus_props_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.PEGASUS_PROPS.value)
     with open(default_pegasus_props_path) as default_pegasus_props_file:
         template = Template(default_pegasus_props_file.read())
@@ -44,7 +46,7 @@ def create_config_files_for_subj(current_subject):
     default_patient_props_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.PATIENT_PROPS.value)
     with open(default_patient_props_path) as default_patient_props_file:
         template = Template(default_patient_props_file.read())
-        patient_props = template.substitute(subject=current_subject)
+        patient_props = template.substitute(subject=current_subject, atlas=current_atlas)
         subj_patient_props = os.path.join(current_dir, configs.PATIENT_PROPS.value)
         with open(subj_patient_props, "w+") as subj_patient_props_file:
             subj_patient_props_file.write(patient_props)
@@ -81,6 +83,27 @@ def create_config_files_for_subj(current_subject):
     shutil.copy(default_tc_path, current_dir)
 
     print("Configuration files for subject %s are ready!" % current_subject)
+
+
+def prepare_config_for_new_atlas(current_dir, current_atlas):
+    atlas_exists_in_config = False
+    atlas_config_name = "parcelation.atlas"
+    atlas_config = atlas_config_name + "=" + current_atlas + "\n"
+
+    current_patient_props_path = os.path.join(current_dir, configs.PATIENT_PROPS.value)
+    with open(current_patient_props_path, "r") as current_patient_props_file:
+        text = current_patient_props_file.readlines()
+        for idx, line in enumerate(text):
+            if line.startswith(atlas_config_name):
+                text[idx] = atlas_config
+                atlas_exists_in_config = True
+                break
+    if not atlas_exists_in_config:
+        text.insert(len(text), atlas_config)
+    print "Configured atlas %s for patient inside folder %s" % (current_atlas, current_dir)
+    os.remove(current_patient_props_path)
+    with open(current_patient_props_path, "w") as new_patient_props_file:
+        new_patient_props_file.writelines(text)
 
 
 def get_currently_running_job_ids():
@@ -126,42 +149,46 @@ if __name__ == "__main__":
         os.mkdir(PATH_TO_SUBJ_CONFIG_FOLDERS)
         print("Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS)
 
-    for subj_id in SUBJECT_IDS:  # range(FIRST_SUBJECT_NUMBER, LAST_SUBJECT_NUMBER + 1):
-        current_subject = PREFIX_SUBJECT_FOLDER + str(subj_id)
-        print("Starting to process the subject: %s" % current_subject)
+    for subject_number in SUBJECTS_TO_BE_PROCESSED:
+        current_subject = PREFIX_SUBJECT_FOLDER + str(subject_number)
+        print "Starting to process the subject: %s" % current_subject
 
-        current_dir = os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, current_subject, "pegasus-config")
-        if not os.path.exists(current_dir):
-            os.mkdir(current_dir)
-            print("Folder %s has been created..." % current_dir)
+        current_dir = os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, current_subject)
+        for atlas in ATLASES:
+            if not os.path.exists(current_dir):
+                os.mkdir(current_dir)
+                print "Folder %s has been created..." % current_dir
 
-        create_config_files_for_subj(current_subject)
+                create_config_files_for_subj(current_subject, atlas)
 
-        existent_job_ids = get_currently_running_job_ids()
-
-        print("Starting pegasus run for subject: " + current_subject)
-        current_dax_dir = os.path.join(current_dir, "dax")
-        p = subprocess.call(["sh", "main_pegasus.sh", current_dir, current_dax_dir])
-
-        new_job_ids = get_currently_running_job_ids()
-
-        for job in existent_job_ids:
-            new_job_ids.remove(job)
-
-        current_job_id = new_job_ids[0]
-        print("The job that has been started has the id: %s" % current_job_id)
-
-        submit_dir = os.path.join(get_specified_submit_folder(current_dir), getpass.getuser(), "pegasus",
-                                  "TVB-PIPELINE", PREFIX_JOB_ID + current_job_id)
-
-        print("Starting to monitor the submit folder: %s ..." % submit_dir)
-
-        while True:
-            if MONITORED_FILE in os.listdir(submit_dir):
-                break
             else:
-                print("Checked at %s and %s file was not generated yet!" % (
-                    str(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())), MONITORED_FILE))
-                time.sleep(1200)
+                prepare_config_for_new_atlas(current_dir, atlas)
 
-        print("The run has finished for job with id: %s" % current_job_id)
+            existent_job_ids = get_currently_running_job_ids()
+
+            print "Starting pegasus run for subject: " + current_subject
+            current_dax_dir = os.path.join(current_dir, "dax")
+            p = subprocess.call(["sh", "main_pegasus.sh", current_dir, current_dax_dir])
+
+            new_job_ids = get_currently_running_job_ids()
+
+            for job in existent_job_ids:
+                new_job_ids.remove(job)
+
+            current_job_id = new_job_ids[0]
+            print "The job that has been started has the id: %s" % current_job_id
+
+            submit_dir = os.path.join(get_specified_submit_folder(current_dir), getpass.getuser(), "pegasus",
+                                      "TVB-PIPELINE", PREFIX_JOB_ID + current_job_id)
+
+            print("Starting to monitor the submit folder: %s ..." % submit_dir)
+
+            while True:
+                if MONITORED_FILE in os.listdir(submit_dir):
+                    break
+                else:
+                    print("Checked at %s and %s file was not generated yet!" % (
+                        str(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())), MONITORED_FILE))
+                    time.sleep(1200)
+
+            print("The run has finished for job with id: %s" % current_job_id)

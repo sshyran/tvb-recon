@@ -62,12 +62,12 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Convert pipeline output to TVB format")
     parser.add_argument("-p", help="Call from Pegasus WMS", required=False, action="store_true")
 
-    parser.add_argument("atlas_suffix")
     parser.add_argument("mri_dir")
     parser.add_argument("rm_details_dir")
     parser.add_argument("weights_file")
     parser.add_argument("tracts_file")
     parser.add_argument("output_dir")
+    parser.add_argument("--atlas_suffix", action="store", default="", required=False)
 
     return parser.parse_args()
 
@@ -77,21 +77,21 @@ if __name__ == "__main__":
 
     if args.p:
         create_tvb_dataset(
-            args.atlas_suffix,
-            args.mri_dir,
-            args.rm_details_dir,
-            args.weights_file,
-            args.tracts_file,
-            args.output_dir
-        )
-
-    else:
-        create_tvb_dataset(
-            args.atlas_suffix,
             args.mri_dir,
             args.rm_details_dir,
             args.weights_file,
             args.tracts_file,
             args.output_dir,
+            args.atlas_suffix
+        )
+
+    else:
+        create_tvb_dataset(
+            args.mri_dir,
+            args.rm_details_dir,
+            args.weights_file,
+            args.tracts_file,
+            args.output_dir,
+            args.atlas_suffix,
             True
         )
