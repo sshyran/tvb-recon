@@ -7,6 +7,6 @@ install:
   - PREFIX=$(pwd)/env bash provision/70-python.sh
   - PATH=$(pwd)/env/bin:$PATH pip3 install coveralls
 script:
-  - PATH=$(pwd)/env/bin:$PATH COV=yes bash bin/run-tests.sh
+  - PATH=$(pwd)/env/bin:$PATH COV=yes bash run-tests.sh
 after_success:
   - coveralls
