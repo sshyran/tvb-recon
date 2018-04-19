@@ -47,7 +47,7 @@ def create_config_files_for_subj(current_subject):
     default_patient_props_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.PATIENT_PROPS.value)
     with open(default_patient_props_path) as default_patient_props_file:
         template = Template(default_patient_props_file.read())
-        patient_props = template.substitute(subject=current_subject)
+        patient_props = template.substitute(subject=current_subject, os=OS)
         subj_patient_props = os.path.join(current_dir, configs.PATIENT_PROPS.value)
         with open(subj_patient_props, "w+") as subj_patient_props_file:
             subj_patient_props_file.write(patient_props)
@@ -64,7 +64,7 @@ def create_config_files_for_subj(current_subject):
     with open(default_rc_path) as default_rc_file:
         template = Template(default_rc_file.read())
         rc_config = template.substitute(path=os.path.join(PATH_TO_INPUT_SUBJ_FOLDERS, current_subject, "NII"),
-                                        subject=current_subject, os=OS)
+                                        subject=current_subject)
         subj_rc_path = os.path.join(current_dir, configs.RC.value)
         with open(subj_rc_path, "w+") as subj_rc_file:
             subj_rc_file.write(rc_config)
