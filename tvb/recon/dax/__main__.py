@@ -48,14 +48,14 @@ if __name__ == "__main__":
 
     dwi_processing = DWIProcessing(config.props[ConfigKey.DWI_IS_REVERSED], config.props[ConfigKey.DWI_FRMT],
                                    config.props[ConfigKey.DWI_USE_GRADIENT], config.props[ConfigKey.MRTRIX_THRDS],
-                                   config.props[ConfigKey.DWI_SCAN_DIRECTION])
+                                   config.props[ConfigKey.DWI_SCAN_DIRECTION], config.props[ConfigKey.OS])
 
     coregistration = Coregistration(subject, config.props[ConfigKey.USE_FLIRT], atlas_suffix)
 
     tracts_generation = TractsGeneration(config.props[ConfigKey.DWI_MULTI_SHELL], config.props[ConfigKey.MRTRIX_THRDS],
                                          config.props[ConfigKey.STRMLNS_NO], config.props[ConfigKey.STRMLNS_SIFT_NO],
                                          config.props[ConfigKey.STRMLNS_LEN], config.props[ConfigKey.STRMLNS_STEP],
-                                         atlas_suffix)
+                                         atlas_suffix, config.props[ConfigKey.OS])
 
     aseg_generation = AsegGeneration(subject, config.props[ConfigKey.ASEG_LH_LABELS],
                                      config.props[ConfigKey.ASEG_RH_LABELS], trg_subject, atlas_suffix)

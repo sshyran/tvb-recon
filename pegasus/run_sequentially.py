@@ -16,6 +16,8 @@ PREFIX_SUBJECT_FOLDER = "TVB"
 FIRST_SUBJECT_NUMBER = 25
 LAST_SUBJECT_NUMBER = 27
 
+OS = "LINUX"
+
 PATH_TO_DEFAULT_PEGASUS_CONFIGURATION = os.path.join(os.getcwd(), "config")
 
 PREFIX_JOB_ID = "run"
@@ -62,7 +64,7 @@ def create_config_files_for_subj(current_subject):
     with open(default_rc_path) as default_rc_file:
         template = Template(default_rc_file.read())
         rc_config = template.substitute(path=os.path.join(PATH_TO_INPUT_SUBJ_FOLDERS, current_subject, "NII"),
-                                        subject=current_subject)
+                                        subject=current_subject, os=OS)
         subj_rc_path = os.path.join(current_dir, configs.RC.value)
         with open(subj_rc_path, "w+") as subj_rc_file:
             subj_rc_file.write(rc_config)
