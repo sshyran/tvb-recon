@@ -16,6 +16,8 @@ PREFIX_SUBJECT_FOLDER = "TVB"
 FIRST_SUBJECT_NUMBER = 25
 LAST_SUBJECT_NUMBER = 27
 
+OS = "LINUX"
+
 PATH_TO_DEFAULT_PEGASUS_CONFIGURATION = os.path.join(os.getcwd(), "config")
 
 PREFIX_JOB_ID = "run"
@@ -45,7 +47,7 @@ def create_config_files_for_subj(current_subject):
     default_patient_props_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.PATIENT_PROPS.value)
     with open(default_patient_props_path) as default_patient_props_file:
         template = Template(default_patient_props_file.read())
-        patient_props = template.substitute(subject=current_subject)
+        patient_props = template.substitute(subject=current_subject, os=OS)
         subj_patient_props = os.path.join(current_dir, configs.PATIENT_PROPS.value)
         with open(subj_patient_props, "w+") as subj_patient_props_file:
             subj_patient_props_file.write(patient_props)
