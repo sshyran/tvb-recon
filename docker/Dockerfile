@@ -67,9 +67,19 @@ ENV PASS 123456
 RUN groupadd -g ${GID} ${SUBMIT_USER} && \
     useradd -m -u ${UID} -g ${GID} ${SUBMIT_USER} && \
     usermod -a -G condor ${SUBMIT_USER} && \
+    usermod -a -G sudo ${SUBMIT_USER} && \
     echo ${SUBMIT_USER}:${PASS} | chpasswd #&& \
-#    sed -i 's/\(^Defaults.*requiretty.*\)/#\1/' /etc/sudoers
+RUN sed -i 's/\(^Defaults.*requiretty.*\)/#\1/' /etc/sudoers
 RUN chown -R ${SUBMIT_USER}:${SUBMIT_USER} /home/${SUBMIT_USER}
+RUN chmod -R 777 /home/${SUBMIT_USER}
 
 RUN mkdir /opt/pegasus-run && mkdir /opt/pegasus-run/submit && mkdir /opt/pegasus-run/scratch
 RUN chown -R ${SUBMIT_USER}:${SUBMIT_USER} /opt/pegasus-run
+
+RUN apt-get install -y tcsh
+
+RUN chmod -R 777 /opt/freesurfer
+
+WORKDIR /opt/tvb-recon
+USER ${SUBMIT_USER}
+
