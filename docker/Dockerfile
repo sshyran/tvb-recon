@@ -76,9 +76,10 @@ RUN chmod -R 777 /home/${SUBMIT_USER}
 RUN mkdir /opt/pegasus-run && mkdir /opt/pegasus-run/submit && mkdir /opt/pegasus-run/scratch
 RUN chown -R ${SUBMIT_USER}:${SUBMIT_USER} /opt/pegasus-run
 
-RUN apt-get install -y tcsh
+RUN apt-get install -y tcsh bc
 
-RUN chmod -R 777 /opt/freesurfer
+RUN chmod -R 777 /opt/freesurfer/subjects
+
 
 WORKDIR /opt/tvb-recon
 USER ${SUBMIT_USER}
