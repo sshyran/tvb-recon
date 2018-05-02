@@ -7,7 +7,7 @@ from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 class TractsGeneration(object):
     def __init__(self, dwi_multi_shell=False, mrtrix_threads="2", strmlns_no="25M", strmlns_sift_no="5M",
-                 strmlns_size="250", strmlns_step="0.5", atlas_suffix=AtlasSuffix.DEFAULT):
+                 strmlns_size="250", strmlns_step="0.5", atlas_suffix=AtlasSuffix.DEFAULT, os="LINUX"):
         self.dwi_multi_shell = dwi_multi_shell
         self.mrtrix_threads = mrtrix_threads
         self.strmlns_no = strmlns_no
@@ -16,6 +16,7 @@ class TractsGeneration(object):
         self.strmlns_step = strmlns_step
         self.qc_snapshots = QCSnapshots.get_instance()
         self.atlas_suffix = atlas_suffix
+        self.os = os
 
     # job_t1_in_d = job12, job_mask = job5, job_aparc_aseg_in_d = job21
     def add_tracts_generation_steps(self, dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_fs_custom):
@@ -131,9 +132,15 @@ class TractsGeneration(object):
 
         file_strmlns = File(TractsGenFiles.FILE_TCK.value % self.strmlns_no)
         job6 = Job(TractsGenJobNames.TCKGEN.value, node_label="Generate tracts")
-        job6.addArguments(file_wm_fod, file_strmlns, "-number", self.strmlns_no, "-seed_gmwmi", file_gmwmi, "-act",
-                          file_5tt, "-unidirectional", "-maxlength", self.strmlns_size, "-step", self.strmlns_step,
-                          "-nthreads", self.mrtrix_threads)
+
+        if self.os == "LINUX":
+            job6.addArguments(file_wm_fod, file_strmlns, "-select", self.strmlns_no, "-seed_gmwmi", file_gmwmi, "-act",
+                              file_5tt, "-seed_unidirectional", "-maxlength", self.strmlns_size, "-step",
+                              self.strmlns_step, "-nthreads", self.mrtrix_threads)
+        else:
+            job6.addArguments(file_wm_fod, file_strmlns, "-number", self.strmlns_no, "-seed_gmwmi", file_gmwmi, "-act",
+                              file_5tt, "-unidirectional", "-maxlength", self.strmlns_size, "-step", self.strmlns_step,
+                              "-nthreads", self.mrtrix_threads)
         job6.uses(file_wm_fod, link=Link.INPUT)
         job6.uses(file_gmwmi, link=Link.INPUT)
         job6.uses(file_5tt, link=Link.INPUT)

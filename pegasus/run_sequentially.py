@@ -17,6 +17,8 @@ SUBJECTS_TO_BE_PROCESSED = [24]
 
 ATLASES = ["default", "a2009s"]
 
+OS = "LINUX"
+
 PATH_TO_DEFAULT_PEGASUS_CONFIGURATION = os.path.join(os.getcwd(), "config")
 
 PREFIX_JOB_ID = "run"
@@ -46,7 +48,7 @@ def create_config_files_for_subj(current_subject, current_atlas):
     default_patient_props_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.PATIENT_PROPS.value)
     with open(default_patient_props_path) as default_patient_props_file:
         template = Template(default_patient_props_file.read())
-        patient_props = template.substitute(subject=current_subject, atlas=current_atlas)
+        patient_props = template.substitute(subject=current_subject, atlas=current_atlas, os=OS)
         subj_patient_props = os.path.join(current_dir, configs.PATIENT_PROPS.value)
         with open(subj_patient_props, "w+") as subj_patient_props_file:
             subj_patient_props_file.write(patient_props)
@@ -107,7 +109,7 @@ def prepare_config_for_new_atlas(current_dir, current_atlas):
 
 
 def get_currently_running_job_ids():
-    print("Checking currently running job ids...")
+    print "Checking currently running job ids..."
     status = subprocess.Popen("pegasus-status", stdout=subprocess.PIPE)
     output, error = status.communicate()
 
@@ -115,7 +117,7 @@ def get_currently_running_job_ids():
         existent_job_ids = []
     else:
         existent_job_ids = [m.replace(PREFIX_JOB_ID, "") for m in re.findall(REGEX_JOB_ID, output)]
-    print("Currently running job ids are: %s" % existent_job_ids)
+    print "Currently running job ids are: %s" % existent_job_ids
 
     return existent_job_ids
 
@@ -147,7 +149,7 @@ def get_specified_submit_folder(current_dir):
 if __name__ == "__main__":
     if not os.path.exists(PATH_TO_SUBJ_CONFIG_FOLDERS):
         os.mkdir(PATH_TO_SUBJ_CONFIG_FOLDERS)
-        print("Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS)
+        print "Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS
 
     for subject_number in SUBJECTS_TO_BE_PROCESSED:
         current_subject = PREFIX_SUBJECT_FOLDER + str(subject_number)
