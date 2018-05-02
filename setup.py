@@ -19,6 +19,7 @@ requirements = (
     'pytest',
     'Cython',
     'gdist',
+    'nibabel'
 )
 
 setup(
