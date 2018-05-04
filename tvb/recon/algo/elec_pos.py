@@ -119,44 +119,44 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
     # B. Optional & the ONLY MANUAL job in case the pom coordinates are not in the same space as the MRIelectrode volume
     # Find the affine transformation pomfile -> MRIelectrodes
     if POM_TO_MRIELEC_TRNSFRM:
-        # TODO: an automatic way to pick contact's coordinates randomly or one per electrode from the seeg_pom file
-        coords_from = np.array([
-            [-20.59, 19.51, 38.49],
-            [-71.79, 10.24, 38.51],
-            [2.95, 43.21, 105.8],
-            [-48.5, 22.58, 104.8],
-            [-0.69, 74.26, 26.77],
-            [-60.11, 70.55, 30.76],
-            [3.822, -10.42, 100.8]
-        ])
-
-        # TODO: an automatic way to pick the corresponding contacts'coordinates from the mri_electrode volume
-        coords_to = np.array([
-            [-21.25, 16.31, 29.61],
-            [-72.75, 7.59, 28.61],
-            [1.882, 29.46, 99.93],
-            [-50.33, 9.83, 95.7],
-            [-2.35, 71.61, 27.54],
-            [-60.82, 68.77, 30.01],
-            [1.705, -22.75, 87.75]
-        ])
-        aff_transform = compute_affine_transform(coords_from, coords_to)
-
-        # # Alternative way:
-        # pom_to_mrielec = os.path.join(elec_folder, "pom_to_mrielec.mat")
-        # pom_in_mrielec = os.path.join(elec_folder, "pom_in_mrielec.nii.gz")
+        # # TODO: an automatic way to pick contact's coordinates randomly or one per electrode from the seeg_pom file
+        # coords_from = np.array([
+        #     [-20.59, 19.51, 38.49],
+        #     [-71.79, 10.24, 38.51],
+        #     [2.95, 43.21, 105.8],
+        #     [-48.5, 22.58, 104.8],
+        #     [-0.69, 74.26, 26.77],
+        #     [-60.11, 70.55, 30.76],
+        #     [3.822, -10.42, 100.8]
+        # ])
         #
-        # regopts = "-cost mutualinfo -dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
-        # execute_command("flirt " + regopts +
-        #                 " -in " + elec_nii_pom +
-        #                 " -inweight " + elec_nii_pom +
-        #                 " -ref " + mrielec +
-        #                 " -refweight " + mrielec +
-        #                 " -omat " + pom_to_mrielec +
-        #                 " -out " + pom_in_mrielec)
-        #
-        # elec_file_mrielec = os.path.join(elec_folder, "seeg_pom_in_mrielec.xyz")
-        # transform(elec_file_pom, elec_nii_pom, mrielec, elec_file_mrielec, pom_in_mrielec, pom_to_mrielec)
+        # # TODO: an automatic way to pick the corresponding contacts'coordinates from the mri_electrode volume
+        # coords_to = np.array([
+        #     [-21.25, 16.31, 29.61],
+        #     [-72.75, 7.59, 28.61],
+        #     [1.882, 29.46, 99.93],
+        #     [-50.33, 9.83, 95.7],
+        #     [-2.35, 71.61, 27.54],
+        #     [-60.82, 68.77, 30.01],
+        #     [1.705, -22.75, 87.75]
+        # ])
+        # aff_transform = compute_affine_transform(coords_from, coords_to)
+
+        # Alternative way:
+        pom_to_mrielec = os.path.join(elec_folder, "pom_to_mrielec.mat")
+        pom_in_mrielec = os.path.join(elec_folder, "pom_in_mrielec.nii.gz")
+
+        regopts = "-cost mutualinfo -dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
+        execute_command("flirt " + regopts +
+                        " -in " + elec_nii_pom +
+                        " -inweight " + elec_nii_pom +
+                        " -ref " + mrielec +
+                        " -refweight " + mrielec +
+                        " -omat " + pom_to_mrielec +
+                        " -out " + pom_in_mrielec)
+
+        elec_file_mrielec = os.path.join(elec_folder, "seeg_pom_in_mrielec.xyz")
+        transform(elec_file_pom, elec_nii_pom, mrielec, elec_file_mrielec, pom_in_mrielec, pom_to_mrielec)
 
     else:
         aff_transform = None
@@ -167,7 +167,7 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
     if not os.path.isfile(mrielec_to_t1):
         # Align mrielec to t1
         # Options for flirt co-registration
-        regopts = "-cost mutualinfo -dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
+        regopts = "-dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
         # regopts = "-searchrz -20 20 -searchry -20 20 -searchrx -20 20"
         execute_command("flirt " + regopts +
                         " -in " + mrielec +
@@ -191,4 +191,4 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
 
 if __name__ == "__main__":
 
-    main_elec_pos("TVB4", False)
+    main_elec_pos("TVB4", True)
