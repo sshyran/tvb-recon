@@ -53,7 +53,8 @@ class VolumeService(object):
 
     def gen_label_volume_from_coords(self, coords: Union[os.PathLike, numpy.ndarray],
                                      ref_volume_file: os.PathLike, out_volume_file: os.PathLike,
-                                     values: Union[numpy.ndarray, list]=None, labels: Union[os.PathLike, numpy.ndarray, list]=None,
+                                     values: Union[numpy.ndarray, list]=None,
+                                     labels: Union[os.PathLike, numpy.ndarray, list]=None,
                                      skip_missing: bool=False, dist: int=0) \
             -> numpy.ndarray:
         """
