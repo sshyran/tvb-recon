@@ -1,13 +1,14 @@
 import numpy as np
 import os
-import shutil
 import nibabel
 from tvb.recon.algo.service.utils import execute_command  # , compute_affine_transform
 from tvb.recon.algo.service.volume import VolumeService
 from tvb.recon.algo.service.sensor import SensorService
 
+
 volume_service = VolumeService()
 sensor_service = SensorService()
+
 
 # Search a line in a file starting with a string pattern
 def find_line_starting_with(line_list, string):
