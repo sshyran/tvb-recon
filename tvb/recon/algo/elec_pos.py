@@ -1,6 +1,8 @@
 import numpy as np
 import os
-from tvb.recon.algo.service.utils import compute_affine_transform, execute_command
+import shutil
+import nibabel
+from tvb.recon.algo.service.utils import execute_command  # , compute_affine_transform
 from tvb.recon.algo.service.volume import VolumeService
 from tvb.recon.algo.service.sensor import SensorService
 
@@ -50,10 +52,69 @@ def read_write_pom_files(pomfile, elec_file_pom, mrielec, elec_nii_pom):
     labels = [label.strip() for label in labels]
 
     save_xyz_file(coords_list, labels, elec_file_pom)
-    volume_service.gen_label_volume_from_coords(np.ones(len(labels)), np.array(coords_list), labels, mrielec,
-                                                elec_nii_pom, skip_missing=False, dist=1)
+    volume_service.gen_label_volume_from_coords(np.array(coords_list), mrielec, elec_nii_pom,  labels=labels,
+                                                skip_missing=False, dist=1)
 
     return labels, coords_list
+
+
+def extract_seeg_contacts_from_mrielec(mrielec, mrielec_dil, dilate=10, erode=2):
+    volume = nibabel.load(mrielec)
+    data = volume.get_data()
+    max_voxel = data.max()
+    del data
+    execute_command("mri_binarize " +
+                    " --i " + mrielec +
+                    " --o " + mrielec_dil +
+                    " --min " + str(max_voxel) +
+                    " --dilate " + str(dilate) +
+                    " --erode " + str(erode))
+
+
+def coregister_elec_pom_and_mri(elec_nii_pom, mrielec,  elec_file_pom, elec_folder=None, dilate=10, erode=2):
+
+    mrielec_dil = os.path.join(elec_folder, "mri_elec_dil.nii.gz")
+    if not os.path.isfile(mrielec_dil):
+        extract_seeg_contacts_from_mrielec(mrielec, mrielec_dil, dilate, erode)
+
+    elec_nii_pom_dil = elec_nii_pom.split(".")[0] + "_dil.nii.gz"
+    if not os.path.isfile(elec_nii_pom_dil):
+        if dilate > 0:
+            execute_command("mri_binarize " +
+                            " --i " + elec_nii_pom +
+                            " --o " + elec_nii_pom_dil +
+                            " --min 1" +
+                            " --dilate " + str(dilate) +
+                            " --erode " + str(erode))
+        else:
+            elec_nii_pom_dil = elec_nii_pom
+
+    if not(os.path.isdir(elec_folder)):
+        elec_folder = os.path.abspath(elec_nii_pom)
+
+    pom_to_mrielec = os.path.join(elec_folder, "pom_to_mrielec.mat")
+    pom_in_mrielec_dil = os.path.join(elec_folder, "pom_in_mrielec_dil.nii.gz")
+    if not os.path.isfile(pom_to_mrielec):
+        # This takes time. It should be independent step and check before repeating
+        regopts = "-dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
+        execute_command("flirt " + regopts +
+                        " -in " + elec_nii_pom_dil +
+                        " -inweight " + elec_nii_pom_dil +
+                        " -ref " + mrielec_dil +
+                        " -refweight " + mrielec_dil +
+                        " -omat " + pom_to_mrielec +
+                        " -out " + pom_in_mrielec_dil)
+
+    elec_file_mrielec = os.path.join(elec_folder, "seeg_pom_in_mrielec.xyz")
+    if not os.path.isfile(elec_file_mrielec):
+        coords_in_mrielec, coords_file_mrielec = \
+            volume_service.transform_coords(elec_file_pom, elec_nii_pom, mrielec, pom_to_mrielec, elec_file_mrielec)
+        n_voxels = len(coords_in_mrielec)
+        pom_in_mrielec = os.path.join(elec_folder, "pom_in_mrielec.nii.gz")
+        volume_service.gen_label_volume_from_coords(coords_in_mrielec, mrielec, pom_in_mrielec,
+                                                    skip_missing=False, dist=1)
+
+    return elec_file_mrielec, pom_in_mrielec
 
 
 # Transform the coordinates along (pom file ->) mri_elec -> t1
@@ -80,13 +141,11 @@ def transform(elec_file_pom, mri_elec, t1, elec_file_t1, elec_nii_t1, transform_
         newlines.append(label + " " + line)
     with open(elec_file_t1, "w") as fl:
         fl.writelines(newlines)
-    volume_service.gen_label_volume_from_coords(np.ones(len(labels)), elec_file_t1, labels, t1, elec_nii_t1,
+    volume_service.gen_label_volume_from_coords(coords_in_t1, t1, elec_nii_t1, labels=labels,
                                                 skip_missing=False, dist=1)
-    # volume_service.gen_label_volume_from_coords(np.ones(len(labels)), coords_in_t1, labels, t1, elec_nii_t1,
-    #                                             skip_missing=False, dist=1)
 
 
-def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
+def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
 
     # Paths:
 
@@ -102,6 +161,8 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
 
     # Generated files
     elec_folder = os.path.join(data_root, patient, "elecs")
+    if not os.path.isdir(elec_folder):
+        os.mkdir(elec_folder)
     elec_file_pom = os.path.join(elec_folder, "seeg_pom.xyz")
     elec_nii_pom = os.path.join(elec_folder, "elec_pom.nii.gz")
     mrielec_to_t1 = os.path.join(elec_folder, "ELEC_to_T1.mat") # ELEC_to_T1 or mrielec_to_t1
@@ -113,13 +174,28 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
     # This is a 2 to 4 step/job process:
 
     # A. Preprocessing job. Not necessary if something like seeg_pom.xyz was alraedy given in the input
-    # Read the seeg contacts' names and positions from pom file and save then in text and nifti files:
-    names, coords_list = read_write_pom_files(pomfile, elec_file_pom, mrielec, elec_nii_pom)
+    # Read the seeg contacts' names and positions from pom file and save then in text and nifti volume files:
+    if not os.path.isfile(elec_nii_pom):
+        names, coords_list = read_write_pom_files(pomfile, elec_file_pom, mrielec, elec_nii_pom)
 
-    # B. Optional & the ONLY MANUAL job in case the pom coordinates are not in the same space as the MRIelectrode volume
+    # B. Optional job in case we haven't computed already the MRIelec_in_t1 transformation matrix
+    #    (This must be already part of the workflow...)
+    # This takes time. It should be independent step and check before repeating
+    if not os.path.isfile(mrielec_to_t1):
+        # Align mrielec to t1
+        # Options for flirt co-registration
+        regopts = "-cost mutualinfo -dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
+        # regopts = "-searchrz -20 20 -searchry -20 20 -searchrx -20 20"
+        execute_command("flirt " + regopts +
+                        " -in " + mrielec +
+                        " -ref " + t1 +
+                        " -omat " + mrielec_to_t1 +
+                        " -out " + mrielec_in_t1)
+
+    # C. Optional & the ONLY MANUAL job in case the pom coordinates are not in the same space as the MRIelectrode volume
     # Find the affine transformation pomfile -> MRIelectrodes
     if POM_TO_MRIELEC_TRNSFRM:
-        # # TODO: an automatic way to pick contact's coordinates randomly or one per electrode from the seeg_pom file
+        # This is how Viktor Sip did it. It requires manually specifying the point coordinates below.
         # coords_from = np.array([
         #     [-20.59, 19.51, 38.49],
         #     [-71.79, 10.24, 38.51],
@@ -130,7 +206,6 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
         #     [3.822, -10.42, 100.8]
         # ])
         #
-        # # TODO: an automatic way to pick the corresponding contacts'coordinates from the mri_electrode volume
         # coords_to = np.array([
         #     [-21.25, 16.31, 29.61],
         #     [-72.75, 7.59, 28.61],
@@ -143,52 +218,31 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False):
         # aff_transform = compute_affine_transform(coords_from, coords_to)
 
         # Alternative way:
-        pom_to_mrielec = os.path.join(elec_folder, "pom_to_mrielec.mat")
-        pom_in_mrielec = os.path.join(elec_folder, "pom_in_mrielec.nii.gz")
 
-        regopts = "-cost mutualinfo -dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
-        execute_command("flirt " + regopts +
-                        " -in " + elec_nii_pom +
-                        " -inweight " + elec_nii_pom +
-                        " -ref " + mrielec +
-                        " -refweight " + mrielec +
-                        " -omat " + pom_to_mrielec +
-                        " -out " + pom_in_mrielec)
+        elec_file_mrielec, pom_in_mrielec = \
+            coregister_elec_pom_and_mri(elec_nii_pom, mrielec,  elec_file_pom, elec_folder, dilate, erode)
 
-        elec_file_mrielec = os.path.join(elec_folder, "seeg_pom_in_mrielec.xyz")
-        transform(elec_file_pom, elec_nii_pom, mrielec, elec_file_mrielec, pom_in_mrielec, pom_to_mrielec)
+        # D. Make the actual transformation from pom/mri_elec space to t1 space
+        transform(elec_file_mrielec, pom_in_mrielec, t1, elec_file_t1, elec_nii_t1, mrielec_to_t1, None)
 
     else:
         aff_transform = None
 
-    #
-    # C. Optional job in case we haven't computed already the MRIelec_in_t1 transformation matrix
-    #    (This must be already part of the workflow...)
-    if not os.path.isfile(mrielec_to_t1):
-        # Align mrielec to t1
-        # Options for flirt co-registration
-        regopts = "-dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
-        # regopts = "-searchrz -20 20 -searchry -20 20 -searchrx -20 20"
-        execute_command("flirt " + regopts +
-                        " -in " + mrielec +
-                        " -ref " + t1 +
-                        " -omat " + mrielec_to_t1 +
-                        " -out " + mrielec_in_t1)
+        # D. Make the actual transformation from pom/mri_elec space to t1 space
+        # Transform the coordinates along (pom file ->) mri_elec -> t1 and save the result to text and nifti files
+        transform(elec_file_pom, mrielec, t1, elec_file_t1, elec_nii_t1, mrielec_to_t1, aff_transform)
 
-    # D. Make the actual transformation from pom/mri_elec space to t1 space
-    # Transform the coordinates along (pom file ->) mri_elec -> t1 and save the result to text and nifti files
-    transform(elec_file_pom, mrielec, t1, elec_file_t1, elec_nii_t1, mrielec_to_t1, aff_transform)
+        # # Alternative way:
+        #
+        # execute_command("flirt " + regopts +
+        #                 " -in " + pom_in_mrielec +
+        #                 " -inweight " + pom_in_mrielec +
+        #                 " -ref " + t1 +
+        #                 " -omat " + mrielec_to_t1 +
+        #                 " -out " + elec_nii_t1)
+        # transform(elec_file_mrielec, pom_in_mrielec, t1, elec_file_t1, elec_nii_t1, mrielec_to_t1)
 
-    # # Alternative way:
-    #
-    # execute_command("flirt " + regopts +
-    #                 " -in " + pom_in_mrielec +
-    #                 " -inweight " + pom_in_mrielec +
-    #                 " -ref " + t1 +
-    #                 " -omat " + mrielec_to_t1 +
-    #                 " -out " + elec_nii_t1)
-    # transform(elec_file_mrielec, pom_in_mrielec, t1, elec_file_t1, elec_nii_t1, mrielec_to_t1)
 
 if __name__ == "__main__":
 
-    main_elec_pos("TVB4", True)
+    main_elec_pos("TVB3", True, 10, 2)
