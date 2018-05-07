@@ -51,10 +51,10 @@ class VolumeService(object):
 
         return new_nii
 
-    def gen_label_volume_from_coords(self, values: Union[numpy.ndarray, list],
-                                     coords: Union[os.PathLike, numpy.ndarray],
-                                     labels: Union[os.PathLike, numpy.ndarray, list], ref_volume_file: os.PathLike,
-                                     out_volume_file: os.PathLike, skip_missing: bool=False, dist: int=0) \
+    def gen_label_volume_from_coords(self, coords: Union[os.PathLike, numpy.ndarray],
+                                     ref_volume_file: os.PathLike, out_volume_file: os.PathLike,
+                                     values: Union[numpy.ndarray, list]=None, labels: Union[os.PathLike, numpy.ndarray, list]=None,
+                                     skip_missing: bool=False, dist: int=0) \
             -> numpy.ndarray:
         """
         # Create and save a new nifti label volume of similar shape to a reference volume
@@ -72,13 +72,20 @@ class VolumeService(object):
         """
         ref_volume = nibabel.load(ref_volume_file)
 
-        if os.path.isfile(str(labels)):
-            labels = list(numpy.genfromtxt(labels, dtype=str, usecols=(0,)))
-        else:
-            labels = list(labels)
-
         if os.path.isfile(str(coords)):
             coords = numpy.genfromtxt(coords, dtype=float, usecols=(1, 2, 3))
+        n_coords = coords.shape[0]
+
+        if labels is None:
+            labels = range(n_coords)
+        else:
+            if os.path.isfile(str(labels)):
+                labels = list(numpy.genfromtxt(labels, dtype=str, usecols=(0,)))
+            else:
+                labels = list(labels)
+
+        if values is None:
+            values = numpy.ones((n_coords, ))
 
         positions = numpy.zeros((len(values), 3))
         for i, label in enumerate(labels):
