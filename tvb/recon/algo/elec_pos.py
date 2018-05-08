@@ -53,9 +53,9 @@ def read_write_pom_files(pomfile, elec_file_pom, mrielec, elec_nii_pom):
     labels = [label.strip() for label in labels]
 
     save_xyz_file(coords_list, labels, elec_file_pom)
-    n_coords = coords_list.shape[0]
+    n_vals = coords_list.shape[0]
     volume_service.gen_label_volume_from_coords(coords_list, mrielec, elec_nii_pom,
-                                                values=np.array(range(n_coords)) + 1, labels=labels,
+                                                values=np.array(range(n_vals)) + 1, labels=labels,
                                                 skip_missing=False, dist=1)
 
     return labels, coords_list
@@ -134,8 +134,9 @@ def transform(seeg_xyz_in, input_vol, ref_vol, seeg_xyz_ref, seeg_vol_ref, trans
         newlines.append(label + " " + line)
     with open(seeg_xyz_ref, "w") as fl:
         fl.writelines(newlines)
-    volume_service.gen_label_volume_from_coords(coords_in_ref, ref_vol, seeg_vol_ref, labels=labels,
-                                                skip_missing=False, dist=1)
+    n_vals = coords_in_ref.shape[0]
+    volume_service.gen_label_volume_from_coords(coords_in_ref, ref_vol, seeg_vol_ref, values=np.array(range(n_vals))+1,
+                                                labels=labels, skip_missing=False, dist=1)
 
 
 def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=0, erode=0):
@@ -226,4 +227,4 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=0, erode=0):
 
 if __name__ == "__main__":
 
-    main_elec_pos("TVB1", True, 0, 0)
+    main_elec_pos("TVB4", True, 0, 0)
