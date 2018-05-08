@@ -100,49 +100,39 @@ def coregister_elec_pom_and_mri(elec_nii_pom, mrielec,  elec_file_pom, elec_fold
         regopts = "-dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
         execute_command("flirt " + regopts +
                         " -in " + elec_nii_pom_dil +
-                        " -inweight " + elec_nii_pom_dil +
+                        # " -inweight " + elec_nii_pom_dil +
                         " -ref " + mrielec_dil +
-                        " -refweight " + mrielec_dil +
+                        # " -refweight " + mrielec_dil +
                         " -omat " + pom_to_mrielec +
                         " -out " + pom_in_mrielec_dil)
 
-    elec_file_mrielec = os.path.join(elec_folder, "seeg_pom_in_mrielec.xyz")
-    if not os.path.isfile(elec_file_mrielec):
-        coords_in_mrielec, coords_file_mrielec = \
-            volume_service.transform_coords(elec_file_pom, elec_nii_pom, mrielec, pom_to_mrielec, elec_file_mrielec)
-        n_voxels = len(coords_in_mrielec)
-        pom_in_mrielec = os.path.join(elec_folder, "pom_in_mrielec.nii.gz")
-        volume_service.gen_label_volume_from_coords(coords_in_mrielec, mrielec, pom_in_mrielec,
-                                                    skip_missing=False, dist=1)
+    seeg_pom_in_mrielec = os.path.join(elec_folder, "seeg_pom_in_mrielec.xyz")
+    pom_in_mrielec_vol = os.path.join(elec_folder, "pom_in_mrielec_vol.nii.gz")
+    if not os.path.isfile(seeg_pom_in_mrielec):
+        transform(elec_file_pom, elec_nii_pom, mrielec, seeg_pom_in_mrielec, pom_in_mrielec_vol, pom_to_mrielec)
 
-    return elec_file_mrielec, pom_in_mrielec
+    return seeg_pom_in_mrielec, pom_in_mrielec_vol
 
 
-# Transform the coordinates along (pom file ->) mri_elec -> t1
-def transform(elec_file_pom, mri_elec, t1, elec_file_t1, elec_nii_t1, transform_mat, aff_transform=None):
-    labels, coords = sensor_service.read_seeg_labels_coords_file(elec_file_pom)
+# Transform the coordinates and create output contact files (labels + coords) and a volume for visual checking
+def transform(seeg_file_in, input_vol, ref_vol, seeg_file_ref, seeg_vol_ref, transform_mat, aff_transform=None):
+    labels, coords = sensor_service.read_seeg_labels_coords_file(seeg_file_in)
     if aff_transform is not None:
         coords = aff_transform(coords.reshape((1, 3))).reshape((3,))
-    dirname = os.path.dirname(elec_file_pom)
-    coords_file = os.path.join(dirname, "seeg_coords.xyz")
+    coords_file = seeg_file_in.replace("seeg", "coords")
     np.savetxt(coords_file, coords, fmt='%.3e', delimiter=' ')
-    coords_file_t1 = os.path.join(dirname, "seeg_coords_in_t1.xyz")
-    # TODO correct it to get coords_in_t1
-    coords_in_t1, coords_file_t1 = volume_service.transform_coords(coords_file, mri_elec, t1, transform_mat,
-                                                                   coords_file_t1)
-    # output, std_out, time = \
-    #     execute_command("img2imgcoord %s -mm -src %s -dest %s -xfm %s > %s" \
-    #                         % (coords_file, src_img, dest_img, transform_mat, coords_file_t1),
-    #                     cwd=os.path.dirname(transform_mat), shell=True)
-    # Save final coordinates in t1 space to text and nifti files
-    with open(coords_file_t1) as fl:
+    coords_file_ref = seeg_file_ref.replace("seeg", "coords")
+    coords_in_ref, coords_file_ref = volume_service.transform_coords(coords_file, input_vol, ref_vol, transform_mat,
+                                                                     coords_file_ref)
+    # Save final coordinates in ref_vol space to text and nifti files
+    with open(coords_file_ref) as fl:
         lines = fl.readlines()
     newlines = []
     for line, label in zip(lines[1:], labels):
         newlines.append(label + " " + line)
-    with open(elec_file_t1, "w") as fl:
+    with open(seeg_file_ref, "w") as fl:
         fl.writelines(newlines)
-    volume_service.gen_label_volume_from_coords(coords_in_t1, t1, elec_nii_t1, labels=labels,
+    volume_service.gen_label_volume_from_coords(coords_in_ref, ref_vol, seeg_vol_ref, labels=labels,
                                                 skip_missing=False, dist=1)
 
 
@@ -164,20 +154,20 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
     elec_folder = os.path.join(data_root, patient, "elecs")
     if not os.path.isdir(elec_folder):
         os.mkdir(elec_folder)
-    elec_file_pom = os.path.join(elec_folder, "seeg_pom.xyz")
-    elec_nii_pom = os.path.join(elec_folder, "elec_pom.nii.gz")
-    mrielec_to_t1 = os.path.join(elec_folder, "ELEC_to_T1.mat") # ELEC_to_T1 or mrielec_to_t1
-    mrielec_in_t1 = os.path.join(elec_folder, "ELEC_in_T1.nii.gz") # ELEC_in_T1 or mrielec_in_t1
-    elec_file_t1 = os.path.join(elec_folder, "seeg.xyz")
-    elec_nii_t1 = os.path.join(elec_folder, "elec_t1.nii.gz")
+    seeg_pom = os.path.join(elec_folder, "seeg_pom.xyz")
+    seeg_pom_vol = os.path.join(elec_folder, "seeg_pom_vol.nii.gz")
+    mrielec_to_t1 = os.path.join(elec_folder, "mrielec_to_t1.mat") # ELEC_to_T1 or mrielec_to_t1
+    mrielec_in_t1 = os.path.join(elec_folder, "mrielec_in_t1.nii.gz") # ELEC_in_T1 or mrielec_in_t1
+    seeg = os.path.join(elec_folder, "seeg.xyz")
+    seeg_in_t1 = os.path.join(elec_folder, "seeg_in_t1.nii.gz")
 
 
     # This is a 2 to 4 step/job process:
 
     # A. Preprocessing job. Not necessary if something like seeg_pom.xyz was alraedy given in the input
     # Read the seeg contacts' names and positions from pom file and save then in text and nifti volume files:
-    if not os.path.isfile(elec_nii_pom):
-        names, coords_list = read_write_pom_files(pomfile, elec_file_pom, mrielec, elec_nii_pom)
+    if not os.path.isfile(seeg_pom_vol):
+        names, coords_list = read_write_pom_files(pomfile, seeg_pom, mrielec, seeg_pom_vol)
 
     # B. Optional job in case we haven't computed already the MRIelec_in_t1 transformation matrix
     #    (This must be already part of the workflow...)
@@ -193,9 +183,10 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
                         " -omat " + mrielec_to_t1 +
                         " -out " + mrielec_in_t1)
 
-    # C. Optional & the ONLY MANUAL job in case the pom coordinates are not in the same space as the MRIelectrode volume
+    # C. Optional job in case the pom coordinates are not in the same space as the MRIelectrode volume
     # Find the affine transformation pomfile -> MRIelectrodes
     if POM_TO_MRIELEC_TRNSFRM:
+        # Alternative manual way:
         # This is how Viktor Sip did it. It requires manually specifying the point coordinates below.
         # coords_from = np.array([
         #     [-20.59, 19.51, 38.49],
@@ -218,32 +209,19 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
         # ])
         # aff_transform = compute_affine_transform(coords_from, coords_to)
 
-        # Alternative way:
-
-        elec_file_mrielec, pom_in_mrielec = \
-            coregister_elec_pom_and_mri(elec_nii_pom, mrielec,  elec_file_pom, elec_folder, dilate, erode)
+        seeg_pom_in_mrielec, pom_in_mrielec_vol = \
+            coregister_elec_pom_and_mri(seeg_pom_vol, mrielec,  seeg_pom, elec_folder, dilate, erode)
 
         # D. Make the actual transformation from pom/mri_elec space to t1 space
-        transform(elec_file_mrielec, pom_in_mrielec, t1, elec_file_t1, elec_nii_t1, mrielec_to_t1, None)
+        transform(seeg_pom_in_mrielec, pom_in_mrielec_vol, t1, seeg, seeg_in_t1, mrielec_to_t1)
 
     else:
-        aff_transform = None
 
         # D. Make the actual transformation from pom/mri_elec space to t1 space
         # Transform the coordinates along (pom file ->) mri_elec -> t1 and save the result to text and nifti files
-        transform(elec_file_pom, mrielec, t1, elec_file_t1, elec_nii_t1, mrielec_to_t1, aff_transform)
-
-        # # Alternative way:
-        #
-        # execute_command("flirt " + regopts +
-        #                 " -in " + pom_in_mrielec +
-        #                 " -inweight " + pom_in_mrielec +
-        #                 " -ref " + t1 +
-        #                 " -omat " + mrielec_to_t1 +
-        #                 " -out " + elec_nii_t1)
-        # transform(elec_file_mrielec, pom_in_mrielec, t1, elec_file_t1, elec_nii_t1, mrielec_to_t1)
+        transform(seeg_pom, mrielec, t1, seeg, seeg_in_t1, mrielec_to_t1)
 
 
 if __name__ == "__main__":
 
-    main_elec_pos("TVB3", True, 10, 2)
+    main_elec_pos("TVB1", True, 10, 2)
