@@ -53,59 +53,61 @@ def read_write_pom_files(pomfile, elec_file_pom, mrielec, elec_nii_pom):
     labels = [label.strip() for label in labels]
 
     save_xyz_file(coords_list, labels, elec_file_pom)
-    volume_service.gen_label_volume_from_coords(np.array(coords_list), mrielec, elec_nii_pom,  labels=labels,
+    n_coords = coords_list.shape[0]
+    volume_service.gen_label_volume_from_coords(coords_list, mrielec, elec_nii_pom,
+                                                values=np.array(range(n_coords)) + 1, labels=labels,
                                                 skip_missing=False, dist=1)
 
     return labels, coords_list
 
 
-def extract_seeg_contacts_from_mrielec(mrielec, mrielec_dil, dilate=10, erode=2):
+def binarize_dil_erod(in_vol, out_vol, th=1, dilate=0, erode=0):
+    command = "mri_binarize " + " --i " + in_vol + " --o " + out_vol + " --min " + str(th)
+    if dilate > 0:
+        command += " --dilate " + str(dilate)
+    if erode > 0:
+        command += " --erode " + str(erode)
+    execute_command(command)
+
+
+def extract_seeg_contacts_from_mrielec(mrielec, mrielec_seeg, dilate=10, erode=2):
     volume = nibabel.load(mrielec)
     data = volume.get_data()
     max_voxel = data.max()
     del data
-    execute_command("mri_binarize " +
-                    " --i " + mrielec +
-                    " --o " + mrielec_dil +
-                    " --min " + str(max_voxel) +
-                    " --dilate " + str(dilate) +
-                    " --erode " + str(erode))
+    binarize_dil_erod(mrielec, mrielec_seeg, max_voxel, dilate, erode)
 
 
 def coregister_elec_pom_and_mri(seeg_pom_vol, mrielec, seeg_pom_xyz, elec_folder=None, dilate=10, erode=2):
 
-    mrielec_dil = os.path.join(elec_folder, "mri_elec_dil.nii.gz")
-    if not os.path.isfile(mrielec_dil):
-        extract_seeg_contacts_from_mrielec(mrielec, mrielec_dil, dilate, erode)
+    # Binarize mrielec to get only the seeg contacts
+    mrielec_seeg = os.path.join(elec_folder, "mrielec_seeg.nii.gz")
+    if not os.path.isfile(mrielec_seeg):
+        extract_seeg_contacts_from_mrielec(mrielec, mrielec_seeg, dilate, erode)
 
-    elec_nii_pom_dil = seeg_pom_vol.split(".")[0] + "_dil.nii.gz"
-    if not os.path.isfile(elec_nii_pom_dil):
-        if dilate > 0:
-            execute_command("mri_binarize " +
-                            " --i " + seeg_pom_vol +
-                            " --o " + elec_nii_pom_dil +
-                            " --min 1" +
-                            " --dilate " + str(dilate) +
-                            " --erode " + str(erode))
-        else:
-            elec_nii_pom_dil = seeg_pom_vol
+    # Binarize the pom seeg contacts
+    seeg_nii_pom_bin = seeg_pom_vol.split(".")[0] + "_bin.nii.gz"
+    if not os.path.isfile(seeg_nii_pom_bin):
+        binarize_dil_erod(seeg_pom_vol, seeg_nii_pom_bin, 1, dilate, erode)
 
     if not(os.path.isdir(elec_folder)):
         elec_folder = os.path.abspath(seeg_pom_vol)
 
+    # Co-register seeg pom and mrielec contacts
     pom_to_mrielec = os.path.join(elec_folder, "pom_to_mrielec.mat")
-    pom_in_mrielec_dil = os.path.join(elec_folder, "pom_in_mrielec_dil.nii.gz")
+    pom_in_mrielec_seeg = os.path.join(elec_folder, "pom_in_mrielec_seeg.nii.gz")
     if not os.path.isfile(pom_to_mrielec):
         # This takes time. It should be independent step and check before repeating
         regopts = "-dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
         execute_command("flirt " + regopts +
-                        " -in " + elec_nii_pom_dil +
+                        " -in " + seeg_nii_pom_bin +
                         # " -inweight " + elec_nii_pom_dil +
-                        " -ref " + mrielec_dil +
+                        " -ref " + mrielec_seeg +
                         # " -refweight " + mrielec_dil +
                         " -omat " + pom_to_mrielec +
-                        " -out " + pom_in_mrielec_dil)
+                        " -out " + pom_in_mrielec_seeg)
 
+    # Generate the new seeg labels and coords file in the mrielec space, as well as a volume for visual checking
     seeg_pom_xyz_in_mrielec = os.path.join(elec_folder, "seeg_pom_xyz_in_mrielec.xyz")
     pom_vol_in_mrielec = os.path.join(elec_folder, "pom_in_mrielec_vol.nii.gz")
     if not os.path.isfile(seeg_pom_xyz_in_mrielec):
