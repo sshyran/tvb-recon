@@ -583,9 +583,8 @@ class VolumeService(object):
             command += " > %s"
             args.append(output_file)
 
-        output, std_out, time = \
-            execute_command(command % tuple(args), cwd=os.path.dirname(transform_mat), shell=True)
+        execute_command(command % tuple(args), cwd=os.path.dirname(transform_mat), shell=True)
 
-        transformed_coords_str = output.strip().split('\n')[-1]
+        transformed_coords = numpy.loadtxt(output_file, skiprows=1)
 
-        return numpy.array([float(x) for x in transformed_coords_str.split(" ") if x]), output_file
+        return transformed_coords, output_file
