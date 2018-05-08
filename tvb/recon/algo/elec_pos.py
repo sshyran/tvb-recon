@@ -72,26 +72,26 @@ def extract_seeg_contacts_from_mrielec(mrielec, mrielec_dil, dilate=10, erode=2)
                     " --erode " + str(erode))
 
 
-def coregister_elec_pom_and_mri(elec_nii_pom, mrielec,  elec_file_pom, elec_folder=None, dilate=10, erode=2):
+def coregister_elec_pom_and_mri(seeg_pom_vol, mrielec, seeg_pom_xyz, elec_folder=None, dilate=10, erode=2):
 
     mrielec_dil = os.path.join(elec_folder, "mri_elec_dil.nii.gz")
     if not os.path.isfile(mrielec_dil):
         extract_seeg_contacts_from_mrielec(mrielec, mrielec_dil, dilate, erode)
 
-    elec_nii_pom_dil = elec_nii_pom.split(".")[0] + "_dil.nii.gz"
+    elec_nii_pom_dil = seeg_pom_vol.split(".")[0] + "_dil.nii.gz"
     if not os.path.isfile(elec_nii_pom_dil):
         if dilate > 0:
             execute_command("mri_binarize " +
-                            " --i " + elec_nii_pom +
+                            " --i " + seeg_pom_vol +
                             " --o " + elec_nii_pom_dil +
                             " --min 1" +
                             " --dilate " + str(dilate) +
                             " --erode " + str(erode))
         else:
-            elec_nii_pom_dil = elec_nii_pom
+            elec_nii_pom_dil = seeg_pom_vol
 
     if not(os.path.isdir(elec_folder)):
-        elec_folder = os.path.abspath(elec_nii_pom)
+        elec_folder = os.path.abspath(seeg_pom_vol)
 
     pom_to_mrielec = os.path.join(elec_folder, "pom_to_mrielec.mat")
     pom_in_mrielec_dil = os.path.join(elec_folder, "pom_in_mrielec_dil.nii.gz")
@@ -106,31 +106,31 @@ def coregister_elec_pom_and_mri(elec_nii_pom, mrielec,  elec_file_pom, elec_fold
                         " -omat " + pom_to_mrielec +
                         " -out " + pom_in_mrielec_dil)
 
-    seeg_pom_in_mrielec = os.path.join(elec_folder, "seeg_pom_in_mrielec.xyz")
-    pom_in_mrielec_vol = os.path.join(elec_folder, "pom_in_mrielec_vol.nii.gz")
-    if not os.path.isfile(seeg_pom_in_mrielec):
-        transform(elec_file_pom, elec_nii_pom, mrielec, seeg_pom_in_mrielec, pom_in_mrielec_vol, pom_to_mrielec)
+    seeg_pom_xyz_in_mrielec = os.path.join(elec_folder, "seeg_pom_xyz_in_mrielec.xyz")
+    pom_vol_in_mrielec = os.path.join(elec_folder, "pom_in_mrielec_vol.nii.gz")
+    if not os.path.isfile(seeg_pom_xyz_in_mrielec):
+        transform(seeg_pom_xyz, seeg_pom_vol, mrielec, seeg_pom_xyz_in_mrielec, pom_vol_in_mrielec, pom_to_mrielec)
 
-    return seeg_pom_in_mrielec, pom_in_mrielec_vol
+    return seeg_pom_xyz_in_mrielec, pom_vol_in_mrielec
 
 
 # Transform the coordinates and create output contact files (labels + coords) and a volume for visual checking
-def transform(seeg_file_in, input_vol, ref_vol, seeg_file_ref, seeg_vol_ref, transform_mat, aff_transform=None):
-    labels, coords = sensor_service.read_seeg_labels_coords_file(seeg_file_in)
+def transform(seeg_xyz_in, input_vol, ref_vol, seeg_xyz_ref, seeg_vol_ref, transform_mat, aff_transform=None):
+    labels, coords = sensor_service.read_seeg_labels_coords_xyz(seeg_xyz_in)
     if aff_transform is not None:
         coords = aff_transform(coords.reshape((1, 3))).reshape((3,))
-    coords_file = seeg_file_in.replace("seeg", "coords")
-    np.savetxt(coords_file, coords, fmt='%.3e', delimiter=' ')
-    coords_file_ref = seeg_file_ref.replace("seeg", "coords")
-    coords_in_ref, coords_file_ref = volume_service.transform_coords(coords_file, input_vol, ref_vol, transform_mat,
-                                                                     coords_file_ref)
+    coords_xyz_in = seeg_xyz_in.replace("seeg", "coords")
+    np.savetxt(coords_xyz_in, coords, fmt='%.3e', delimiter=' ')
+    coords_xyz_ref = seeg_xyz_ref.replace("seeg", "coords")
+    coords_in_ref, coords_xyz_ref = volume_service.transform_coords(coords_xyz_in, input_vol, ref_vol, transform_mat,
+                                                                    coords_xyz_ref)
     # Save final coordinates in ref_vol space to text and nifti files
-    with open(coords_file_ref) as fl:
+    with open(coords_xyz_ref) as fl:
         lines = fl.readlines()
     newlines = []
     for line, label in zip(lines[1:], labels):
         newlines.append(label + " " + line)
-    with open(seeg_file_ref, "w") as fl:
+    with open(seeg_xyz_ref, "w") as fl:
         fl.writelines(newlines)
     volume_service.gen_label_volume_from_coords(coords_in_ref, ref_vol, seeg_vol_ref, labels=labels,
                                                 skip_missing=False, dist=1)
@@ -154,11 +154,11 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
     elec_folder = os.path.join(data_root, patient, "elecs")
     if not os.path.isdir(elec_folder):
         os.mkdir(elec_folder)
-    seeg_pom = os.path.join(elec_folder, "seeg_pom.xyz")
+    seeg_pom_xyz = os.path.join(elec_folder, "seeg_pom_xyz.txt")
     seeg_pom_vol = os.path.join(elec_folder, "seeg_pom_vol.nii.gz")
     mrielec_to_t1 = os.path.join(elec_folder, "mrielec_to_t1.mat") # ELEC_to_T1 or mrielec_to_t1
     mrielec_in_t1 = os.path.join(elec_folder, "mrielec_in_t1.nii.gz") # ELEC_in_T1 or mrielec_in_t1
-    seeg = os.path.join(elec_folder, "seeg.xyz")
+    seeg_xyz = os.path.join(elec_folder, "seeg_xyz.txt")
     seeg_in_t1 = os.path.join(elec_folder, "seeg_in_t1.nii.gz")
 
 
@@ -167,7 +167,7 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
     # A. Preprocessing job. Not necessary if something like seeg_pom.xyz was alraedy given in the input
     # Read the seeg contacts' names and positions from pom file and save then in text and nifti volume files:
     if not os.path.isfile(seeg_pom_vol):
-        names, coords_list = read_write_pom_files(pomfile, seeg_pom, mrielec, seeg_pom_vol)
+        names, coords_list = read_write_pom_files(pomfile, seeg_pom_xyz, mrielec, seeg_pom_vol)
 
     # B. Optional job in case we haven't computed already the MRIelec_in_t1 transformation matrix
     #    (This must be already part of the workflow...)
@@ -209,17 +209,17 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
         # ])
         # aff_transform = compute_affine_transform(coords_from, coords_to)
 
-        seeg_pom_in_mrielec, pom_in_mrielec_vol = \
-            coregister_elec_pom_and_mri(seeg_pom_vol, mrielec,  seeg_pom, elec_folder, dilate, erode)
+        seeg_pom_xyz_in_mrielec, pom_vol_in_mrielec = \
+            coregister_elec_pom_and_mri(seeg_pom_vol, mrielec,  seeg_pom_xyz, elec_folder, dilate, erode)
 
         # D. Make the actual transformation from pom/mri_elec space to t1 space
-        transform(seeg_pom_in_mrielec, pom_in_mrielec_vol, t1, seeg, seeg_in_t1, mrielec_to_t1)
+        transform(seeg_pom_xyz_in_mrielec, pom_vol_in_mrielec, t1, seeg_xyz, seeg_in_t1, mrielec_to_t1)
 
     else:
 
         # D. Make the actual transformation from pom/mri_elec space to t1 space
         # Transform the coordinates along (pom file ->) mri_elec -> t1 and save the result to text and nifti files
-        transform(seeg_pom, mrielec, t1, seeg, seeg_in_t1, mrielec_to_t1)
+        transform(seeg_pom_xyz, mrielec, t1, seeg_xyz, seeg_in_t1, mrielec_to_t1)
 
 
 if __name__ == "__main__":
