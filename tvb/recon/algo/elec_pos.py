@@ -53,9 +53,9 @@ def read_write_pom_files(pomfile, elec_file_pom, mrielec, elec_nii_pom):
     labels = [label.strip() for label in labels]
 
     save_xyz_file(coords_list, labels, elec_file_pom)
-    n_coords = coords_list.shape[0]
+    n_vals = coords_list.shape[0]
     volume_service.gen_label_volume_from_coords(coords_list, mrielec, elec_nii_pom,
-                                                values=np.array(range(n_coords)) + 1, labels=labels,
+                                                values=np.array(range(n_vals)) + 1, labels=labels,
                                                 skip_missing=False, dist=1)
 
     return labels, coords_list
@@ -70,7 +70,7 @@ def binarize_dil_erod(in_vol, out_vol, th=1, dilate=0, erode=0):
     execute_command(command)
 
 
-def extract_seeg_contacts_from_mrielec(mrielec, mrielec_seeg, dilate=10, erode=2):
+def extract_seeg_contacts_from_mrielec(mrielec, mrielec_seeg, dilate=5, erode=1):
     volume = nibabel.load(mrielec)
     data = volume.get_data()
     max_voxel = data.max()
@@ -78,7 +78,7 @@ def extract_seeg_contacts_from_mrielec(mrielec, mrielec_seeg, dilate=10, erode=2
     binarize_dil_erod(mrielec, mrielec_seeg, max_voxel, dilate, erode)
 
 
-def coregister_elec_pom_and_mri(seeg_pom_vol, mrielec, seeg_pom_xyz, elec_folder=None, dilate=10, erode=2):
+def coregister_elec_pom_and_mri(seeg_pom_vol, mrielec, seeg_pom_xyz, elec_folder=None, dilate=0, erode=0):
 
     # Binarize mrielec to get only the seeg contacts
     mrielec_seeg = os.path.join(elec_folder, "mrielec_seeg.nii.gz")
@@ -226,4 +226,4 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
 
 if __name__ == "__main__":
 
-    main_elec_pos("TVB3", True, 0, 0)
+    main_elec_pos("TVB1", True, 10, 2)
