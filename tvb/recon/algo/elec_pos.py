@@ -226,4 +226,4 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
 
 if __name__ == "__main__":
 
-    main_elec_pos("TVB1", True, 10, 2)
+    main_elec_pos("TVB3", True, 0, 0)
