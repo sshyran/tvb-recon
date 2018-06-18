@@ -4,12 +4,13 @@ import re
 import subprocess
 import time
 import shutil
+import sys
 from enum import Enum
 from string import Template
 
-PATH_TO_INPUT_SUBJ_FOLDERS = "/WORK/Cleveland_datasets/raw_datasets"
-PATH_TO_SUBJ_CONFIG_FOLDERS = "/WORK/Cleveland_datasets/configurations"
-PATH_TO_OUTPUT_SUBJ_FOLDER = "/WORK/pegasus-4.8.1"
+PATH_TO_INPUT_SUBJ_FOLDERS = "/home/submitter/Cleveland_datasets/raw_datasets"
+PATH_TO_SUBJ_CONFIG_FOLDERS = "/home/submitter/Cleveland_datasets/configurations"
+PATH_TO_OUTPUT_SUBJ_FOLDER = "/home/submitter/Cleveland_datasets/output"
 
 PREFIX_SUBJECT_FOLDER = "TVB"
 
@@ -147,6 +148,10 @@ def get_specified_submit_folder(current_dir):
 
 
 if __name__ == "__main__":
+    arg_subjects = sys.argv[1].split(" ")
+    SUBJECTS_TO_BE_PROCESSED = [int(val) for val in arg_subjects]
+    print "Starting to process the following subjects: %s", SUBJECTS_TO_BE_PROCESSED
+
     if not os.path.exists(PATH_TO_SUBJ_CONFIG_FOLDERS):
         os.mkdir(PATH_TO_SUBJ_CONFIG_FOLDERS)
         print "Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS
