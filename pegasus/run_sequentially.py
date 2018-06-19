@@ -154,6 +154,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(PATH_TO_SUBJ_CONFIG_FOLDERS):
         os.mkdir(PATH_TO_SUBJ_CONFIG_FOLDERS)
+        os.mkdir(os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, "dax"))
         print "Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS
 
     for subject_number in SUBJECTS_TO_BE_PROCESSED:
