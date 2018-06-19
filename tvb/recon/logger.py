@@ -5,7 +5,7 @@ import logging
 import logging.config
 
 #TODO: hardcoded for docker image
-OUTPUT_FOLDER = "/home/submitter/output"
+OUTPUT_FOLDER = "output" #""/home/submitter/output"
 LOG_FILE = os.path.join(OUTPUT_FOLDER, 'tvb.log')
 
 
