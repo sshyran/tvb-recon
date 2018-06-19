@@ -8,9 +8,9 @@ import sys
 from enum import Enum
 from string import Template
 
-PATH_TO_INPUT_SUBJ_FOLDERS = "/home/submitter/Cleveland_datasets/raw_datasets"
-PATH_TO_SUBJ_CONFIG_FOLDERS = "/home/submitter/Cleveland_datasets/configurations"
-PATH_TO_OUTPUT_SUBJ_FOLDER = "/home/submitter/Cleveland_datasets/output"
+PATH_TO_INPUT_SUBJ_FOLDERS = "/home/submitter/raw_datasets"
+PATH_TO_SUBJ_CONFIG_FOLDERS = "/home/submitter/configurations"
+PATH_TO_OUTPUT_SUBJ_FOLDER = "/home/submitter/output"
 
 PREFIX_SUBJECT_FOLDER = "TVB"
 
