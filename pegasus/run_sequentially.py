@@ -174,7 +174,7 @@ if __name__ == "__main__":
 
             existent_job_ids = get_currently_running_job_ids()
 
-            print "Starting pegasus run for subject: " + current_subject
+            print "Starting pegasus run for subject: " + current_subject + "with atlas: " + atlas
             current_dax_dir = os.path.join(current_dir, "dax")
             p = subprocess.call(["sh", "main_pegasus.sh", current_dir, current_dax_dir])
 
