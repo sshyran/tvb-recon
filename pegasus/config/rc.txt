@@ -1,8 +1,7 @@
-# file-based replica catalog: 2017-10-27T17:44:33.859+03:00
-t1_input.nii.gz file://${path}/raw/t1_input.nii.gz site="local"
-dwi_input_no_grad.nii file://${path}/raw/dwi_raw.nii site="local"
-dwi.bvec file://${path}/raw/dwi.bvec site="local"
-dwi.bval file://${path}/raw/dwi.bval site="local"
-ct_input.nii.gz file://$path/raw/MRIelectrode.nii.gz site="local"
-fs_color_lut.txt file:///Applications/freesurfer/FreeSurferColorLUT.txt site="local"
-fs_default.txt file:///Users/dionperd/mrtrix3/src/connectome/tables/fs_default.txt site="local"
+# file-based replica catalog:
+t1_input.nii.gz file://${path}/NII/${subject}j.nii site="local"
+dwi_input_no_grad.nii file://${path}/NII/${subject}f.nii site="local"
+dwi.bvec file://${path}/NII/${subject}f.bvec site="local"
+dwi.bval file://${path}/NII/${subject}f.bval site="local"
+fs_color_lut.txt file:///opt/freesurfer/FreeSurferColorLUT.txt site="local"
+fs_default.txt file:///opt/mrtrix3/share/mrtrix3/labelconvert/fs_default.txt site="local"

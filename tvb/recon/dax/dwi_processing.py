@@ -4,12 +4,14 @@ from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class DWIProcessing(object):
-    def __init__(self, dwi_reversed=False, dwi_frmt="mif", use_gradient=False, mrtrix_thrds="2", dwi_pe_dir="ap"):
+    def __init__(self, dwi_reversed=False, dwi_frmt="mif", use_gradient=False, mrtrix_thrds="2", dwi_pe_dir="ap",
+                 os="LINUX"):
         self.dwi_reversed = dwi_reversed
         self.dwi_format = dwi_frmt
         self.use_gradient = use_gradient
         self.mrtrix_threads = mrtrix_thrds
         self.dwi_pe_dir = dwi_pe_dir
+        self.os = os
         self.qc_snapshots = QCSnapshots.get_instance()
 
     def add_dwi_processing_steps(self, dax):
@@ -64,9 +66,14 @@ class DWIProcessing(object):
 
             dwi_pre_output = File(DWIFiles.DWI_MIF.value)
             job3 = Job(DWIJobNames.DWIPREPROC.value, node_label="DWI preprocessing")
-            job3.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_pair", dwi_conv_output, dwi_re,
-                              "-nthreads",
-                              self.mrtrix_threads)
+
+            if self.os == "LINUX":
+                job3.addArguments(dwi_conv_output, dwi_pre_output, "-pe_dir", self.dwi_pe_dir, "-rpe_pair",
+                                  dwi_conv_output, dwi_re, "-nthreads", self.mrtrix_threads)
+            else:
+                job3.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_pair", dwi_conv_output,
+                                  dwi_re, "-nthreads",
+                                  self.mrtrix_threads)
             job3.uses(dwi_conv_output, link=Link.INPUT)
             job3.uses(dwi_re, link=Link.INPUT)
             job3.uses(dwi_pre_output, link=Link.OUTPUT, transfer=False, register=False)
@@ -94,14 +101,20 @@ class DWIProcessing(object):
                 if last_job is not None:
                     dax.depends(job1, last_job)
 
-
             if dwi_conv_output is None:
                 dwi_conv_output = dwi_input
 
             dwi_pre_output = File(DWIFiles.DWI_MIF.value)
             job2 = Job(DWIJobNames.DWIPREPROC.value, node_label="DWI preprocessing")
-            job2.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_none", "-nthreads",
-                              self.mrtrix_threads)
+
+            if self.os == "LINUX":
+                job2.addArguments(dwi_conv_output, dwi_pre_output, "-pe_dir", self.dwi_pe_dir, "-rpe_none", "-nthreads",
+                                  self.mrtrix_threads)
+
+            else:
+                job2.addArguments(self.dwi_pe_dir, dwi_conv_output, dwi_pre_output, "-rpe_none", "-nthreads",
+                                  self.mrtrix_threads)
+
             job2.uses(dwi_conv_output, link=Link.INPUT)
             job2.uses(dwi_pre_output, link=Link.OUTPUT, transfer=True, register=True)
             dax.addJob(job2)

@@ -42,6 +42,7 @@ class ConfigKey(Enum):
     RESAMPLE_FLAG = "resample.flag"
     TRGSUBJECT = "trgsubject"
     DECIM_FACTOR = "decim.factor"
+    OS="os"
 
 
 class Configuration(object):
