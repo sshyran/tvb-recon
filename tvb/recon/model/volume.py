@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from typing import Union
 import numpy
 import numpy.linalg
 from tvb.recon.model.constants import *
@@ -13,21 +14,22 @@ class Volume(object):
     Has a method that cuts a slice from the volume.
     """
 
-    def __init__(self, data, affine_matrix, header):
+    def __init__(self, data: numpy.ndarray, affine_matrix: numpy.ndarray, header: str):
         self.data = data  # 3D array
         self.dimensions = data.shape  # array with the length of each data dimension
         # matrix containing voxel to ras transformation
         self.affine_matrix = affine_matrix
         self.header = header
 
-    def get_center_point(self):
+    def get_center_point(self) -> numpy.ndarray:
         a = numpy.array(self.affine_matrix)
         b = numpy.array(list(numpy.divide(self.dimensions, 2)) + [1])
         ras_vector = a.dot(b)
 
         return ras_vector[:3]
 
-    def slice_volume(self, projection=SAGITTAL, ras=ORIGIN):
+    def slice_volume(self, projection: str=SAGITTAL, ras: Union[numpy.ndarray, list]=ORIGIN)\
+            -> (numpy.ndarray, numpy.ndarray, numpy.ndarray):
         """
         This determines slice colors and axes coordinates for the slice.
         :param projection: one of sagittal, axial or coronal

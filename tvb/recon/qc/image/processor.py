@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 
+from typing import Union
 import os
 import numpy as np
 from tvb.recon.io.factory import IOUtils
@@ -8,29 +9,30 @@ from tvb.recon.logger import get_logger
 from tvb.recon.model.constants import PROJECTIONS, SNAPSHOT_NAME, T1_RAS_VOLUME, MRI_DIRECTORY, \
     FS_TO_CONN_INDICES_MAPPING_PATH
 from tvb.recon.qc.image.writer import ImageWriter
+from tvb.recon.model.volume import Volume
 
 
 class ImageProcessor(object):
 
-    def __init__(self, snapshots_directory, snapshot_count=0):
+    def __init__(self, snapshots_directory: os.PathLike, snapshot_count: int=0):
         self.generic_io = GenericIO()
         self.writer = ImageWriter(snapshots_directory)
         self.snapshot_count = snapshot_count
         self.logger = get_logger(__name__)
 
-    def generate_file_name(self, current_projection,
-                           snapshot_name=SNAPSHOT_NAME):
+    def generate_file_name(self, current_projection: os.PathLike,
+                           snapshot_name: os.PathLike=SNAPSHOT_NAME) -> str:
         file_name = snapshot_name + "_" + \
             current_projection + "_" + str(self.snapshot_count)
         return file_name
 
-    def read_t1_affine_matrix(self):
+    def read_t1_affine_matrix(self) -> np.ndarray:
         t1_volume = IOUtils.read_volume(os.path.join(
             os.environ[MRI_DIRECTORY], os.environ[T1_RAS_VOLUME]))
         return t1_volume.affine_matrix
 
-    def show_single_volume(self, volume_path, use_cc_point,
-                           snapshot_name=SNAPSHOT_NAME):
+    def show_single_volume(self, volume_path: os.PathLike, use_cc_point: bool,
+                           snapshot_name: os.PathLike=SNAPSHOT_NAME):
 
         volume = IOUtils.read_volume(volume_path)
 
@@ -54,8 +56,8 @@ class ImageProcessor(object):
             self.writer.write_matrix(x_axis_coords, y_axis_coords, volume_matrix,
                                      self.generate_file_name(projection, snapshot_name))
 
-    def overlap_2_volumes(self, background_path, overlay_path,
-                          use_cc_point, snapshot_name=SNAPSHOT_NAME):
+    def overlap_2_volumes(self, background_path: os.PathLike, overlay_path: os.PathLike,
+                          use_cc_point: bool, snapshot_name: str=SNAPSHOT_NAME):
 
         background_volume = IOUtils.read_volume(background_path)
         overlay_volume = IOUtils.read_volume(overlay_path)
@@ -84,8 +86,9 @@ class ImageProcessor(object):
             self.writer.write_2_matrices(x, y, background_matrix, x1, y1, overlay_matrix,
                                          self.generate_file_name(projection, snapshot_name))
 
-    def overlap_3_volumes(self, background_path, overlay_1_path, overlay_2_path, use_cc_point,
-                          snapshot_name=SNAPSHOT_NAME):
+    def overlap_3_volumes(self, background_path: os.PathLike, overlay_1_path: os.PathLike,
+                          overlay_2_path: os.PathLike, use_cc_point: bool,
+                          snapshot_name: str=SNAPSHOT_NAME):
 
         volume_background = IOUtils.read_volume(background_path)
         volume_overlay_1 = IOUtils.read_volume(overlay_1_path)
@@ -120,14 +123,14 @@ class ImageProcessor(object):
                                          self.generate_file_name(projection, snapshot_name))
 
     def overlap_surface_annotation(
-            self, surface_path, annotation, snapshot_name=SNAPSHOT_NAME):
-        annotation = IOUtils.read_annotation(annotation)
+            self, surface_path: os.PathLike, annotation_path: os.PathLike, snapshot_name: str=SNAPSHOT_NAME):
+        annotation = IOUtils.read_annotation(annotation_path)
         surface = IOUtils.read_surface(surface_path, False)
         self.writer.write_surface_with_annotation(surface, annotation,
                                                   self.generate_file_name('surface_annotation', snapshot_name))
 
-    def overlap_volume_surfaces(self, volume_background, surfaces_path, use_center_surface, use_cc_point,
-                                snapshot_name=SNAPSHOT_NAME):
+    def overlap_volume_surfaces(self, volume_background: os.PathLike, surfaces_path: os.PathLike,
+                                use_center_surface: bool, use_cc_point: bool, snapshot_name: str=SNAPSHOT_NAME):
         volume = IOUtils.read_volume(volume_background)
 
         if use_cc_point:
@@ -159,10 +162,10 @@ class ImageProcessor(object):
                 self.generate_file_name(projection, snapshot_name))
 
     def show_aparc_aseg_with_new_values(
-            self, aparc_aseg_volume_path, region_values_path,
-            background_volume_path, use_cc_point,
-            fs_to_conn_indices_mapping_path=FS_TO_CONN_INDICES_MAPPING_PATH,
-            snapshot_name=SNAPSHOT_NAME):
+            self, aparc_aseg_volume_path: os.PathLike, region_values_path: os.PathLike,
+            background_volume_path: os.PathLike, use_cc_point: bool,
+            fs_to_conn_indices_mapping_path: os.PathLike=FS_TO_CONN_INDICES_MAPPING_PATH,
+            snapshot_name: str=SNAPSHOT_NAME):
         """
 
         Parameters
@@ -212,10 +215,10 @@ class ImageProcessor(object):
             )
 
     def _aparc_aseg_projection(
-            self, aparc_aseg_volume, aparc_aseg_volume_path, projection, ras,
-            fs_to_conn_indices_mapping,
-            background_volume, background_volume_path, snapshot_name,
-            conn_measure):
+            self, aparc_aseg_volume: os.PathLike, aparc_aseg_volume_path: os.PathLike, projection: np.ndarray,
+            ras: Union[np.ndarray, list], fs_to_conn_indices_mapping: dict,
+            background_volume: Volume, background_volume_path: os.PathLike, snapshot_name: str,
+            conn_measure: Union[np.ndarray, list]):
 
         try:
             slice = aparc_aseg_volume.slice_volume(projection, ras)

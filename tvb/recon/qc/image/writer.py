@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from typing import Union
 import os
 import numpy
 import matplotlib
@@ -8,6 +9,8 @@ from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
 from tvb.recon.logger import get_logger
 from tvb.recon.model.constants import SNAPSHOT_EXTENSION
+from tvb.recon.model.surface import Surface
+from tvb.recon.model.annotation import Annotation
 
 
 class ImageWriter(object):
@@ -17,17 +20,18 @@ class ImageWriter(object):
     volume_cmaps = ['gray', 'hot', 'jet']
     transparency = [0.3, 0.5]
 
-    def __init__(self, snapshots_directory):
+    def __init__(self, snapshots_directory: os.PathLike):
         self.snapshots_directory = snapshots_directory
 
         if not os.path.exists(self.snapshots_directory):
             os.mkdir(self.snapshots_directory)
 
-    def get_path(self, result_name):
+    def get_path(self, result_name: str):
         return os.path.join(self.snapshots_directory,
                             result_name + SNAPSHOT_EXTENSION)
 
-    def write_matrix(self, x, y, matrix, result_name, cmap=volume_cmaps[0]):
+    def write_matrix(self, x: numpy.ndarray, y: numpy.ndarray, matrix: numpy.ndarray, result_name: str,
+                     cmap=volume_cmaps[0]):
         pyplot.pcolormesh(x, y, matrix, cmap=cmap)
         pyplot.axes().set_aspect('equal', 'datalim')
         pyplot.axis('off')
@@ -35,8 +39,8 @@ class ImageWriter(object):
                        bbox_inches='tight', pad_inches=0.0)
         pyplot.clf()
 
-    def write_2_matrices(self, x, y, matrix_background, x1,
-                         y1, matrix_overlap, result_name):
+    def write_2_matrices(self, x: numpy.ndarray, y: numpy.ndarray, matrix_background: numpy.ndarray,
+                         x1: numpy.ndarray, y1: numpy.ndarray, matrix_overlap: numpy.ndarray, result_name: str):
         pyplot.pcolormesh(x, y, matrix_background, cmap=self.volume_cmaps[0])
         # masked = numpy.ma.masked_where(matrix_overlap < 0.9, matrix_overlap)
         pyplot.pcolormesh(x1, y1, matrix_overlap, cmap=self.volume_cmaps[
@@ -47,8 +51,10 @@ class ImageWriter(object):
                        bbox_inches='tight', pad_inches=0.0)
         pyplot.clf()
 
-    def write_3_matrices(self, x, y, matrix_background, x1, y1, matrix_overlap_1, x2, y2, matrix_overlap_2,
-                         result_name):
+    def write_3_matrices(self, x: numpy.ndarray, y: numpy.ndarray, matrix_background: numpy.ndarray,
+                         x1: numpy.ndarray, y1: numpy.ndarray, matrix_overlap_1: numpy.ndarray,
+                         x2: numpy.ndarray, y2: numpy.ndarray, matrix_overlap_2: numpy.ndarray,
+                         result_name: str):
         pyplot.pcolormesh(x, y, matrix_background, cmap=self.volume_cmaps[0])
         pyplot.pcolormesh(x1, y1, matrix_overlap_1, cmap=self.volume_cmaps[
                           1], alpha=self.transparency[0])
@@ -59,8 +65,8 @@ class ImageWriter(object):
         pyplot.savefig(self.get_path(result_name),
                        bbox_inches='tight', pad_inches=0.0)
 
-    def write_surface_with_annotation(self, surface, annot, result_name,
-                                      positions=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
+    def write_surface_with_annotation(self, surface: Surface, annot: Annotation, result_name:str,
+                                      positions: list=[(0, 0), (0, 90), (0, 180), (0, 270), (90, 0), (270, 0)]):
         x = surface.vertices[:, 0]
         y = surface.vertices[:, 1]
         z = surface.vertices[:, 2]
@@ -99,14 +105,16 @@ class ImageWriter(object):
 
         self.logger.info("The 6 snapshots were generated")
 
-    def save_figure(self, result_name):
+    def save_figure(self, result_name: str):
         pyplot.axes().set_aspect('equal', 'datalim')
         pyplot.axis('off')
         pyplot.savefig(self.get_path(result_name),
                        bbox_inches='tight', pad_inches=0.0)
 
-    def write_matrix_and_surfaces(self, x_axis_coords, y_axis_coords, matrix_background,
-                                  surface_x_array, surface_y_array, surface_index, clear_flag):
+    def write_matrix_and_surfaces(self, x_axis_coords: numpy.ndarray, y_axis_coords: numpy.ndarray,
+                                  matrix_background: numpy.ndarray, surface_x_array: numpy.ndarray,
+                                  surface_y_array: numpy.ndarray, surface_index: Union[numpy.ndarray, list],
+                                  clear_flag: bool):
         if clear_flag:
             pyplot.clf()
             pyplot.pcolormesh(x_axis_coords, y_axis_coords,

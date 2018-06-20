@@ -76,14 +76,24 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     if args.p:
-        create_tvb_dataset(
-            args.atlas_suffix,
-            args.mri_dir,
-            args.rm_details_dir,
-            args.weights_file,
-            args.tracts_file,
-            args.output_dir
-        )
+        if args.atlas_suffix == "default":
+            create_tvb_dataset(
+                "",
+                args.mri_dir,
+                args.rm_details_dir,
+                args.weights_file,
+                args.tracts_file,
+                args.output_dir
+            )
+        else:
+            create_tvb_dataset(
+                args.atlas_suffix,
+                args.mri_dir,
+                args.rm_details_dir,
+                args.weights_file,
+                args.tracts_file,
+                args.output_dir
+            )
 
     else:
         create_tvb_dataset(

@@ -13,7 +13,7 @@ if [ -d "${SUBJECTS_DIR}/$1" ]; then
     if [ -f "${SUBJECTS_DIR}/$1/scripts/IsRunning.lh+rh" ]; then
         rm ${SUBJECTS_DIR}/$1/scripts/IsRunning.lh+rh
     fi
-    recon-all -all -no-isrunning -parallel -openmp $3 -s $1
+    # recon-all -all -no-isrunning -parallel -openmp $3 -s $1
 else
     recon-all -all -parallel -openmp $3 -s $1 -i $2
 fi

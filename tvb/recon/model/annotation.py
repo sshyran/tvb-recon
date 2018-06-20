@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from typing import Union, Optional
 import numpy
 
 
@@ -10,7 +11,8 @@ class Annotation(object):
     Has a method to compute face colors using vertices_color_mapping .
     """
 
-    def __init__(self, region_mapping, regions_color_table, region_names):
+    def __init__(self, region_mapping: Union[numpy.ndarray, list], regions_color_table: numpy.ndarray,
+                 region_names: list):
         if len(region_mapping) == 0:
             self.region_mapping = numpy.empty((0,), dtype='i')
         else:
@@ -23,24 +25,25 @@ class Annotation(object):
             self.regions_color_table = numpy.array(regions_color_table)
         self.region_names = region_names  # list of region names
 
-    def set_region_mapping(self, new_region_mapping):
+    def set_region_mapping(self, new_region_mapping: numpy.ndarray):
         self.region_mapping = new_region_mapping
 
-    def add_region_names_and_colors(self, new_region_names, new_region_colors):
-        self.region_names.append(new_region_names)
+    def add_region_names_and_colors(self, new_region_names: list, new_region_colors: numpy.ndarray):
+        # TODO: check if the following line is correct! I changed it from .append() to +=
+        self.region_names += new_region_names
         self.regions_color_table = numpy.concatenate(
             (self.regions_color_table, new_region_colors), axis=0).astype('i')
 
-    def add_region_mapping(self, new_region_mapping):
+    def add_region_mapping(self, new_region_mapping: Union[numpy.ndarray, list]):
         self.region_mapping = numpy.r_[self.region_mapping, new_region_mapping]
 
     # def stack_region_mapping(self):
     #     self.region_mapping = numpy.hstack(self.region_mapping)
 
-    def get_region_mapping_by_indices(self, indices):
+    def get_region_mapping_by_indices(self, indices: Union[numpy.ndarray, list]):
         return self.region_mapping[indices]
 
-    def compute_face_colors(self, triangles):
+    def compute_face_colors(self, triangles: numpy.ndarray) -> list:
         face_colors = []
         converted_colors = self.regions_color_table[:, :4] / 255.0
 

@@ -15,13 +15,13 @@ class ImageTransformer(object):
     created_files = []
     logger = get_logger(__name__)
 
-    def __init__(self, path):
+    def __init__(self, path: os.PathLike):
         self.converted_files_directory_path = os.path.join(
             path, self.converted_files_directory)
         if not os.path.exists(self.converted_files_directory_path):
             os.makedirs(self.converted_files_directory_path)
 
-    def apply_transform(self, volume_path):
+    def apply_transform(self, volume_path: os.PathLike) -> os.PathLike:
         if not self.use_ras_transform:
             return volume_path
 
@@ -38,41 +38,42 @@ class ImageTransformer(object):
         except subprocess.CalledProcessError:
             self.logger.error("Error converting volume")
 
-    def center_surface(self, surface):
+    def center_surface(self, surface_path: os.PathLike) -> os.PathLike:
         if not self.use_center_surface:
-            return surface
+            return surface_path
 
         surface_new_path = os.path.join(
-            self.converted_files_directory_path, 'centered' + basename(surface))
+            self.converted_files_directory_path, 'centered' + basename(surface_path))
 
         try:
             x = subprocess.call(
-                ['mris_convert', '--to-scanner', surface, surface_new_path])
+                ['mris_convert', '--to-scanner', surface_path, surface_new_path])
             print(x)
             self.created_files.append(surface_new_path)
             return surface_new_path
         except subprocess.CalledProcessError:
             self.logger.error("Error converting surface")
 
-    def transform_single_volume(self, volume_path):
+    def transform_single_volume(self, volume_path: os.PathLike) -> os.PathLike:
         return self.apply_transform(volume_path)
 
-    def transform_2_volumes(self, background_path, overlay_path):
+    def transform_2_volumes(self, background_path: os.PathLike, overlay_path: os.PathLike) \
+            -> (os.PathLike, os.PathLike):
         return self.apply_transform(
             background_path), self.apply_transform(overlay_path)
 
-    def transform_3_volumes(self, background_path,
-                            overlay_1_path, overlay_2_path):
+    def transform_3_volumes(self, background_path: os.PathLike,
+                            overlay_1_path: os.PathLike, overlay_2_path: os.PathLike):
         return self.apply_transform(background_path), self.apply_transform(overlay_1_path), self.apply_transform(
             overlay_2_path)
 
-    def transform_volume_surfaces(self, background_path, surfaces_list):
+    def transform_volume_surfaces(self, background_path: os.PathLike, surfaces_list: list) -> (os.PathLike, list):
         new_surfaces_list = [self.center_surface(
             os.path.expandvars(surf)) for surf in surfaces_list]
         return self.apply_transform(background_path), new_surfaces_list
 
-    def transform_volume_white_pial(
-            self, background_path, resampled_surface, surfaces_path, use_gifti):
+    def transform_volume_white_pial(self, background_path: os.PathLike, resampled_surface: os.PathLike,
+                                    surfaces_path: os.PathLike, use_gifti: bool) -> (os.PathLike, list):
         if resampled_surface is not "":
             resampled_surface = "-" + resampled_surface
 

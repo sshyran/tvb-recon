@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from typing import Optional
 import numpy
 from collections import OrderedDict
 from tvb.recon.io.factory import IOUtils
@@ -37,7 +38,7 @@ class AnnotationService(object):
     # TODO: an annotation merging function, similar to the one for merging
     # surfaces
 
-    def read_lut(self, lut_path=None, key_mode='label'):
+    def read_lut(self, lut_path: Optional[os.PathLike]=None, key_mode: str='label'):
         lut_path = lut_path or default_lut_path()
         f = open(lut_path, "r")
         l = list(f)

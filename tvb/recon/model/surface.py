@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from typing import Union, Optional
 import numpy
 from tvb.recon.model.constants import *
 from trimesh import Trimesh, intersections
@@ -13,9 +14,10 @@ class Surface(object):
     Has also few methods to read from this mesh (e.g. a contour cut).
     """
 
-    def __init__(self, vertices, triangles, area_mask=None, center_ras=[], vertices_coord_system=None,
-                 generic_metadata=None, vertices_metadata=None, triangles_metadata=None):
-
+    def __init__(self, vertices: numpy.ndarray, triangles: numpy.ndarray,
+                 area_mask: Optional[Union[numpy.ndarray, list]]=None, center_ras: Union[numpy.ndarray, list]=[],
+                 vertices_coord_system=None, generic_metadata=None, vertices_metadata=None, triangles_metadata=None):
+        # TODO: clarify the args' types
         if len(vertices) == 0:
             self.vertices = numpy.empty((0, 3))
         else:
@@ -56,8 +58,8 @@ class Surface(object):
             self.generic_metadata = new_metadata
 
     # TODO: it will fail if one tries to add empty inputs
-    def add_vertices_and_triangles(
-            self, new_vertices, new_triangles, new_area_mask=[]):
+    def add_vertices_and_triangles(self, new_vertices: numpy.ndarray, new_triangles: numpy.ndarray,
+                                   new_area_mask: Union[numpy.ndarray, list]=[]):
         self.triangles = numpy.r_[self.triangles,
                                   new_triangles + self.n_vertices]
         self.vertices = numpy.r_[self.vertices, new_vertices]
@@ -75,11 +77,12 @@ class Surface(object):
     #     self.n_vertices = len(self.vertices)
     #     self.n_triangles = len(self.triangles)
 
-    def _get_plane_origin(self, ras):
+    def _get_plane_origin(self, ras: Union[numpy.ndarray, list]) -> list:
         plane_origin = numpy.subtract(ras, self.center_ras)
         return list(plane_origin)
 
-    def cut_by_plane(self, projection=SAGITTAL, ras=ORIGIN):
+    def cut_by_plane(self, projection: str=SAGITTAL, ras: Union[numpy.ndarray, list]=ORIGIN) \
+            -> (numpy.ndarray, numpy.ndarray):
         """
         :param projection:
         :param ras:
@@ -106,7 +109,7 @@ class Surface(object):
     #         (vertices,triangles) = surface_service.extract_subsurf(self,self.area_mask,output="verts_triangls")[:2]
     #     return numpy.sum(surface_service.tri_area(vertices[triangles]))
 
-    def compute_normals(self):
+    def compute_normals(self) -> numpy.ndarray:
         """
         :return: array of triangle normal vectors
         """
@@ -121,7 +124,7 @@ class Surface(object):
 
         return normals
 
-    def vertex_normals(self):
+    def vertex_normals(self) -> numpy.ndarray:
         # TODO test by generating points on unit sphere: vtx pos should equal
         # normal
 
@@ -139,7 +142,7 @@ class Surface(object):
             vn[i] = norm
         return vn
 
-    def get_vertex_triangles(self):
+    def get_vertex_triangles(self) -> list:
         vertex_triangles = [[] for _ in range(self.n_vertices)]
         for k in range(self.n_triangles):
             vertex_triangles[self.triangles[k, 0]].append(k)
@@ -147,7 +150,7 @@ class Surface(object):
             vertex_triangles[self.triangles[k, 2]].append(k)
         return vertex_triangles
 
-    def _get_triangle_normals(self):
+    def _get_triangle_normals(self) -> numpy.ndarray:
         """Calculates triangle normals."""
         tri_u = self.vertices[self.triangles[:, 1], :] - self.vertices[self.triangles[:, 0], :]
         tri_v = self.vertices[self.triangles[:, 2], :] - self.vertices[self.triangles[:, 0], :]
@@ -161,7 +164,7 @@ class Surface(object):
             triangle_normals = tri_norm
         return triangle_normals
 
-    def _get_triangle_angles(self):
+    def _get_triangle_angles(self) -> numpy.ndarray:
         """
         Calculates the inner angles of all the triangles which make up a surface
         """
@@ -182,7 +185,7 @@ class Surface(object):
 
         return angles
 
-    def get_triangle_areas(self):
+    def get_triangle_areas(self) -> numpy.ndarray:
         """Calculates the area of triangles making up a surface."""
         tri_u = self.vertices[self.triangles[:, 1], :] - self.vertices[self.triangles[:, 0], :]
         tri_v = self.vertices[self.triangles[:, 2], :] - self.vertices[self.triangles[:, 0], :]
@@ -191,7 +194,7 @@ class Surface(object):
         triangle_areas = triangle_areas[:, numpy.newaxis]
         return triangle_areas
 
-    def get_vertex_areas(self):
+    def get_vertex_areas(self) -> numpy.ndarray:
         triangle_areas = self.get_triangle_areas()
         vertex_areas = numpy.zeros((self.vertices.shape[0]))
         for triang, vertices in enumerate(self.triangles):

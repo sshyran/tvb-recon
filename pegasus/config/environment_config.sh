@@ -2,26 +2,24 @@
 
 #TODO place these in a better form ?
 
-export PEGASUSHOME=/WORK/pegasus-4.7.4
+export PEGASUSHOME=/home/submitter
 export PEGASUSSUBMIT=$${PEGASUSHOME}/submit
 export PEGASUSSCRATCH=$${PEGASUSHOME}/scratch
 
-export OS=MACOSX
+export OS=LINUX
 
-export HOME=/Users/pipeline
-
-export FREESURFER_HOME=/WORK/FS_NEW/freesurfer
+export FREESURFER_HOME=/opt/freesurfer
 export SUBJECTS_DIR=$${FREESURFER_HOME}/subjects
 export FUNCTIONALS_DIR=$${FREESURFER_HOME}/sessions
 
-export FSL_DIR=/WORK/FSL/fsl
+export FSL_DIR=/usr/local/fsl
 
-export MRTRIX_BIN=/WORK/MRtrix/mrtrix3/release/bin
-export MRTRIX_SCRIPTS=/WORK/MRtrix/mrtrix3/scripts
+export MRTRIX_BIN=/opt/mrtrix3/bin
+export MRTRIX_SCRIPTS=/opt/mrtrix3/scripts
 
-export ANACONDA_ACTIVATE=//anaconda/bin/activate
+export ANACONDA_ACTIVATE=/opt/conda/bin/activate
 export PYTHON3_ENVIRONMENT=tvb_recon_python3_env
 
-export SH_CUSTOM_FILES=/WORK/BNM/tvb-recon/tvb-recon/pegasus/config/scripts
+export SH_CUSTOM_FILES=/opt/tvb-recon/pegasus/config/scripts
 
-export MNE_ROOT=/WORK/MNE/MNE-2.7.0-3106-MacOSX-i386
+export MNE_ROOT=/opt/MNE-2.7.4-3378-MacOSX-x86_64/bin

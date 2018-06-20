@@ -131,6 +131,11 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     if args.p:
-        compute_region_details(args.atlas_suffix, args.fs_color_lut, args.t1, args.lh_cort, args.rh_cort,
+        if args.atlas_suffix == "default":
+            compute_region_details("", args.fs_color_lut, args.t1, args.lh_cort, args.rh_cort,
+                                   args.lh_cort_annot, args.rh_cort_annot, args.lh_subcort, args.rh_subcort,
+                                   args.lh_subcort_annot, args.rh_subcort_annot)
+        else:
+            compute_region_details(args.atlas_suffix, args.fs_color_lut, args.t1, args.lh_cort, args.rh_cort,
                                args.lh_cort_annot, args.rh_cort_annot, args.lh_subcort, args.rh_subcort,
                                args.lh_subcort_annot, args.rh_subcort_annot)

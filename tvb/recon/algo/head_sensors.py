@@ -2,7 +2,7 @@
 Generates suitable resolution head surf and EEG/MEG sensors descriptions.
 
 """
-
+from typing import Optional, Union
 import os
 import os.path
 import numpy
@@ -13,7 +13,7 @@ import pyqtgraph.opengl
 from nibabel.freesurfer import read_geometry
 
 
-def mask_mesh(v, f, mask):
+def mask_mesh(v: numpy.ndarray, f: numpy.ndarray, mask: Union[numpy.ndarray, list]) -> (numpy.ndarray, numpy.ndarray):
     "Apply vertex-wise mask to mesh."
     nv = v.shape[0]
     idx = numpy.r_[:nv][mask]
@@ -29,7 +29,7 @@ def mask_mesh(v, f, mask):
     return verts, faces
 
 
-def write_off(fname, v, f, overwrite=False):
+def write_off(fname: str, v: numpy.ndarray, f: numpy.ndarray, overwrite: bool=False):
     if not os.path.exists(fname) or overwrite:
         nv = v.shape[0]
         nf = f.shape[0]
@@ -44,15 +44,15 @@ def write_off(fname, v, f, overwrite=False):
         print(('%s exists, use overwrite=True to overwrite.' % (fname, )))
 
 
-def remesh_off(remesher_path, ref_fname, out_fname, overwrite=False):
+def remesh_off(remesher_path: str, ref_fname: str, out_fname: str, overwrite: bool=False):
     "Run remesher on mesh in OFF format."
     if not os.path.exists(out_fname) or overwrite:
-        os.system('%s %s %s' % (remesh_path, ref_fname, out_fname))
+        os.system('%s %s %s' % (remesher_path, ref_fname, out_fname))
     else:
         print(('%s exists, use overwrite=True to overwrite.' % (out_fname, )))
 
 
-def read_off(fname):
+def read_off(fname: str) -> (numpy.ndarray, numpy.ndarray):
     "Read mesh in from OFF format file."
     vl, fl = [], []
     with open(fname, 'r') as fd:
@@ -67,14 +67,14 @@ def read_off(fname):
     return vl, fl
 
 
-def make_cap_mask(vl, a=0.8, s=1.3, thresh=-0.3):
+def make_cap_mask(vl: numpy.ndarray, a: float=0.8, s: float=1.3, thresh: float=-0.3) -> numpy.ndarray:
     "Make vertex-wise mask for cap assuming RAS coordinates."
     nvl = (vl - vl.min(axis=0)) / vl.ptp(axis=0)
     capmask = (nvl[:, 1] * a - nvl[:, 2] * s) < thresh
     return capmask
 
 
-def xyz2rgb(vl):
+def xyz2rgb(vl: numpy.ndarray):
     "Map XYZ coordinates to RGB space."
     nv = vl.shape[0]
     nvl = (vl - vl.min(axis=0)) / vl.ptp(axis=0)
@@ -82,7 +82,7 @@ def xyz2rgb(vl):
     return vcrgb
 
 
-def sens_xyz_ori(v, f, l):
+def sens_xyz_ori(v: numpy.ndarray, f: numpy.ndarray, l: numpy.ndarray) -> numpy.ndarray:
     surface = Surface(v, f, [], None)
     vn = surface.vertex_normals()
     pos = numpy.zeros((n_sens, 6))
