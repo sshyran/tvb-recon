@@ -2,6 +2,7 @@
 
 import os
 import numpy
+from numpy.testing import assert_array_equal
 from tvb.recon.algo.service.surface import SurfaceService
 from tvb.recon.io.annotation import AnnotationIO
 from tvb.recon.io.factory import IOUtils
@@ -89,10 +90,9 @@ class SurfaceTest(BaseTest):
         self.assertEqual(len(surface.triangles), 11420)
 
         annotation = IOUtils.read_annotation(out_annot_path)
-        self.assertTrue(
-            numpy.array_equal(
+        assert_array_equal(
                 annotation.regions_color_table,
-                [[0, 118, 14, 255, 947712], [122, 186, 220, 255, 14465658]]))
+                [[0, 118, 14, 255, 947712], [122, 186, 220, 255, 14465658]])
 
     def test_vertex_connectivity(self,):
         surf_path = get_data_file("head2", 'SurfaceCortical.h5')
