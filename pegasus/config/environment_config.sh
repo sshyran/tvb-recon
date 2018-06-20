@@ -2,7 +2,7 @@
 
 #TODO place these in a better form ?
 
-export PEGASUSHOME=/opt/pegasus-run
+export PEGASUSHOME=/home/submitter
 export PEGASUSSUBMIT=$${PEGASUSHOME}/submit
 export PEGASUSSCRATCH=$${PEGASUSHOME}/scratch
 
