@@ -560,6 +560,7 @@ class VolumeService(object):
                     volume.data[i][j][k] = mapping_dict.get(val, -1)
 
         print("Now values are in interval [%d - %d]" % (volume.data.min(), volume.data.max()))
+        print("Nr of regions is %d" % conn_regs_nr)
 
         if not_matched:
             print("Not matched regions will be considered background: %s" % not_matched)
