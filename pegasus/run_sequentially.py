@@ -8,9 +8,9 @@ import sys
 from enum import Enum
 from string import Template
 
-PATH_TO_INPUT_SUBJ_FOLDERS = "/home/submitter"
-PATH_TO_SUBJ_CONFIG_FOLDERS = "/home/submitter"
-PATH_TO_OUTPUT_SUBJ_FOLDER = "/home/submitter"
+PATH_TO_INPUT_SUBJ_FOLDERS = "/home/submitter/data"
+PATH_TO_SUBJ_CONFIG_FOLDERS = "/home/submitter/data"
+PATH_TO_OUTPUT_SUBJ_FOLDER = "/home/submitter/data"
 
 PREFIX_SUBJECT_FOLDER = "TVB"
 
@@ -154,7 +154,6 @@ if __name__ == "__main__":
 
     if not os.path.exists(PATH_TO_SUBJ_CONFIG_FOLDERS):
         os.mkdir(PATH_TO_SUBJ_CONFIG_FOLDERS)
-        os.mkdir(os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, "dax"))
         print "Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS
 
     for subject_number in SUBJECTS_TO_BE_PROCESSED:

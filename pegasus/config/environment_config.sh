@@ -2,7 +2,7 @@
 
 #TODO place these in a better form ?
 
-export PEGASUSHOME=/home/submitter
+export PEGASUSHOME=/home/submitter/pegasus
 export PEGASUSSUBMIT=$${PEGASUSHOME}/submit
 export PEGASUSSCRATCH=$${PEGASUSHOME}/scratch
 
