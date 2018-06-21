@@ -74,7 +74,8 @@ def create_config_files_for_subj(current_subject, current_atlas):
     default_rc_out_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC_OUT.value)
     with open(default_rc_out_path) as default_rc_out_file:
         template = Template(default_rc_out_file.read())
-        rc_out_config = template.substitute(path=os.path.join(PATH_TO_OUTPUT_SUBJ_FOLDER, current_subject, "output"))
+        rc_out_config = template.substitute(path=os.path.join(PATH_TO_OUTPUT_SUBJ_FOLDER, current_subject, "output"),
+                                            atlas=current_atlas)
         subj_rc_out_path = os.path.join(current_dir, configs.RC_OUT.value)
         with open(subj_rc_out_path, "w+") as subj_rc_out_file:
             subj_rc_out_file.write(rc_out_config)
@@ -197,5 +198,7 @@ if __name__ == "__main__":
                     print("Checked at %s and %s file was not generated yet!" % (
                         str(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())), MONITORED_FILE))
                     time.sleep(600)
+
+            # TODO: add here the seeg positions process and the gain matrix constuction and put it inside tvb folder
 
             print("The run has finished for job with id: %s" % current_job_id)
