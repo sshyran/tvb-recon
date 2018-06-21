@@ -1,8 +1,8 @@
 # file-based replica catalog:
-t1_input.nii.gz file://${path}/raw/t1_input.nii.gz site="local"
-dwi_input_no_grad.nii file://${path}/raw/dwi_raw.nii site="local"
-dwi.bvec file://${path}/raw/dwi.bvec site="local"
-dwi.bval file://${path}/raw/dwi.bval site="local"
-ct_input.nii.gz file://${path}/raw/MRIelectrode.nii.gz site="local"
+t1_input.nii.gz file://${path}/raw/mri/t1_input.nii.gz site="local"
+dwi_input_no_grad.nii file://${path}/raw/mri/dwi_raw.nii site="local"
+dwi.bvec file://${path}/raw/mri/dwi.bvec site="local"
+dwi.bval file://${path}/raw/mri/dwi.bval site="local"
+ct_input.nii.gz file://${path}/raw/mri/MRIelectrode.nii.gz site="local"
 fs_color_lut.txt file:///opt/freesurfer-stable/freesurfer/FreeSurferColorLUT.txt site="local"
 fs_default.txt file:///opt/mrtrix3/share/mrtrix3/labelconvert/fs_default.txt site="local"
