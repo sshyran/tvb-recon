@@ -92,7 +92,7 @@ class SurfaceTest(BaseTest):
         annotation = IOUtils.read_annotation(out_annot_path)
         assert_array_equal(
                 annotation.regions_color_table,
-                [[0, 118, 14, 255, 947712], [122, 186, 220, 255, 14465658]])
+                [[0, 118, 14, 0, 947712], [122, 186, 220, 0, 14465658]])
 
     def test_vertex_connectivity(self,):
         surf_path = get_data_file("head2", 'SurfaceCortical.h5')
