@@ -29,8 +29,7 @@ class Annotation(object):
         self.region_mapping = new_region_mapping
 
     def add_region_names_and_colors(self, new_region_names: list, new_region_colors: numpy.ndarray):
-        # TODO: check if the following line is correct! I changed it from .append() to +=
-        self.region_names += new_region_names
+        self.region_names.append(new_region_names)
         self.regions_color_table = numpy.concatenate(
             (self.regions_color_table, new_region_colors), axis=0).astype('i')
 
