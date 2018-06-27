@@ -138,7 +138,7 @@ def transform(seeg_xyz_in, input_vol, ref_vol, seeg_xyz_ref, seeg_vol_ref, trans
                                                 skip_missing=False, dist=1)
 
 
-def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
+def main_mrielec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
 
     # Paths:
 
@@ -226,4 +226,4 @@ def main_elec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
 
 if __name__ == "__main__":
 
-    main_elec_pos("TVB1", True, 10, 2)
+    main_mrielec_pos("TVB1", True, 10, 2)
