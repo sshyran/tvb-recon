@@ -308,7 +308,7 @@ class SensorService(object):
 
     # This is from tvb-epilepsy
     def compute_sensors_projection(self, sensors_file: os.PathLike, centers_file: os.PathLike,
-                                   out_matrix_file: os.PathLike, normalize: float=95, ceil: bool=False) \
+                                   out_matrix_file: os.PathLike, normalize: float=100, ceil: bool=False) \
             -> numpy.ndarray:
         sensors = numpy.genfromtxt(sensors_file, usecols=[1, 2, 3])
         centers = numpy.genfromtxt(centers_file, usecols=[1, 2, 3])
