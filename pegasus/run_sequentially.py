@@ -151,21 +151,21 @@ def get_specified_submit_folder(current_dir):
 if __name__ == "__main__":
     arg_subjects = sys.argv[1].split(" ")
     SUBJECTS_TO_BE_PROCESSED = [int(val) for val in arg_subjects]
-    print "Starting to process the following subjects: %s", SUBJECTS_TO_BE_PROCESSED
+    print("Starting to process the following subjects: %s", SUBJECTS_TO_BE_PROCESSED)
 
     if not os.path.exists(PATH_TO_SUBJ_CONFIG_FOLDERS):
         os.mkdir(PATH_TO_SUBJ_CONFIG_FOLDERS)
-        print "Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS
+        print("Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS)
 
     for subject_number in SUBJECTS_TO_BE_PROCESSED:
         current_subject = PREFIX_SUBJECT_FOLDER + str(subject_number)
-        print "Starting to process the subject: %s" % current_subject
+        print("Starting to process the subject: %s" % current_subject)
 
         current_dir = os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, current_subject, "configs")
         for atlas in ATLASES:
             if not os.path.exists(current_dir):
                 os.mkdir(current_dir)
-                print "Folder %s has been created..." % current_dir
+                print("Folder %s has been created..." % current_dir)
 
                 create_config_files_for_subj(current_subject, atlas)
 
@@ -174,7 +174,7 @@ if __name__ == "__main__":
 
             existent_job_ids = get_currently_running_job_ids()
 
-            print "Starting pegasus run for subject: " + current_subject + "with atlas: " + atlas
+            print("Starting pegasus run for subject: " + current_subject + "with atlas: " + atlas)
             current_dax_dir = os.path.join(current_dir, "dax")
             p = subprocess.call(["sh", "main_pegasus.sh", current_dir, current_dax_dir])
 
@@ -184,21 +184,22 @@ if __name__ == "__main__":
                 new_job_ids.remove(job)
 
             current_job_id = new_job_ids[0]
-            print "The job that has been started has the id: %s" % current_job_id
+            print("The job that has been started has the id: %s" % current_job_id)
 
             submit_dir = os.path.join(get_specified_submit_folder(current_dir), getpass.getuser(), "pegasus",
                                       "TVB-PIPELINE", PREFIX_JOB_ID + current_job_id)
 
             print("Starting to monitor the submit folder: %s ..." % submit_dir)
 
+            running_time = 0.0
             while True:
                 if MONITORED_FILE in os.listdir(submit_dir):
                     break
                 else:
-                    print("Checked at %s and %s file was not generated yet!" % (
-                        str(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())), MONITORED_FILE))
+                    if running_time % 1800 == 0:
+                        print("Checked at %s and %s file was not generated yet!" % (
+                            str(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())), MONITORED_FILE))
                     time.sleep(600)
-
-            # TODO: add here the seeg positions process and the gain matrix constuction and put it inside tvb folder
+                    running_time += 600.0
 
             print("The run has finished for job with id: %s" % current_job_id)
