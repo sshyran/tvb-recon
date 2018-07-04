@@ -61,6 +61,76 @@ For a multi-patient sequential run, the data needs to be structured in a similar
 
 ## How to launch
 
+### Docker image
+We provide a docker image which gathers all the dependencies necessary for tvb-recon code to run.
+The docker image is currently on a private repository, but we can give access to anyone interested. Just send an email at: paula.popa@codemart.ro and specify your <i><b>docker ID</b></i>.
+
+Once you have access to the docker image, take the most recent version (at least from tag: master-pr50).
+Also, it would be good to have tvb-recon code locally, in case some changes are necessary. Take it with: git clone https://github.com/the-virtual-brain/tvb-recon.git
+
+In order to use tvb-recon within the proposed docker image, you will need some details about its configurations and steps to follow for specifying your input data and start a workflow.
+We recommend new users to start with the <i><b>default configurations</b></i> and <i><b>adjust their data structure</b></i> as required. After a first workflow run has finished successfully, the configurations and data structure can be chosen by the user.
+
+First of all, we process mostly T1 and DWI data. There is an option to process also CT scans. But, we would advice you to start only with T1 and DWI, for now.
+In order to access the T1 and DWI input, tvb-recon pipeline expects, by default, a certain folder structure and file naming. These can be changed later as you wish, but keep the default configurations for a first test.
+This means, you should <i><b>adjust your input</b></i> data folder to the following structure (also rename your files as below):
+
+- TVB_patients 
+    - TVB1 
+        - raw 
+            - mri 
+                - t1_input.nii.gz
+                - dwi_raw.nii
+                - dwi.bvec
+                - dwi.bval
+	- TVB2 
+	    - raw 
+	        - mri
+	            - t1_input.nii.gz
+				- dwi_raw.nii
+				- dwi.bvec
+				- dwi.bval
+
+(TVB1, TVB2, etc, being the ID of the patients. If your DWI data is not made of: dwi.nii + dwi.bvec + dwi.bval, let us know and we will tell you how to specify it differently.)
+
+Once you have this folder structure for your data, you can run the tvb-recon docker image with the following command:
+<br><i><b>docker run -it -v your_path_to_TVB_patients/TVB_patients/:/home/submitter -v your_path_to_tvb_recon/tvb-recon/:/opt/tvb-recon popaula937/tvb-recon:master-pr50 /bin/bash</b></i>
+<br>(here you need to replace <i>your_path_to_TVB_patients</i> and <i>your_path_to_tvb_recon</i> with the paths of your local machine)
+
+Now, you will be able to use bash commands inside the tvb-recon container. And here, you need to do the next steps:
+- Run: sudo condor_master and provide the sudo password: 123456
+- Move with: cd pegasus 
+- Run the pipeline with: python run_sequentially.py “1”
+		- the “1” argument is the patient number you want to process. By specifying “1”, you choose to process TVB1.
+
+If everything is correct, some messages will be displayed. Look for the following flow of messages: 
+<br><i>...
+<br>Starting to process the subject: TVB1
+<br>...
+<br>2018.06.28 11:11:40.285 UTC:    Your workflow has been started and is running in the base directory: 
+<br>2018.06.28 11:11:40.293 UTC:     /home/submitter/pegasus/submit/submitter/pegasus/TVB-PIPELINE/run0001 
+<br>...
+<br>The job that has been started has the id: 0001
+<br>Starting to monitor the submit folder: /home/submitter/pegasus/submit/submitter/pegasus/TVB-PIPELINE/run0001 ...
+<br>Checked at Thu, 28 Jun 2018 11:11:42 and monitord.done file was not generated yet!</i>
+
+If the messages flow is not similar, let us know what is the error.
+
+Once, you have started the workflow, you should see a new folder, named <i><b>configs</b></i>, on your local machine at path: <i>your_path_to_TVB_patients/TVB_patients/TVB1</i>.
+Here you will have all the default configurations we need for a patient (these can be changed).
+
+Later on, after some important steps have finished, you will also have an <i><b>output</b></i> folder inside: <i>your_path_to_TVB_patients/TVB_patients/TVB1</i>. 
+Here is where all the output data will be stored, and of more interest will be the folders:
+- output/figs (figures generated during different pipeline steps to check the quality of the data)
+- output/tvb (files that are compatible with TVB and can be uploaded and used there)
+
+We use the Pegasus workflow engine in order to automatize the pipeline steps. This tool will let you check the status of the workflow anytime.
+In order to check the status of your current workflow:
+- You can open a new terminal on the tvb-recon docker container with: <i>docker exec -i -t container_id /bin/bash</i>
+- Run this command: <i>pegasus-status -l /home/submitter/pegasus/submit/submitter/pegasus/TVB-PIPELINE/run0001</i>
+
+After you manage to test a first default workflow, we can speak about adjusting the configurations instead of adjusting data structure.
+
 ### Entry point:
 There are 2 available entry points for the pipeline. They are both under <i>pegasus</i> folder. In order to use these entry points, there are, in both cases, some configurations to be defined first. These configurations are kept as a folder specific to each patient and are explained in the next section.
 
