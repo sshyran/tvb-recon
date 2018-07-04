@@ -8,9 +8,9 @@ import sys
 from enum import Enum
 from string import Template
 
-PATH_TO_INPUT_SUBJ_FOLDERS = "/home/submitter/raw_datasets"
-PATH_TO_SUBJ_CONFIG_FOLDERS = "/home/submitter/configurations"
-PATH_TO_OUTPUT_SUBJ_FOLDER = "/home/submitter/output"
+PATH_TO_INPUT_SUBJ_FOLDERS = "/home/submitter"
+PATH_TO_SUBJ_CONFIG_FOLDERS = "/home/submitter"
+PATH_TO_OUTPUT_SUBJ_FOLDER = "/home/submitter"
 
 PREFIX_SUBJECT_FOLDER = "TVB"
 
@@ -154,14 +154,13 @@ if __name__ == "__main__":
 
     if not os.path.exists(PATH_TO_SUBJ_CONFIG_FOLDERS):
         os.mkdir(PATH_TO_SUBJ_CONFIG_FOLDERS)
-        os.mkdir(os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, "dax"))
         print "Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS
 
     for subject_number in SUBJECTS_TO_BE_PROCESSED:
         current_subject = PREFIX_SUBJECT_FOLDER + str(subject_number)
         print "Starting to process the subject: %s" % current_subject
 
-        current_dir = os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, current_subject)
+        current_dir = os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, current_subject, "configs")
         for atlas in ATLASES:
             if not os.path.exists(current_dir):
                 os.mkdir(current_dir)
