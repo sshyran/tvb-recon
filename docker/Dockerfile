@@ -1,4 +1,4 @@
-FROM thevirtualbrain/tvb-recon:software
+FROM thevirtualbrain/tvb-recon-software:docker-6Jul
 
 #TVB-RECON
 RUN apt-get install -y python-pip
