@@ -101,7 +101,7 @@ Now, you will be able to use bash commands inside the tvb-recon container. And h
 - Run: sudo condor_master and provide the sudo password: 123456
 - Move with: cd pegasus 
 - Run the pipeline with: python run_sequentially.py “1”
-		- the “1” argument is the patient number you want to process. By specifying “1”, you choose to process TVB1.
+    - the “1” argument is the patient number you want to process. By specifying “1”, you choose to process TVB1.
 
 If everything is correct, some messages will be displayed. Look for the following flow of messages:   
 *...  
