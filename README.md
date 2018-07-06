@@ -216,7 +216,7 @@ The pipeline steps are dependent on the following external tools:
 The automatized workflow is based on:
 - **HTCondor**  
 	Pegasus uses HTCondor as a job scheduler.  
-	Download the tarballs (current stable release) from here: <l>http://research.cs.wisc.edu/htcondor/downloads/</l>  
+	Download the tarballs (current stable release) from here: http://research.cs.wisc.edu/htcondor/downloads/
 	Install for MacOS: 
 	- tar xzf condor-8.6.9-x86_64_MacOSX-stripped.tar.gz
 	- cd condor-8.6.9-x86_64_MacOSX10-stripped
@@ -234,7 +234,7 @@ The automatized workflow is based on:
 
 - **Pegasus**  
 	This is the workflow engine we have used for automatizing the pipeline steps.  
-	Download tarball for MacOSX from here: <l>https://pegasus.isi.edu/downloads/?filename=4.8.1%2Fpegasus-binary-4.8.1-x86_64_macos_10.tar.gz</l>
+	Download tarball for MacOSX from here: https://pegasus.isi.edu/downloads/?filename=4.8.1%2Fpegasus-binary-4.8.1-x86_64_macos_10.tar.gz
 	
 	Prepare environment:
 	- tar xzf ../pegasus-binary-4.8.1-x86_64_macos_10.tar.gz
