@@ -63,9 +63,8 @@ For a multi-patient sequential run, the data needs to be structured in a similar
 
 ### Docker image
 We provide a docker image which gathers all the dependencies necessary for tvb-recon code to run.
-The docker image is currently on a private repository, but we can give access to anyone interested. Just send an email at: paula.popa@codemart.ro and specify your ***docker ID***.
+The docker image can be found on docker hub at: **thevirtualbrain/tvb-recon**. Take it using the most recent tag, with: docker pull thevirtualbrain/tvb-recon.
 
-Once you have access to the docker image, take the most recent version (at least from tag: master-pr50).
 Also, it would be good to have tvb-recon code locally, in case some changes are necessary. Take it with: git clone https://github.com/the-virtual-brain/tvb-recon.git
 
 In order to use tvb-recon within the proposed docker image, you will need some details about its configurations and steps to follow for specifying your input data and start a workflow.
@@ -94,7 +93,7 @@ This means, you should ***adjust your input*** data folder to the following stru
 (TVB1, TVB2, etc, being the ID of the patients. If your DWI data is not made of: dwi.nii + dwi.bvec + dwi.bval, let us know and we will tell you how to specify it differently.)
 
 Once you have this folder structure for your data, you can run the tvb-recon docker image with the following command:  
-***docker run -it -v your_path_to_TVB_patients/TVB_patients/:/home/submitter -v your_path_to_tvb_recon/tvb-recon/:/opt/tvb-recon popaula937/tvb-recon:master-pr50 /bin/bash***  
+***docker run -it -v your_path_to_TVB_patients/TVB_patients/:/home/submitter/data -v your_path_to_tvb_recon/tvb-recon/:/opt/tvb-recon popaula937/tvb-recon:master-pr50 /bin/bash***  
 (here you need to replace *your_path_to_TVB_patients* and *your_path_to_tvb_recon* with the paths of your local machine)
 
 Now, you will be able to use bash commands inside the tvb-recon container. And here, you need to do the next steps:
