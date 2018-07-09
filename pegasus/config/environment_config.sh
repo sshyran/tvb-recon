@@ -2,13 +2,13 @@
 
 #TODO place these in a better form ?
 
-export PEGASUSHOME=/home/submitter
+export PEGASUSHOME=/home/submitter/pegasus
 export PEGASUSSUBMIT=$${PEGASUSHOME}/submit
 export PEGASUSSCRATCH=$${PEGASUSHOME}/scratch
 
 export OS=LINUX
 
-export FREESURFER_HOME=/opt/freesurfer
+export FREESURFER_HOME=/opt/freesurfer-stable/freesurfer
 export SUBJECTS_DIR=$${FREESURFER_HOME}/subjects
 export FUNCTIONALS_DIR=$${FREESURFER_HOME}/sessions
 
