@@ -13,6 +13,8 @@ class Inputs(Enum):
     FLAIR_INPUT = "flair_input.nii.gz"
     CT_INPUT = "ct_input.nii.gz"
     SCHEMA_TXT = "schema.txt"
+    MRI_ELEC_INPUT = "mri_elec_input.nii.gz"
+    ELECS_POM = "elecs.pom"
 
 
 class T1Files(Enum):
@@ -170,7 +172,7 @@ class SEEGCompFiles(Enum):
     MASKED_CT_NII_GZ = "masked-ct.nii.gz"
     DILATED_CT_NII_GZ = "dilated-ct.nii.gz"
     LABELED_CT_NII_GZ = "labeled-ct.nii.gz"
-    SEEG_XYZ = "seeg.xyz"
+    SEEG_XYZ = "seeg_xyz.txt"
 
 
 class HeadModelJobNames(Enum):
@@ -273,3 +275,24 @@ class LeadFieldModelFiles(Enum):
 
 class LeadFieldModelJobNames(Enum):
     OM_GAIN = "om_gain"
+
+
+class MriElecSEEGCompJobNames(Enum):
+    EXTRACT_POSITIONS_FROM_POM = "extract_positions_from_pom"
+    TRANSFORM_MERIELEC_COORDS = "transform_mrielec_coords"
+    COREGISTER_ELEC_POM_AND_MRI = "coregister_elec_pom_and_mri"
+
+
+class MriElecSEEGCompFiles(Enum):
+    SEEG_POM_XYZ_TXT = "seeg_pom_xyz.txt"
+    SEEG_POM_VOL_NII_GZ = "seeg_pom_vol.nii.gz"
+    MRI_ELEC_TO_T1_MAT = "mrielec_to_t1.mat"
+    MRI_ELEC_IN_T1_NII_GZ = "mrielec_in_t1.nii.gz"
+    SEEG_XYZ_TXT = "seeg_xyz.txt"
+    SEEG_IN_T1_NII_GZ = "seeg_in_t1.nii.gz"
+    COORDS_POM_XYZ_TXT = "coords_pom_xyz.txt"
+    COORDS_XYZ_TXT = "coords_xyz.txt"
+    SEEG_POM_XYZ_IN_MRIELEC_XYZ = "seeg_pom_xyz_in_mrielec.xyz"
+    POM_VOL_IN_MRIELEC_NII_GZ = "seeg_pom_in_mrielec_vol.nii.gz"
+    COORDS_POM_XYZ_IN_MRIELEC_XYZ = "coords_pom_xyz_in_mrielec.xyz"
+    COORDS_POM_VOL_IN_MRIELEC_NII_GZ = "coords_pom_in_mrielec_vol.nii.gz"

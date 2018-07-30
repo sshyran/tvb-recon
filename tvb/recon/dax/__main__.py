@@ -9,6 +9,7 @@ from tvb.recon.dax.coregistration import Coregistration
 from tvb.recon.dax.dwi_processing import DWIProcessing
 from tvb.recon.dax.head_model import HeadModel
 from tvb.recon.dax.lead_field_model import LeadFieldModel
+from tvb.recon.dax.mrielec_seeg_computation import MriElecSEEGComputation
 from tvb.recon.dax.output_conversion import OutputConversion
 from tvb.recon.dax.projection_computation import ProjectionComputation
 from tvb.recon.dax.resampling import Resampling
@@ -62,6 +63,10 @@ if __name__ == "__main__":
 
     output_conversion = OutputConversion(atlas_suffix)
 
+    mrielec_seeg_computation = MriElecSEEGComputation(subject, config.props[ConfigKey.MRIELEC_FRMT],
+                                                      config.props[ConfigKey.SAME_SPACE_VOL_POM],
+                                                      config.props[ConfigKey.CT_ELEC_INTENSITY_TH])
+
     seeg_computation = SEEGComputation(subject, config.props[ConfigKey.CT_FRMT],
                                        config.props[ConfigKey.CT_ELEC_INTENSITY_TH])
 
@@ -88,10 +93,8 @@ if __name__ == "__main__":
         head_model = HeadModel(subject)
         job_bem_surfaces = head_model.generate_bem_surfaces(dax, job_t1)
 
-    if config.props[ConfigKey.CT_FLAG] == "True":
+    if config.props[ConfigKey.PROCESS_SENSORS] == "True":
         if config.props[ConfigKey.SEEG_FLAG] == "True":
-            job_seeg_xyz = seeg_computation.add_seeg_positions_computation_steps(dax)
-
             if config.props[ConfigKey.USE_OPENMEEG] == "True":
                 job_head_model = head_model.add_head_model_steps(dax, job_bem_surfaces)
 
@@ -99,25 +102,39 @@ if __name__ == "__main__":
                 job_source_model = source_model.add_source_model_steps(dax, job_head_model, job_mapping_details)
 
                 sensor_model = SensorModel(subject, trg_subject, atlas_suffix)
-                job_sensor_model_lh, job_sensor_model_rh = sensor_model.add_sensor_model_steps(dax, job_source_model)
+                job_sensor_model_lh, job_sensor_model_rh = sensor_model.add_sensor_model_steps(dax,
+                                                                                               job_source_model)
 
                 lead_field_model = LeadFieldModel(subject, trg_subject, atlas_suffix)
                 lead_field_model.add_lead_field_model_steps(dax, job_sensor_model_lh, job_sensor_model_rh)
 
             else:
-                seeg_gain_computation = SeegGainComputation(config.props[ConfigKey.SUBJECT], atlas_suffix)
-                if config.props[ConfigKey.SEEG_GAIN_USE_DP] == "True":
-                    seeg_gain_computation.add_seeg_gain_dp_computation_steps(dax, job_seeg_xyz, job_mapping_details)
-                if config.props[ConfigKey.SEEG_GAIN_USE_MRS] == "True":
-                    seeg_gain_computation.add_seeg_mrs_gain_computation_steps(dax, job_seeg_xyz, job_mapping_details)
+                job_seeg_xyz = None
+                if config.props[ConfigKey.MRIELEC_FLAG] == "True":
+                    job_seeg_xyz = mrielec_seeg_computation.add_computation_steps(dax)
+                else:
+                    if config.props[ConfigKey.CT_FLAG] == "True":
+                        job_seeg_xyz = seeg_computation.add_seeg_positions_computation_steps(dax)
+
+                if job_seeg_xyz is not None:
+                    seeg_gain_computation = SeegGainComputation(config.props[ConfigKey.SUBJECT], atlas_suffix)
+                    if config.props[ConfigKey.SEEG_GAIN_USE_DP] == "True":
+                        seeg_gain_computation.add_seeg_gain_dp_computation_steps(dax, job_seeg_xyz, job_mapping_details)
+                    if config.props[ConfigKey.SEEG_GAIN_USE_MRS] == "True":
+                        seeg_gain_computation.add_seeg_mrs_gain_computation_steps(dax, job_seeg_xyz,
+                                                                                  job_mapping_details)
+
+
         else:
             if config.props[ConfigKey.EEG_FLAG] == "True":
-                projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT], SensorsType.EEG.value,
+                projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT],
+                                                               SensorsType.EEG.value,
                                                                atlas_suffix)
                 projection_computation.add_projection_computation_steps(dax, job_mapping_details)
 
             if config.props[ConfigKey.MEG_FLAG] == "True":
-                projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT], SensorsType.MEG.value,
+                projection_computation = ProjectionComputation(config.props[ConfigKey.SUBJECT],
+                                                               SensorsType.MEG.value,
                                                                atlas_suffix)
                 projection_computation.add_projection_computation_steps(dax, job_mapping_details)
 

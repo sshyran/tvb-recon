@@ -593,6 +593,49 @@ tr generate_surface_zip {
     }
 }
 
+tr extract_positions_from_pom {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+
+    site condorpool {
+        pfn "${SH_CUSTOM_FILES}/extract_positions_from_pom.sh"
+        arch "x86_64"
+        os "${OS}"
+        type "STAGEABLE"
+    }
+}
+
+tr transform_mrielec_coords {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FSL_DIR" "${FSL_DIR}"
+
+    site condorpool {
+    pfn "${SH_CUSTOM_FILES}/transform_mrielec_coords.sh"
+    arch "x86_64"
+    os "${OS}"
+    type "STAGEABLE"
+    }
+}
+
+tr coregister_elec_pom_and_mri {
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
+    profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "FSL_DIR" "${FSL_DIR}"
+
+    site condorpool {
+    pfn "${SH_CUSTOM_FILES}/coregister_elec_pom_and_mri.sh"
+    arch "x86_64"
+    os "${OS}"
+    type "STAGEABLE"
+    }
+
+}
+
 tr mv {
     site condorpool {
         pfn "/bin/mv"

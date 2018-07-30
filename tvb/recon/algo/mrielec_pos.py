@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import os
 import nibabel
@@ -37,7 +39,7 @@ def read_write_pom_files(pomfile, elec_file_pom, mrielec, elec_nii_pom):
     :param elec_nii_pom:
     :return:
     """
-    with open(pomfile) as fl:
+    with open(pomfile, "rt", encoding='utf-8') as fl:
         lines = fl.readlines()
 
     loc_start = find_line_starting_with(lines, "LOCATION_LIST START_LIST") + 1
@@ -81,21 +83,20 @@ def extract_seeg_contacts_from_mrielec(mrielec, mrielec_seeg, dilate=5, erode=1)
 def coregister_elec_pom_and_mri(seeg_pom_vol, mrielec, seeg_pom_xyz, elec_folder=None, dilate=0, erode=0):
 
     # Binarize mrielec to get only the seeg contacts
-    mrielec_seeg = os.path.join(elec_folder, "mrielec_seeg.nii.gz")
+    mrielec_seeg = "mrielec_seeg.nii.gz"
     if not os.path.isfile(mrielec_seeg):
         extract_seeg_contacts_from_mrielec(mrielec, mrielec_seeg, dilate, erode)
 
     # Binarize the pom seeg contacts
     seeg_nii_pom_bin = seeg_pom_vol.split(".")[0] + "_bin.nii.gz"
-    if not os.path.isfile(seeg_nii_pom_bin):
-        binarize_dil_erod(seeg_pom_vol, seeg_nii_pom_bin, 1, dilate, erode)
+    binarize_dil_erod(seeg_pom_vol, seeg_nii_pom_bin, 1, dilate, erode)
 
     if not(os.path.isdir(elec_folder)):
         elec_folder = os.path.abspath(seeg_pom_vol)
 
     # Co-register seeg pom and mrielec contacts
-    pom_to_mrielec = os.path.join(elec_folder, "pom_to_mrielec.mat")
-    pom_in_mrielec_seeg = os.path.join(elec_folder, "pom_in_mrielec_seeg.nii.gz")
+    pom_to_mrielec = "pom_to_mrielec.mat"
+    pom_in_mrielec_seeg = "pom_in_mrielec_seeg.nii.gz"
     if not os.path.isfile(pom_to_mrielec):
         # This takes time. It should be independent step and check before repeating
         regopts = "-dof 12 -searchrz -180 180 -searchry -180 180  -searchrx -180 180"
@@ -108,8 +109,8 @@ def coregister_elec_pom_and_mri(seeg_pom_vol, mrielec, seeg_pom_xyz, elec_folder
                         " -out " + pom_in_mrielec_seeg)
 
     # Generate the new seeg labels and coords file in the mrielec space, as well as a volume for visual checking
-    seeg_pom_xyz_in_mrielec = os.path.join(elec_folder, "seeg_pom_xyz_in_mrielec.xyz")
-    pom_vol_in_mrielec = os.path.join(elec_folder, "pom_in_mrielec_vol.nii.gz")
+    seeg_pom_xyz_in_mrielec = "seeg_pom_xyz_in_mrielec.xyz"
+    pom_vol_in_mrielec = "seeg_pom_in_mrielec_vol.nii.gz"
     if not os.path.isfile(seeg_pom_xyz_in_mrielec):
         transform(seeg_pom_xyz, seeg_pom_vol, mrielec, seeg_pom_xyz_in_mrielec, pom_vol_in_mrielec, pom_to_mrielec)
 
@@ -118,12 +119,13 @@ def coregister_elec_pom_and_mri(seeg_pom_vol, mrielec, seeg_pom_xyz, elec_folder
 
 # Transform the coordinates and create output contact files (labels + coords) and a volume for visual checking
 def transform(seeg_xyz_in, input_vol, ref_vol, seeg_xyz_ref, seeg_vol_ref, transform_mat, aff_transform=None):
-    labels, coords = sensor_service.read_seeg_labels_coords_xyz(seeg_xyz_in)
+    labels, coords = sensor_service.read_seeg_labels_coords_file(seeg_xyz_in)
     if aff_transform is not None:
         coords = aff_transform(coords.reshape((1, 3))).reshape((3,))
-    coords_xyz_in = seeg_xyz_in.replace("seeg", "coords")
+    coords_xyz_in = os.path.basename(seeg_xyz_in).replace("seeg", "coords")
     np.savetxt(coords_xyz_in, coords, fmt='%.3e', delimiter=' ')
-    coords_xyz_ref = seeg_xyz_ref.replace("seeg", "coords")
+    coords_xyz_ref = os.path.basename(seeg_xyz_ref).replace("seeg", "coords")
+    print("Coords file name is: %s", coords_xyz_ref)
     coords_in_ref, coords_xyz_ref = volume_service.transform_coords(coords_xyz_in, input_vol, ref_vol, transform_mat,
                                                                     coords_xyz_ref)
     # Save final coordinates in ref_vol space to text and nifti files

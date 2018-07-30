@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
+
 import os
 import numpy as np
 
-def execute_command(command: str, cwd: str=os.getcwd(), shell: bool=True):
+
+def execute_command(command: str, cwd: str = os.getcwd(), shell: bool = True):
     """
     # This is just a helper function I use to run command line stuff
     # It is not needed in the workflow that can directly run system commands
@@ -36,7 +39,6 @@ def execute_command(command: str, cwd: str=os.getcwd(), shell: bool=True):
     else:
         print("The process ran for " + str(time.time() - tic))
         raise subprocess.CalledProcessError(exit_code, command)
-
 
 
 def compute_affine_transform(coords_from, coords_to):

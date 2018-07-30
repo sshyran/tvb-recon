@@ -572,7 +572,7 @@ class VolumeService(object):
                   transform_mat: os.PathLike, output_file: Optional[str]=None) \
             -> (numpy.array, Union[numpy.ndarray, type(None)]):
 
-        if os.path.isfile(coords):
+        if os.path.isfile(coords) and os.path.exists(coords):
             command = "img2imgcoord %s -mm -src %s -dest %s -xfm %s"
             args = [coords, src_img, dest_img, transform_mat]
         else:
@@ -580,11 +580,13 @@ class VolumeService(object):
             command = "echo %s | img2imgcoord -mm -src %s -dest %s -xfm %s"
             args = [coords_str, src_img, dest_img, transform_mat]
 
-        if os.path.isdir(os.path.dirname(output_file)):
-            command += " > %s"
-            args.append(output_file)
+        # if os.path.isdir(os.path.dirname(output_file)):
+        command += " > %s"
+        args.append(output_file)
 
-        execute_command(command % tuple(args), cwd=os.path.dirname(transform_mat), shell=True)
+        print(command % tuple(args))
+
+        execute_command(command % tuple(args), shell=True)
 
         transformed_coords = numpy.loadtxt(output_file, skiprows=1)
 
