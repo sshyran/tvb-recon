@@ -93,7 +93,7 @@ This means, you should ***adjust your input*** data folder to the following stru
 (TVB1, TVB2, etc, being the ID of the patients. If your DWI data is not made of: dwi.nii + dwi.bvec + dwi.bval, let us know and we will tell you how to specify it differently.)
 
 Once you have this folder structure for your data, you can run the tvb-recon docker image with the following command:  
-***docker run -it -v your_path_to_TVB_patients/TVB_patients/:/home/submitter/data -v your_path_to_tvb_recon/tvb-recon/:/opt/tvb-recon popaula937/tvb-recon:master-pr50 /bin/bash***  
+***docker run -it -v your_path_to_TVB_patients/TVB_patients/:/home/submitter/data -v your_path_to_tvb_recon/tvb-recon/:/opt/tvb-recon thevirtualbrain/tvb-recon:latest /bin/bash***
 (here you need to replace *your_path_to_TVB_patients* and *your_path_to_tvb_recon* with the paths of your local machine)
 
 Now, you will be able to use bash commands inside the tvb-recon container. And here, you need to do the next steps:
@@ -171,9 +171,9 @@ All the configuration files are under *pegasus/config* at the top level. There a
 - rc_out.txt  
     Using this file, the output can be structured in a similar way as the input.
 - sites.xml  
-    This should not change since the configurable variables will be taken from the environment.
+    This should not be modified because the configurable variables will be taken from the environment.
 - tc.xml  
-    This should not be change since it contains the commands mapping.
+    This should not be modified because it contains the commands mapping.
 
 
 ## How to rerun
@@ -191,7 +191,7 @@ In order to rerun with different parameters, the user has to:
 - start a pipeline run using one of the entry points
   
 As stated before, the **rc.txt** contains a mapping between the generated file names and their paths. In order for Pegasus to rerun a group of steps, the user has to remove their output files from **rc.txt**. 
-During the pipeline rerun, the **rc.txt** will be once again filled in, by re-running the steps (and all their dependencies) which are meant to produce the missing resources from **rc.txt**.  
+During the pipeline rerun, the **rc.txt** will be once again filled in, by re-running the steps (and all their dependencies not present in rc.txt) which are meant to produce the missing resources from **rc.txt**.
 Inside the **main_bnm.dax** file, there is a XML representation of the workflow graph. Here is where the user can check all the pipeline steps and their input/output files.
 
 
