@@ -38,11 +38,13 @@ class configs(Enum):
 
 
 def create_config_files_for_subj(current_subject, current_atlas):
+
     default_pegasus_props_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.PEGASUS_PROPS.value)
     with open(default_pegasus_props_path) as default_pegasus_props_file:
         template = Template(default_pegasus_props_file.read())
         pegasus_props = template.substitute(path=current_dir)
         subj_pegasus_props_path = os.path.join(current_dir, configs.PEGASUS_PROPS.value)
+        print(subj_pegasus_props_path)
         with open(subj_pegasus_props_path, "w+") as subj_pegasus_props_file:
             subj_pegasus_props_file.write(pegasus_props)
 
@@ -51,6 +53,7 @@ def create_config_files_for_subj(current_subject, current_atlas):
         template = Template(default_patient_props_file.read())
         patient_props = template.substitute(subject=current_subject, atlas=current_atlas, os=OS)
         subj_patient_props = os.path.join(current_dir, configs.PATIENT_PROPS.value)
+        print(subj_patient_props)
         with open(subj_patient_props, "w+") as subj_patient_props_file:
             subj_patient_props_file.write(patient_props)
 
@@ -59,8 +62,12 @@ def create_config_files_for_subj(current_subject, current_atlas):
         template = Template(default_environ_config_file.read())
         environ_config = template.substitute()
         subj_environ_config_path = os.path.join(current_dir, configs.ENVIRON_CONFIGS.value)
-        with open(subj_environ_config_path, "w+") as subj_environ_config_file:
-            subj_environ_config_file.write(environ_config)
+        print(subj_environ_config_path)
+        try:
+            with open(subj_environ_config_path, "w+") as subj_environ_config_file:
+                subj_environ_config_file.write(environ_config)
+        except:
+            print("Writing subj_environ_config_file failed!")
 
     default_rc_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC.value)
     with open(default_rc_path) as default_rc_file:
@@ -104,14 +111,14 @@ def prepare_config_for_new_atlas(current_dir, current_atlas):
                 break
     if not atlas_exists_in_config:
         text.insert(len(text), atlas_config)
-    print "Configured atlas %s for patient inside folder %s" % (current_atlas, current_dir)
+    print("Configured atlas %s for patient inside folder %s" % (current_atlas, current_dir))
     os.remove(current_patient_props_path)
     with open(current_patient_props_path, "w") as new_patient_props_file:
         new_patient_props_file.writelines(text)
 
 
 def get_currently_running_job_ids():
-    print "Checking currently running job ids..."
+    print("Checking currently running job ids...")
     status = subprocess.Popen("pegasus-status", stdout=subprocess.PIPE)
     output, error = status.communicate()
 
@@ -119,7 +126,7 @@ def get_currently_running_job_ids():
         existent_job_ids = []
     else:
         existent_job_ids = [m.replace(PREFIX_JOB_ID, "") for m in re.findall(REGEX_JOB_ID, output)]
-    print "Currently running job ids are: %s" % existent_job_ids
+    print("Currently running job ids are: %s" % existent_job_ids)
 
     return existent_job_ids
 
@@ -151,30 +158,28 @@ def get_specified_submit_folder(current_dir):
 if __name__ == "__main__":
     arg_subjects = sys.argv[1].split(" ")
     SUBJECTS_TO_BE_PROCESSED = [int(val) for val in arg_subjects]
-    print "Starting to process the following subjects: %s", SUBJECTS_TO_BE_PROCESSED
+    print("Starting to process the following subjects: %s", SUBJECTS_TO_BE_PROCESSED)
 
     if not os.path.exists(PATH_TO_SUBJ_CONFIG_FOLDERS):
         os.mkdir(PATH_TO_SUBJ_CONFIG_FOLDERS)
-        print "Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS
+        print("Folder %s has been created..." % PATH_TO_SUBJ_CONFIG_FOLDERS)
 
     for subject_number in SUBJECTS_TO_BE_PROCESSED:
         current_subject = PREFIX_SUBJECT_FOLDER + str(subject_number)
-        print "Starting to process the subject: %s" % current_subject
+        print("Starting to process the subject: %s" % current_subject)
 
         current_dir = os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, current_subject, "configs")
         for atlas in ATLASES:
             if not os.path.exists(current_dir):
                 os.mkdir(current_dir)
-                print "Folder %s has been created..." % current_dir
-
+                print("Folder %s has been created..." % current_dir)
                 create_config_files_for_subj(current_subject, atlas)
-
             else:
                 prepare_config_for_new_atlas(current_dir, atlas)
 
             existent_job_ids = get_currently_running_job_ids()
 
-            print "Starting pegasus run for subject: " + current_subject + "with atlas: " + atlas
+            print("Starting pegasus run for subject: " + current_subject + "with atlas: " + atlas)
             current_dax_dir = os.path.join(current_dir, "dax")
             p = subprocess.call(["sh", "main_pegasus.sh", current_dir, current_dax_dir])
 
@@ -184,7 +189,7 @@ if __name__ == "__main__":
                 new_job_ids.remove(job)
 
             current_job_id = new_job_ids[0]
-            print "The job that has been started has the id: %s" % current_job_id
+            print("The job that has been started has the id: %s" % current_job_id)
 
             submit_dir = os.path.join(get_specified_submit_folder(current_dir), getpass.getuser(), "pegasus",
                                       "TVB-PIPELINE", PREFIX_JOB_ID + current_job_id)

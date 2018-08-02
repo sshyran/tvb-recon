@@ -140,9 +140,9 @@ def transform(seeg_xyz_in, input_vol, ref_vol, seeg_xyz_ref, seeg_vol_ref, trans
                                                 skip_missing=False, dist=1)
 
 
-# TODO: test to figure out the default dilate and erode
-
-def main_mrielec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
+# Tested it for TVB3 and it seems to work fine for dilate = erode = 0
+# I have tested combinations 10, 2 and 5, 1 with similar (within 1 voxel) results.
+def main_mrielec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=0, erode=0):
 
     # Paths:
 
@@ -306,4 +306,6 @@ def main_mrielec_pos(patient, POM_TO_MRIELEC_TRNSFRM=False, dilate=10, erode=2):
 
 if __name__ == "__main__":
 
-    main_mrielec_pos("TVB1", True, 10, 2)
+    # Tested it for TVB3 and it seems to work fine for dilate = erode = 0
+    # I have tested combinations 10, 2 and 5, 1 with similar (within 1 voxel) results.
+    main_mrielec_pos("TVB3", True, 0, 0)
