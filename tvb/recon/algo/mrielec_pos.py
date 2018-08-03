@@ -309,3 +309,9 @@ if __name__ == "__main__":
     # Tested it for TVB3 and it seems to work fine for dilate = erode = 0
     # I have tested combinations 10, 2 and 5, 1 with similar (within 1 voxel) results.
     main_mrielec_pos("TVB3", True, 0, 0)
+
+
+    # TODO: quality control snapshots in the end of two overlapping volumes:
+    #       1. mrielec_in_t1.nii.gz in grey scale where seeg contacts are the most white values
+    #       2. seeg_in_t1.nii.gz, i.e., an empty volume with values of voxels = 1 only for the seeg contacts, in some color
+    # there should be a way to check if the seeg contacts overlap. difficult in general...
