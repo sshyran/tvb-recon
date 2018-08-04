@@ -7,7 +7,7 @@ import shutil
 import sys
 from enum import Enum
 from string import Template
-from tvb.recon.dax import Atlas, AtlasSuffix
+from tvb.recon.dax.__main__ import get_atlases_and_suffixes_lists
 
 PATH_TO_INPUT_SUBJ_FOLDERS = "/home/submitter/data"
 PATH_TO_SUBJ_CONFIG_FOLDERS = "/home/submitter/data"
@@ -17,7 +17,7 @@ PREFIX_SUBJECT_FOLDER = "TVB"
 
 SUBJECTS_TO_BE_PROCESSED = [24]
 
-ATLASES = ["default", "a2009s"]
+ATLASES = "default a2009s"
 
 OS = "LINUX"
 
@@ -35,14 +35,11 @@ class configs(Enum):
     SITES = "sites.xml"
     RC = "rc.txt"
     RC_OUT = "rc_out.txt"
+    RC_OUT_ATLAS = "rc_out_atlas.txt"
     TC = "tc.txt"
 
 
-def create_config_files_for_subj(current_subject, current_atlas):
-
-    atlas_suffix = AtlasSuffix.DEFAULT
-    if current_atlas == Atlas.A2009S:
-        atlas_suffix = AtlasSuffix.A2009S
+def create_config_files_for_subj(current_subject, atlases):
 
     default_pegasus_props_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.PEGASUS_PROPS.value)
     with open(default_pegasus_props_path) as default_pegasus_props_file:
@@ -56,7 +53,7 @@ def create_config_files_for_subj(current_subject, current_atlas):
     default_patient_props_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.PATIENT_PROPS.value)
     with open(default_patient_props_path) as default_patient_props_file:
         template = Template(default_patient_props_file.read())
-        patient_props = template.substitute(subject=current_subject, atlas=current_atlas, os=OS)
+        patient_props = template.substitute(subject=current_subject, atlas=atlases, os=OS)
         subj_patient_props = os.path.join(current_dir, configs.PATIENT_PROPS.value)
         print(subj_patient_props)
         with open(subj_patient_props, "w+") as subj_patient_props_file:
@@ -83,14 +80,26 @@ def create_config_files_for_subj(current_subject, current_atlas):
         with open(subj_rc_path, "w+") as subj_rc_file:
             subj_rc_file.write(rc_config)
 
+    # For outputs that do not depend on atlas
     default_rc_out_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC_OUT.value)
     with open(default_rc_out_path) as default_rc_out_file:
         template = Template(default_rc_out_file.read())
-        rc_out_config = template.substitute(path=os.path.join(PATH_TO_OUTPUT_SUBJ_FOLDER, current_subject, "output"),
-                                            atlas=current_atlas, atlas_suffix=atlas_suffix)
-        subj_rc_out_path = os.path.join(current_dir, configs.RC_OUT.value)
-        with open(subj_rc_out_path, "w+") as subj_rc_out_file:
-            subj_rc_out_file.write(rc_out_config)
+        rc_out_config = template.substitute(path=os.path.join(PATH_TO_OUTPUT_SUBJ_FOLDER, current_subject, "output"))
+
+        # For outputs for all desired atlases
+        atlases_list, atlas_suffixes = get_atlases_and_suffixes_lists(atlases)
+        default_rc_out_atlas_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC_OUT_ATLAS.value)
+        with open(default_rc_out_atlas_path) as default_rc_out_atlas_file:
+            template_atlas = Template(default_rc_out_atlas_file.read())
+            for atlas, atlas_suffix in zip(atlases_list, atlas_suffixes):
+                rc_out_config +=\
+                    template_atlas.substitute(path=os.path.join(PATH_TO_OUTPUT_SUBJ_FOLDER, current_subject, "output"),
+                                              atlas=atlas, atlas_suffix=atlas_suffix)
+
+            # Finally, write the subject's rc_out
+            subj_rc_out_path = os.path.join(current_dir, configs.RC_OUT.value)
+            with open(subj_rc_out_path, "w+") as subj_rc_out_file:
+                subj_rc_out_file.write(rc_out_config)
 
     default_sites_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.SITES.value)
     shutil.copy(default_sites_path, current_dir)
@@ -99,41 +108,6 @@ def create_config_files_for_subj(current_subject, current_atlas):
     shutil.copy(default_tc_path, current_dir)
 
     print("Configuration files for subject %s are ready!" % current_subject)
-
-
-def prepare_config_for_new_atlas(current_dir, current_atlas):
-    atlas_exists_in_config = False
-    atlas_config_name = "parcelation.atlas"
-    atlas_config = atlas_config_name + "=" + current_atlas + "\n"
-
-    current_patient_props_path = os.path.join(current_dir, configs.PATIENT_PROPS.value)
-    with open(current_patient_props_path, "r") as current_patient_props_file:
-        text = current_patient_props_file.readlines()
-        for idx, line in enumerate(text):
-            if line.startswith(atlas_config_name):
-                text[idx] = atlas_config
-                atlas_exists_in_config = True
-                break
-    if not atlas_exists_in_config:
-        text.insert(len(text), atlas_config)
-    print("Configured atlas %s for patient inside folder %s" % (current_atlas, current_dir))
-    os.remove(current_patient_props_path)
-    with open(current_patient_props_path, "w") as new_patient_props_file:
-        new_patient_props_file.writelines(text)
-
-    atlas_suffix = AtlasSuffix.DEFAULT
-    if current_atlas == Atlas.A2009S:
-        atlas_suffix = AtlasSuffix.A2009S
-
-    default_rc_out_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC_OUT.value)
-    with open(default_rc_out_path) as default_rc_out_file:
-        template = Template(default_rc_out_file.read())
-        rc_out_config = template.substitute(path=os.path.join(PATH_TO_OUTPUT_SUBJ_FOLDER, current_subject, "output"),
-                                            atlas=current_atlas, atlas_suffix=atlas_suffix)
-        subj_rc_out_path = os.path.join(current_dir, configs.RC_OUT.value)
-        os.remove(subj_rc_out_path)
-        with open(subj_rc_out_path, "w+") as subj_rc_out_file:
-            subj_rc_out_file.write(rc_out_config)
 
 
 def get_currently_running_job_ids():
@@ -188,39 +162,37 @@ if __name__ == "__main__":
         print("Starting to process the subject: %s" % current_subject)
 
         current_dir = os.path.join(PATH_TO_SUBJ_CONFIG_FOLDERS, current_subject, "configs")
-        for atlas in ATLASES:
-            if not os.path.exists(current_dir):
-                os.mkdir(current_dir)
-                print("Folder %s has been created..." % current_dir)
-                create_config_files_for_subj(current_subject, atlas)
+
+        if not os.path.exists(current_dir):
+            os.mkdir(current_dir)
+            print("Folder %s has been created..." % current_dir)
+            create_config_files_for_subj(current_subject, ATLASES)
+
+        existent_job_ids = get_currently_running_job_ids()
+
+        print("Starting pegasus run for subject: " + current_subject)
+        current_dax_dir = os.path.join(current_dir, "dax")
+        p = subprocess.call(["sh", "main_pegasus.sh", current_dir, current_dax_dir])
+
+        new_job_ids = get_currently_running_job_ids()
+
+        for job in existent_job_ids:
+            new_job_ids.remove(job)
+
+        current_job_id = new_job_ids[0]
+        print("The job that has been started has the id: %s" % current_job_id)
+
+        submit_dir = os.path.join(get_specified_submit_folder(current_dir), getpass.getuser(), "pegasus",
+                                  "TVB-PIPELINE", PREFIX_JOB_ID + current_job_id)
+
+        print("Starting to monitor the submit folder: %s ..." % submit_dir)
+
+        while True:
+            if MONITORED_FILE in os.listdir(submit_dir):
+                break
             else:
-                prepare_config_for_new_atlas(current_dir, atlas)
+                print("Checked at %s and %s file was not generated yet!" % (
+                    str(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())), MONITORED_FILE))
+                time.sleep(1800)
 
-            existent_job_ids = get_currently_running_job_ids()
-
-            print("Starting pegasus run for subject: " + current_subject + " with atlas: " + atlas)
-            current_dax_dir = os.path.join(current_dir, "dax")
-            p = subprocess.call(["sh", "main_pegasus.sh", current_dir, current_dax_dir])
-
-            new_job_ids = get_currently_running_job_ids()
-
-            for job in existent_job_ids:
-                new_job_ids.remove(job)
-
-            current_job_id = new_job_ids[0]
-            print("The job that has been started has the id: %s" % current_job_id)
-
-            submit_dir = os.path.join(get_specified_submit_folder(current_dir), getpass.getuser(), "pegasus",
-                                      "TVB-PIPELINE", PREFIX_JOB_ID + current_job_id)
-
-            print("Starting to monitor the submit folder: %s ..." % submit_dir)
-
-            while True:
-                if MONITORED_FILE in os.listdir(submit_dir):
-                    break
-                else:
-                    print("Checked at %s and %s file was not generated yet!" % (
-                        str(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())), MONITORED_FILE))
-                    time.sleep(1800)
-
-            print("The run has finished for job with id: %s" % current_job_id)
+        print("The run has finished for job with id: %s" % current_job_id)

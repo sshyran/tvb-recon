@@ -6,7 +6,7 @@ from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 class T1Processing(object):
     def __init__(self, subject, t1_frmt="nii", use_t2=False, t2_frmt="nii", use_flair=False, flair_frmt="nii",
-                 openmp_thrds="4", atlas_suffix=AtlasSuffix.DEFAULT):
+                 openmp_thrds="4", atlas_suffixes=[AtlasSuffix.DEFAULT]):
         self.subject = subject
         self.t1_format = t1_frmt
         self.t2_flag = use_t2
@@ -15,7 +15,7 @@ class T1Processing(object):
         self.flair_format = flair_frmt
         self.openmp_threads = openmp_thrds
         self.qc_snapshots = QCSnapshots.get_instance()
-        self.atlas_suffix = atlas_suffix
+        self.atlas_suffixes = atlas_suffixes
 
     def _ensure_input_format(self, file_format, input_name, output_name, dax):
         input_file = File(input_name)
@@ -44,21 +44,27 @@ class T1Processing(object):
         t1_converted = T1Files.T1_INPUT_CONVERTED.value
         t1_output, job1 = self._ensure_input_format(self.t1_format, t1_input, t1_converted, dax)
 
-        aparc_aseg_mgz_vol = File(T1Files.APARC_ASEG_MGZ.value % self.atlas_suffix)
         lh_pial = File(T1Files.LH_PIAL.value)
         rh_pial = File(T1Files.RH_PIAL.value)
         lh_white = File(T1Files.LH_WHITE.value)
         rh_white = File(T1Files.RH_WHITE.value)
-        lh_aparc_annot = File(T1Files.LH_APARC_ANNOT.value % self.atlas_suffix)
-        rh_aparc_annot = File(T1Files.RH_APARC_ANNOT.value % self.atlas_suffix)
+        aparc_aseg_mgz_vols = []
+        lh_aparc_annots = []
+        rh_aparc_annots = []
+        for atlas_suffix in self.atlas_suffixes:
+            aparc_aseg_mgz_vols.append(File(T1Files.APARC_ASEG_MGZ.value % atlas_suffix))
+            lh_aparc_annots.append(File(T1Files.LH_APARC_ANNOT.value % atlas_suffix))
+            rh_aparc_annots.append(File(T1Files.RH_APARC_ANNOT.value % atlas_suffix))
 
-        out_files_list = [aparc_aseg_mgz_vol, lh_pial, rh_pial, lh_white, rh_white, lh_aparc_annot, rh_aparc_annot]
+        out_files_list = aparc_aseg_mgz_vols + \
+                         [lh_pial, rh_pial, lh_white, rh_white] + \
+                         lh_aparc_annots + rh_aparc_annots
 
         t1_mgz_output = File(T1Files.T1_MGZ.value)
         norm_mgz_vol = File(T1Files.NORM_MGZ.value)
         brain_mgz_vol = File(T1Files.BRAIN_MGZ.value)
         job2 = Job(T1JobNames.RECON_ALL.value, node_label="Recon-all for T1")
-        job2.addArguments(self.subject, t1_output, self.openmp_threads, self.atlas_suffix)
+        job2.addArguments(self.subject, t1_output, self.openmp_threads, " ".join(self.atlas_suffixes))
         job2.uses(t1_output, link=Link.INPUT)
         job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=True, register=True)
         job2.uses(norm_mgz_vol, link=Link.OUTPUT, transfer=True, register=True)
@@ -121,14 +127,19 @@ class T1Processing(object):
 
         dax.depends(job3, last_job)
 
-        aparc_aseg_nii_gz_vol = File(T1Files.APARC_ASEG_NII_GZ.value % self.atlas_suffix)
-        job4 = Job(T1JobNames.MRI_CONVERT.value, node_label="Convert APARC+ASEG to NIFTI with good orientation")
-        job4.addArguments(aparc_aseg_mgz_vol, aparc_aseg_nii_gz_vol, "--out_orientation", "RAS", "-rt", "nearest")
-        job4.uses(aparc_aseg_mgz_vol, link=Link.INPUT)
-        job4.uses(aparc_aseg_nii_gz_vol, link=Link.OUTPUT, transfer=False, register=False)
-        dax.addJob(job4)
+        job4 = []
+        aparc_aseg_nii_gz_vol = []
+        for atlas_suffix, aparc_aseg_mgz_vol in zip(self.atlas_suffixes, aparc_aseg_mgz_vols):
+            aparc_aseg_nii_gz_vol.append(File(T1Files.APARC_ASEG_NII_GZ.value % atlas_suffix))
+            job4.append(Job(T1JobNames.MRI_CONVERT.value,
+                        node_label="Convert APARC+ASEG to NIFTI with good orientation for atlas " + atlas_suffix))
+            job4[-1].addArguments(aparc_aseg_mgz_vol, aparc_aseg_nii_gz_vol[-1],
+                                  "--out_orientation", "RAS", "-rt", "nearest")
+            job4[-1].uses(aparc_aseg_mgz_vol, link=Link.INPUT)
+            job4[-1].uses(aparc_aseg_nii_gz_vol[-1], link=Link.OUTPUT, transfer=False, register=False)
+            dax.addJob(job4[-1])
 
-        dax.depends(job4, last_job)
+            dax.depends(job4[-1], last_job)
 
         if resamp_flag != "True":
             lh_centered_pial = File(T1Files.LH_CENTERED_PIAL.value)
@@ -151,9 +162,11 @@ class T1Processing(object):
 
             self.qc_snapshots.add_vol_surf_snapshot_step(dax, [job3, job5, job6], t1_nii_gz_vol,
                                                          [lh_centered_pial, rh_centered_pial])
-            self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], lh_centered_pial,
-                                                           lh_aparc_annot)
-            self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial,
-                                                           rh_aparc_annot)
+
+            for lh_aparc_annot, rh_aparc_annot in zip(lh_aparc_annots, rh_aparc_annots):
+                self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], lh_centered_pial,
+                                                               lh_aparc_annot)
+                self.qc_snapshots.add_surf_annot_snapshot_step(dax, [last_job, job5, job6], rh_centered_pial,
+                                                               rh_aparc_annot)
 
         return job3, job4

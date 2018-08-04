@@ -21,9 +21,12 @@ fi
 
 cd ${SUBJECTS_DIR}/$1/mri
 cp T1.mgz $f
-cp aparc$4+aseg.mgz $f
 cp norm.mgz $f
 cp brain.mgz $f
+for atlas_suffix in $4
+do
+    cp aparc${atlas_suffix}+aseg.mgz $f
+done
 
 cd ../surf
 cp lh.pial $f
@@ -32,5 +35,8 @@ cp lh.white $f
 cp rh.white $f
 
 cd ../label
-cp lh.aparc$4.annot $f
-cp rh.aparc$4.annot $f
+for atlas_suffix in $4
+do
+    cp lh.aparc${atlas_suffix}.annot $f
+    cp rh.aparc${atlas_suffix}.annot $f
+done

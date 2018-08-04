@@ -5,13 +5,13 @@ from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class Coregistration(object):
-    def __init__(self, subject, use_flirt=True, atlas_suffix=AtlasSuffix.DEFAULT):
+    def __init__(self, subject, use_flirt=True, atlas_suffixes=[AtlasSuffix.DEFAULT]):
         self.subject = subject
         self.use_flirt = use_flirt
         self.qc_snapshots = QCSnapshots.get_instance()
-        self.atlas_suffix = atlas_suffix
+        self.atlas_suffixes = atlas_suffixes
 
-    def _add_flirt_steps(self, dax, job_b0, job_t1, job_aparc_aseg):
+    def _add_flirt_steps(self, dax, job_b0, job_t1, jobs_aparc_aseg):
         b0_nii_gz = File(DWIFiles.B0_NII_GZ.value)
         t1_nii_gz = File(T1Files.T1_NII_GZ.value)
         d2t_mat = File(CoregFiles.D2T_MAT.value)
@@ -51,25 +51,30 @@ class Coregistration(object):
 
         self.qc_snapshots.add_2vols_snapshot_step(dax, [job3], t1_in_d_nii_gz, b0_nii_gz)
 
-        aparc_aseg_nii_gz = File(T1Files.APARC_ASEG_NII_GZ.value % self.atlas_suffix)
-        aparc_aseg_in_d_nii_gz = File(CoregFiles.APARC_ASEG_IN_D.value % self.atlas_suffix)
-        job4 = Job(CoregJobNames.FLIRT_REVERSED.value, node_label="Register APARC+ASEG to DWI")
-        job4.addArguments(aparc_aseg_nii_gz, b0_nii_gz, aparc_aseg_in_d_nii_gz, t2d_mat)
-        job4.uses(aparc_aseg_nii_gz, link=Link.INPUT)
-        job4.uses(b0_nii_gz, link=Link.INPUT)
-        job4.uses(t2d_mat, link=Link.INPUT)
-        job4.uses(aparc_aseg_in_d_nii_gz, link=Link.OUTPUT, transfer=False, register=False)
-        dax.addJob(job4)
+        job4 = []
+        aparc_aseg_nii_gz = []
+        aparc_aseg_in_d_nii_gz = []
+        for atlas_suffix, job_aparc_aseg in zip(self.atlas_suffixes, jobs_aparc_aseg):
+            aparc_aseg_nii_gz.append(File(T1Files.APARC_ASEG_NII_GZ.value % atlas_suffix))
+            aparc_aseg_in_d_nii_gz.append(File(CoregFiles.APARC_ASEG_IN_D.value % atlas_suffix))
+            job4.append(Job(CoregJobNames.FLIRT_REVERSED.value,
+                            node_label="Register APARC%s+ASEG to DWI" % atlas_suffix))
+            job4[-1].addArguments(aparc_aseg_nii_gz[-1], b0_nii_gz, aparc_aseg_in_d_nii_gz[-1], t2d_mat)
+            job4[-1].uses(aparc_aseg_nii_gz[-1], link=Link.INPUT)
+            job4[-1].uses(b0_nii_gz, link=Link.INPUT)
+            job4[-1].uses(t2d_mat, link=Link.INPUT)
+            job4[-1].uses(aparc_aseg_in_d_nii_gz[-1], link=Link.OUTPUT, transfer=False, register=False)
+            dax.addJob(job4[-1])
 
-        dax.depends(job4, job2)
-        dax.depends(job4, job_aparc_aseg)
+            dax.depends(job4[-1], job2)
+            dax.depends(job4[-1], job_aparc_aseg)
 
-        self.qc_snapshots.add_2vols_snapshot_step(dax, [job4], aparc_aseg_in_d_nii_gz, b0_nii_gz)
-        self.qc_snapshots.add_3vols_snapshot_step(dax, [job3, job4], t1_in_d_nii_gz, b0_nii_gz, aparc_aseg_in_d_nii_gz)
+            self.qc_snapshots.add_2vols_snapshot_step(dax, [job4[-1]], aparc_aseg_in_d_nii_gz[-1], b0_nii_gz)
+            self.qc_snapshots.add_3vols_snapshot_step(dax, [job3, job4[-1]], t1_in_d_nii_gz, b0_nii_gz, aparc_aseg_in_d_nii_gz[-1])
 
         return job3, job4
 
-    def _add_fs_steps(self, dax, job_b0, job_t1, job_aparc_aseg):
+    def _add_fs_steps(self, dax, job_b0, job_t1, jobs_aparc_aseg):
 
         b0_nii_gz = File(DWIFiles.B0_NII_GZ.value)
         b0_in_t1_mgz = File(CoregFiles.B0_IN_T1_MGZ.value)
@@ -116,22 +121,26 @@ class Coregistration(object):
 
         # self.qc_snapshots.add_2vols_snapshot_step(dax, [job3], b0_nii_gz, t1_in_d_nii_gz)
 
-        aparc_aseg_mgz = File(T1Files.APARC_ASEG_MGZ.value % self.atlas_suffix)
-        aparc_aseg_in_d_nii_gz = File(CoregFiles.APARC_ASEG_IN_D.value % self.atlas_suffix)
-        job4 = Job(CoregJobNames.MRI_VOL2VOL.value)
-        job4.addArguments("--mov", aparc_aseg_mgz, "--targ", b0_nii_gz, "--o", aparc_aseg_in_d_nii_gz, "--reg",
-                          t1_in_d_lta, "--nearest")
-        job4.uses(aparc_aseg_mgz, link=Link.INPUT)
-        job4.uses(b0_nii_gz, link=Link.INPUT)
-        job4.uses(t1_in_d_lta, link=Link.INPUT)
-        job4.uses(aparc_aseg_in_d_nii_gz, link=Link.OUTPUT, transfer=False, register=False)
-        dax.addJob(job4)
+        job4 = []
+        aparc_aseg_mgz = []
+        aparc_aseg_in_d_nii_gz = []
+        for atlas_suffix, job_aparc_aseg in zip(self.atlas_suffixes, jobs_aparc_aseg):
+            aparc_aseg_mgz.append(File(T1Files.APARC_ASEG_MGZ.value % atlas_suffix))
+            aparc_aseg_in_d_nii_gz.append(File(CoregFiles.APARC_ASEG_IN_D.value % atlas_suffix))
+            job4.append(Job(CoregJobNames.MRI_VOL2VOL.value, node_label="Register APARC%s+ASEG to DWI" % atlas_suffix))
+            job4[-1].addArguments("--mov", aparc_aseg_mgz[-1], "--targ", b0_nii_gz, "--o", aparc_aseg_in_d_nii_gz[-1], "--reg",
+                              t1_in_d_lta, "--nearest")
+            job4[-1].uses(aparc_aseg_mgz[-1], link=Link.INPUT)
+            job4[-1].uses(b0_nii_gz, link=Link.INPUT)
+            job4[-1].uses(t1_in_d_lta, link=Link.INPUT)
+            job4[-1].uses(aparc_aseg_in_d_nii_gz[-1], link=Link.OUTPUT, transfer=False, register=False)
+            dax.addJob(job4[-1])
 
-        dax.depends(job4, job_aparc_aseg)
-        dax.depends(job4, job3)
+            dax.depends(job4[-1], job_aparc_aseg)
+            dax.depends(job4[-1], job3)
 
-        # self.qc_snapshots.add_2vols_snapshot_step(dax, [job4], b0_nii_gz, aparc_aseg_in_d_nii_gz)
-        # self.qc_snapshots.add_3vols_snapshot_step(dax, [job3, job4], t1_in_d_nii_gz, b0_nii_gz, aparc_aseg_in_d_nii_gz)
+            # self.qc_snapshots.add_2vols_snapshot_step(dax, [job4[-1]], b0_nii_gz, aparc_aseg_in_d_nii_gz[-1])
+            # self.qc_snapshots.add_3vols_snapshot_step(dax, [job3, job4[-1]], t1_in_d_nii_gz, b0_nii_gz, aparc_aseg_in_d_nii_gz[-1])
 
         return job3, job4
 
