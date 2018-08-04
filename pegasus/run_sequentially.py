@@ -7,7 +7,6 @@ import shutil
 import sys
 from enum import Enum
 from string import Template
-from tvb.recon.dax.__main__ import get_atlases_and_suffixes_lists
 
 PATH_TO_INPUT_SUBJ_FOLDERS = "/home/submitter/data"
 PATH_TO_SUBJ_CONFIG_FOLDERS = "/home/submitter/data"
@@ -27,6 +26,23 @@ PREFIX_JOB_ID = "run"
 REGEX_JOB_ID = PREFIX_JOB_ID + "\d\d\d\d"
 MONITORED_FILE = "monitord.done"
 
+class Atlas(object):
+    DEFAULT = "default"
+    A2009S = "a2009s"
+    DKT = "DKT"
+
+# TODO: better set properties to the exact atlases names to avoid if statements and easily add more parcellations
+# i.e.:
+# class AtlasSuffixDict(object):
+#     default = ""
+#     a2009s = ".a2009s"
+#     DKT = ".DKTatlas"
+# with desired use: atlas_suffix = getattr(AtlasSuffix, current_atlas, None)
+class AtlasSuffix(object):
+    DEFAULT = ""
+    A2009S = ".a2009s"
+    DKT = ".DKTatlas"
+
 
 class configs(Enum):
     ENVIRON_CONFIGS = "environment_config.sh"
@@ -37,6 +53,19 @@ class configs(Enum):
     RC_OUT = "rc_out.txt"
     RC_OUT_ATLAS = "rc_out_atlas.txt"
     TC = "tc.txt"
+
+
+def get_atlases_and_suffixes_lists(atlases):
+    atlases_list = atlases.split(" ")
+    atlas_suffixes = []
+    for atlas in atlases_list:
+        if atlas == Atlas.A2009S:
+            atlas_suffixes.append(AtlasSuffix.A2009S)
+        elif atlas == Atlas.DKT:
+            atlas_suffixes.append(AtlasSuffix.DKT)
+        else:
+            atlas_suffixes.append(AtlasSuffix.DEFAULT)
+    return atlases_list, atlas_suffixes
 
 
 def create_config_files_for_subj(current_subject, atlases):

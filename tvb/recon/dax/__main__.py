@@ -49,7 +49,7 @@ if __name__ == "__main__":
     subject = config.props[ConfigKey.SUBJECT]
     trg_subject = config.props[ConfigKey.TRGSUBJECT]
 
-    atlases = ConfigKey.ATLAS
+    atlases = config.props[ConfigKey.ATLAS]
     atlases_list, atlas_suffixes = get_atlases_and_suffixes_lists(atlases)
 
     #---------------------First we add jobs to the dax for all desired atlases together---------------------------------
@@ -72,21 +72,19 @@ if __name__ == "__main__":
     #--------------From this point and on we should add jobs to the dax for each desired atlas separetely---------------
 
     if config.props[ConfigKey.RESAMPLE_FLAG] == "True":
-        job_resamp_cort = []
+        jobs_resamp_cort = []
         resampling = []
     else:
-        job_resamp_cort = [None]
+        jobs_resamp_cort = [None]
         resampling = None
 
     aseg_generation = []
-    job_aseg_lh = []
-    job_aseg_rh = []
-    job_mapping_details = []
+    jobs_aseg_lh = []
+    jobs_aseg_rh = []
+    jobs_mapping_details = []
     tracts_generation = []
-    job_weights = []
-    job_lengths = []
-    job_conn = []
-    output_conversion = []
+    jobs_weights = []
+    jobs_lengths = []
 
     mrielec_seeg_computation = MriElecSEEGComputation(subject, config.props[ConfigKey.MRIELEC_FRMT],
                                                       config.props[ConfigKey.SAME_SPACE_VOL_POM],
@@ -97,9 +95,9 @@ if __name__ == "__main__":
 
     head_model = None
     job_bem_surfaces = None
-    job_source_model = None
-    job_sensor_model_lh = None
-    job_sensor_model_rh = None
+    jobs_source_model = None
+    jobs_sensor_model_lh = None
+    jobs_sensor_model_rh = None
     job_seeg_xyz = None
     projection_computation_EEG = None
     projection_computation_MEG = None
@@ -113,10 +111,10 @@ if __name__ == "__main__":
             if config.props[ConfigKey.USE_OPENMEEG] == "True":
                 job_head_model = head_model.add_head_model_steps(dax, job_bem_surfaces)
                 source_model = []
-                job_source_model = []
+                jobs_source_model = []
                 sensor_model = []
-                job_sensor_model_lh = []
-                job_sensor_model_rh = []
+                jobs_sensor_model_lh = []
+                jobs_sensor_model_rh = []
                 lead_field_model = []
             else:
                 seeg_gain_computation = []
@@ -138,17 +136,17 @@ if __name__ == "__main__":
 
         if config.props[ConfigKey.RESAMPLE_FLAG] == "True":
             resampling.append(Resampling(subject, trg_subject, config.props[ConfigKey.DECIM_FACTOR], atlas_suffix))
-            job_resamp_cort.append(resampling[-1].add_surface_resampling_steps(dax, job_aparc_aseg))
+            jobs_resamp_cort.append(resampling[-1].add_surface_resampling_steps(dax, job_aparc_aseg))
 
         aseg_generation.append(AsegGeneration(subject, config.props[ConfigKey.ASEG_LH_LABELS],
                                          config.props[ConfigKey.ASEG_RH_LABELS], trg_subject, atlas_suffix))
         temp_job_aseg_lh, temp_job_aseg_rh = aseg_generation[-1].add_aseg_generation_steps(dax, job_aparc_aseg)
-        job_aseg_lh.append(temp_job_aseg_lh)
-        job_aseg_rh.append(temp_job_aseg_rh)
+        jobs_aseg_lh.append(temp_job_aseg_lh)
+        jobs_aseg_rh.append(temp_job_aseg_rh)
 
-        job_mapping_details.append(aseg_generation[-1]. \
-                                    add_mapping_details_computation_step(dax, job_aseg_lh[-1], job_aseg_rh[-1],
-                                                                         job_resamp_cort[-1]))
+        jobs_mapping_details.append(aseg_generation[-1]. \
+                                    add_mapping_details_computation_step(dax, jobs_aseg_lh[-1], jobs_aseg_rh[-1],
+                                                                         jobs_resamp_cort[-1]))
 
         tracts_generation.append(TractsGeneration(config.props[ConfigKey.DWI_MULTI_SHELL],
                                                   config.props[ConfigKey.MRTRIX_THRDS],
@@ -160,40 +158,37 @@ if __name__ == "__main__":
 
         temp_job_weights, temp_job_lengths = \
             tracts_generation[-1].add_tracts_generation_steps(dax, job_t1_in_d, job_mask,
-                                                              job_aparc_aseg_in_d, job_mapping_details[-1])
-        job_weights.append(temp_job_weights)
-        job_lengths.append(temp_job_lengths)
-
-        output_conversion.append(OutputConversion(atlas_suffix))
-        job_conn.append(output_conversion[-1].add_conversion_steps(dax, job_aparc_aseg, job_mapping_details[-1],
-                                                                   job_weights[-1], job_lengths[-1]))
+                                                              job_aparc_aseg_in_d, jobs_mapping_details[-1])
+        jobs_weights.append(temp_job_weights)
+        jobs_lengths.append(temp_job_lengths)
 
         if config.props[ConfigKey.PROCESS_SENSORS] == "True":
             if config.props[ConfigKey.SEEG_FLAG] == "True":
                 if config.props[ConfigKey.USE_OPENMEEG] == "True":
 
                     source_model.append(SourceModel(subject, trg_subject, atlas_suffix))
-                    job_source_model.append(source_model[-1].add_source_model_steps(dax, job_head_model,
-                                                                                job_mapping_details[-1]))
+                    jobs_source_model.append(source_model[-1].add_source_model_steps(dax, job_head_model,
+                                                                                    jobs_mapping_details[-1]))
 
                     sensor_model.append(SensorModel(subject, trg_subject, atlas_suffix))
                     temp_job_sensor_model_lh, temp_job_sensor_model_rh = \
-                        sensor_model[-1].add_sensor_model_steps(dax, job_source_model[-1])
-                    job_sensor_model_lh.append(temp_job_sensor_model_lh)
-                    job_sensor_model_rh.append(temp_job_sensor_model_rh)
+                        sensor_model[-1].add_sensor_model_steps(dax, jobs_source_model[-1])
+                    jobs_sensor_model_lh.append(temp_job_sensor_model_lh)
+                    jobs_sensor_model_rh.append(temp_job_sensor_model_rh)
 
                     lead_field_model.append(LeadFieldModel(subject, trg_subject, atlas_suffix))
-                    lead_field_model[-1].add_lead_field_model_steps(dax, job_sensor_model_lh[-1], job_sensor_model_rh[-1])
+                    lead_field_model[-1].add_lead_field_model_steps(dax, jobs_sensor_model_lh[-1],
+                                                                    jobs_sensor_model_rh[-1])
 
                 else:
                     if job_seeg_xyz is not None:
                         seeg_gain_computation.append(SeegGainComputation(config.props[ConfigKey.SUBJECT], atlas_suffix))
                         if config.props[ConfigKey.SEEG_GAIN_USE_DP] == "True":
                             seeg_gain_computation[-1].add_seeg_gain_dp_computation_steps(dax, job_seeg_xyz,
-                                                                                     job_mapping_details[-1])
+                                                                                         jobs_mapping_details[-1])
                         if config.props[ConfigKey.SEEG_GAIN_USE_MRS] == "True":
                             seeg_gain_computation[-1].add_seeg_mrs_gain_computation_steps(dax, job_seeg_xyz,
-                                                                                      job_mapping_details[-1])
+                                                                                          jobs_mapping_details[-1])
 
             else:
 
@@ -201,13 +196,17 @@ if __name__ == "__main__":
                     projection_computation_EEG.append(ProjectionComputation(config.props[ConfigKey.SUBJECT],
                                                                             SensorsType.EEG.value,
                                                                             atlas_suffix))
-                    projection_computation_EEG[-1].add_projection_computation_steps(dax, job_mapping_details[-1])
+                    projection_computation_EEG[-1].add_projection_computation_steps(dax, jobs_mapping_details[-1])
 
                 if config.props[ConfigKey.MEG_FLAG] == "True":
                     projection_computation_MEG.append(ProjectionComputation(config.props[ConfigKey.SUBJECT],
                                                                             SensorsType.MEG.value,
                                                                             atlas_suffix))
-                    projection_computation_MEG[-1].add_projection_computation_steps(dax, job_mapping_details[-1])
+                    projection_computation_MEG[-1].add_projection_computation_steps(dax, jobs_mapping_details[-1])
+
+    output_conversion = OutputConversion(atlas_suffixes)
+    jobs_conn = output_conversion.add_conversion_steps(dax, jobs_aparc_aseg, jobs_mapping_details,
+                                                       jobs_weights, jobs_lengths)
 
     out_dir = os.path.dirname(daxfile)
     if not os.path.exists(out_dir):

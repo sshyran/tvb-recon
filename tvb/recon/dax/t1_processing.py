@@ -131,8 +131,12 @@ class T1Processing(object):
         aparc_aseg_nii_gz_vol = []
         for atlas_suffix, aparc_aseg_mgz_vol in zip(self.atlas_suffixes, aparc_aseg_mgz_vols):
             aparc_aseg_nii_gz_vol.append(File(T1Files.APARC_ASEG_NII_GZ.value % atlas_suffix))
+            if len(atlas_suffix) == 0:
+                atlas_name = "default"
+            else:
+                atlas_name = atlas_suffix[1:]
             job4.append(Job(T1JobNames.MRI_CONVERT.value,
-                        node_label="Convert APARC+ASEG to NIFTI with good orientation for atlas " + atlas_suffix))
+                        node_label="Convert APARC+ASEG to NIFTI with good orientation for %s atlas " % atlas_name))
             job4[-1].addArguments(aparc_aseg_mgz_vol, aparc_aseg_nii_gz_vol[-1],
                                   "--out_orientation", "RAS", "-rt", "nearest")
             job4[-1].uses(aparc_aseg_mgz_vol, link=Link.INPUT)
