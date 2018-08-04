@@ -5,9 +5,11 @@ from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class T1Processing(object):
-    def __init__(self, subject, t1_frmt="nii", use_t2=False, t2_frmt="nii", use_flair=False, flair_frmt="nii",
+    def __init__(self, subject, overwrite_reconall_flag=False, t1_frmt="nii", use_t2=False, t2_frmt="nii", use_flair=False, flair_frmt="nii",
                  openmp_thrds="4", atlas_suffixes=[AtlasSuffix.DEFAULT]):
         self.subject = subject
+        self.overwrite_reconall_flag = str(overwrite_reconall_flag)
+        print(self.overwrite_reconall_flag)
         self.t1_format = t1_frmt
         self.t2_flag = use_t2
         self.t2_format = t2_frmt
@@ -64,7 +66,8 @@ class T1Processing(object):
         norm_mgz_vol = File(T1Files.NORM_MGZ.value)
         brain_mgz_vol = File(T1Files.BRAIN_MGZ.value)
         job2 = Job(T1JobNames.RECON_ALL.value, node_label="Recon-all for T1")
-        job2.addArguments(self.subject, t1_output, self.openmp_threads, " ".join(self.atlas_suffixes))
+        job2.addArguments(self.subject, t1_output, self.openmp_threads,
+                          " ".join(self.atlas_suffixes), self.overwrite_reconall_flag)
         job2.uses(t1_output, link=Link.INPUT)
         job2.uses(t1_mgz_output, link=Link.OUTPUT, transfer=True, register=True)
         job2.uses(norm_mgz_vol, link=Link.OUTPUT, transfer=True, register=True)

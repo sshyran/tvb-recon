@@ -54,7 +54,8 @@ if __name__ == "__main__":
 
     #---------------------First we add jobs to the dax for all desired atlases together---------------------------------
 
-    t1_processing = T1Processing(subject, config.props[ConfigKey.T1_FRMT], config.props[ConfigKey.T2_FLAG],
+    t1_processing = T1Processing(subject, config.props[ConfigKey.OVERWRITE_RECONALL_FLAG],
+                                 config.props[ConfigKey.T1_FRMT], config.props[ConfigKey.T2_FLAG],
                                  config.props[ConfigKey.T2_FRMT], config.props[ConfigKey.FLAIR_FLAG],
                                  config.props[ConfigKey.FLAIR_FRMT], config.props[ConfigKey.OPENMP_THRDS],
                                  atlas_suffixes)

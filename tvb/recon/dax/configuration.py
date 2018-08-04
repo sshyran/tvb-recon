@@ -9,6 +9,7 @@ class ConfigKey(Enum):
     Flow parameters --> These will influence the DAX generation
     """
     SUBJECT = "subject"
+    OVERWRITE_RECONALL_FLAG = "overwrite_reconall_flag"
     T1_FRMT = "t1.format"
     T2_FLAG = "t2.flag"
     T2_FRMT = "t2.format"
