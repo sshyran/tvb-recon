@@ -10,6 +10,13 @@ f=$PWD
 # We assume that every case of rerunning should just resume recon-all without overwriting
 # TODO: a proper management of recon-all
 if [ -d "${SUBJECTS_DIR}/$1" ]; then
+    echo Subject directory ${SUBJECTS_DIR}/$1 exists!
+    if [ -f "${SUBJECTS_DIR}/$1/mri/wmparc.mgz" ];
+    then
+        echo wmparc.mgz exists! recon-all considered successfully terminated!
+    else
+        echo wmparc.mgz does not exist! recon-all considered partially executed!
+    fi
     echo OVERWRITE_RECONALL_FLAG=$5
     # if the previous recon-all run hasn't finished (i.e., generated wmparc.mgz) or overwrite flag is True, rerun/resume
     if [ ! -f "${SUBJECTS_DIR}/$1/mri/wmparc.mgz" ] || [ $5 == "True" ];
@@ -17,6 +24,7 @@ if [ -d "${SUBJECTS_DIR}/$1" ]; then
         for h in "lh rh lh+rh"
         do
             if [ -f "${SUBJECTS_DIR}/$1/scripts/IsRunning.$h" ]; then
+                echo Deleting ${SUBJECTS_DIR}/$1/scripts/IsRunning.$h!
                 rm ${SUBJECTS_DIR}/$1/scripts/IsRunning.$h
             fi
         done
@@ -27,6 +35,7 @@ if [ -d "${SUBJECTS_DIR}/$1" ]; then
         echo Skipping recon-all!
     fi
 else
+    echo Starting recon-all for subject $1 with input T1 $2!
     recon-all -all -parallel -openmp $3 -s $1 -i $2
 fi
 
@@ -35,6 +44,7 @@ echo Copying T1.mgz, norm.mgz and brain.mgz
 cp T1.mgz $f
 cp norm.mgz $f
 cp brain.mgz $f
+echo Copying aparc+aseg.mgz
 cp aparc+aseg.mgz $f
 for atlas_suffix in $4
 do
@@ -50,6 +60,7 @@ cp lh.white $f
 cp rh.white $f
 
 cd ../label
+echo Copying l/rh.aparc.annot
 cp lh.aparc.annot $f
 cp rh.aparc.annot $f
 for atlas_suffix in $4
