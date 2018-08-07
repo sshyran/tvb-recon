@@ -87,7 +87,7 @@ class TractsGenFiles(Enum):
     RESPONSE_TXT = "response.txt"
     WM_FOD_MIF = "wm_fod.mif"
     FILE_TCK = "%s.tck"
-    FILE_SIFT_TCK = "%s.tck"
+    FILE_SIFT_TCK = "sift%s.tck"
     TDI_ENDS_MIF = "tdi_ends.mif"
     GM_MIF = "gm.mif"
     CSF_MIF = "csf.mif"
