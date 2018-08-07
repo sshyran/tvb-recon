@@ -7,7 +7,7 @@ from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 class TractsGeneration(object):
     def __init__(self, dwi_multi_shell=False, mrtrix_threads="2", strmlns_no="25M", strmlns_sift_no="5M",
-                 strmlns_size="250", strmlns_step="0.5", atlas_suffix=AtlasSuffix.DEFAULT, os="LINUX"):
+                 strmlns_size="250", strmlns_step="0.5", atlas_suffixes=[AtlasSuffix.DEFAULT], os="LINUX"):
         self.dwi_multi_shell = dwi_multi_shell
         self.mrtrix_threads = mrtrix_threads
         self.strmlns_no = strmlns_no
@@ -15,11 +15,14 @@ class TractsGeneration(object):
         self.strmlns_size = strmlns_size
         self.strmlns_step = strmlns_step
         self.qc_snapshots = QCSnapshots.get_instance()
-        self.atlas_suffix = atlas_suffix
+        self.atlas_suffixes = atlas_suffixes
         self.os = os
 
     # job_t1_in_d = job12, job_mask = job5, job_aparc_aseg_in_d = job21
-    def add_tracts_generation_steps(self, dax, job_t1_in_d, job_mask, job_aparc_aseg_in_d, job_fs_custom):
+    def add_tracts_generation_steps(self, dax, job_t1_in_d, job_mask, jobs_aparc_aseg_in_d, jobs_fs_custom):
+
+        #-------------------------------------------Tractography--------------------------------------------------------
+
         t1_in_d = File(CoregFiles.T1_IN_D.value)
         file_5tt = File(TractsGenFiles.FILE_5TT_MIF.value)
         job1 = Job(TractsGenJobNames.JOB_5TTGEN.value, node_label="Generate 5tt MIF")
@@ -48,7 +51,8 @@ class TractsGeneration(object):
 
         dax.depends(job_gmwmi_convert, job2)
 
-        self.qc_snapshots.add_2vols_snapshot_step(dax, [job_gmwmi_convert], t1_in_d, file_gmwmi_nii_gz)
+        self.qc_snapshots.add_2vols_snapshot_step(dax, [job_gmwmi_convert],
+                                                  t1_in_d, file_gmwmi_nii_gz, "gmwmi_in_t1_in_d")
 
         file_5ttvis = File(TractsGenFiles.FILE_5TTVIS_MIF.value)
         job3 = Job(TractsGenJobNames.JOB_5TT2VIS.value, node_label="Generate TT2VIS MIF")
@@ -58,9 +62,6 @@ class TractsGeneration(object):
         dax.addJob(job3)
 
         dax.depends(job3, job2)
-
-        file_wm_fod = None
-        last_job = None
 
         dwi_mif = File(DWIFiles.DWI_MIF.value)
         mask_mif = File(DWIFiles.MASK_MIF.value)
@@ -183,47 +184,65 @@ class TractsGeneration(object):
 
         dax.depends(job_convert_tdi_ends, job8)
 
-        self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_tdi_ends], t1_in_d, file_tdi_ends_nii_gz)
+        self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_tdi_ends],
+                                                  t1_in_d, file_tdi_ends_nii_gz, "tdi_ends_in_t1_in_d")
 
-        fs_custom = File(AsegFiles.FS_CUSTOM_TXT.value % self.atlas_suffix)
-        aparc_aseg_in_d = File(CoregFiles.APARC_ASEG_IN_D.value % self.atlas_suffix)
-        file_vol_lbl = File(TractsGenFiles.VOLUME_LBL_NII_GZ.value % self.atlas_suffix)
-        fs_color_lut = File(Inputs.FS_LUT.value)
-        job9 = Job(TractsGenJobNames.LABEL_CONVERT.value, node_label="Compute APARC+ASEG labeled for tracts")
-        job9.addArguments(aparc_aseg_in_d, fs_color_lut, fs_custom, file_vol_lbl)
-        job9.uses(aparc_aseg_in_d, link=Link.INPUT)
-        job9.uses(fs_color_lut, link=Link.INPUT)
-        job9.uses(fs_custom, link=Link.INPUT)
-        job9.uses(file_vol_lbl, link=Link.OUTPUT, transfer=True, register=True)
-        dax.addJob(job9)
+        #---------------------------------Connectomes generation per atlas----------------------------------------------
 
-        dax.depends(job9, job_fs_custom)
-        dax.depends(job9, job_aparc_aseg_in_d)
+        fs_customs = []
+        aparc_aseg_in_ds = []
+        file_vol_lbls = []
+        fs_color_luts = []
+        file_aparc_aseg_counts_csvs = []
+        file_aparc_aseg_mean_tract_lengths_csvs = []
+        jobs9 = []
+        jobs10 = []
+        jobs11 = []
+        for iatlas, atlas_suffix in enumerate(self.atlas_suffixes):
 
-        self.qc_snapshots.add_2vols_snapshot_step(dax, [job9], t1_in_d, file_vol_lbl)
+            fs_customs.append(File(AsegFiles.FS_CUSTOM_TXT.value % atlas_suffix))
+            aparc_aseg_in_ds.append(File(CoregFiles.APARC_ASEG_IN_D.value % atlas_suffix))
+            file_vol_lbls.append(File(TractsGenFiles.VOLUME_LBL_NII_GZ.value % atlas_suffix))
+            fs_color_luts.append(File(Inputs.FS_LUT.value))
+            jobs9.append(Job(TractsGenJobNames.LABEL_CONVERT.value,
+                             node_label="Compute APARC%s+ASEG labeled for tracts" % atlas_suffix))
+            jobs9[-1].addArguments(aparc_aseg_in_ds[-1], fs_color_luts[-1], fs_customs[-1], file_vol_lbls[-1])
+            jobs9[-1].uses(aparc_aseg_in_ds[-1], link=Link.INPUT)
+            jobs9[-1].uses(fs_color_luts[-1], link=Link.INPUT)
+            jobs9[-1].uses(fs_customs[-1], link=Link.INPUT)
+            jobs9[-1].uses(file_vol_lbls[-1], link=Link.OUTPUT, transfer=True, register=True)
+            dax.addJob(jobs9[-1])
 
-        file_aparc_aseg_counts5M_csv = File(TractsGenFiles.TRACT_COUNTS.value % self.atlas_suffix)
-        job10 = Job(TractsGenJobNames.TCK2CONNECTOME.value, node_label="Generate weigths")
-        job10.addArguments(file_strmlns_sift, file_vol_lbl, "-assignment_radial_search", "2",
-                           file_aparc_aseg_counts5M_csv)
-        job10.uses(file_strmlns_sift, link=Link.INPUT)
-        job10.uses(file_vol_lbl, link=Link.INPUT)
-        job10.uses(file_aparc_aseg_counts5M_csv, link=Link.OUTPUT, transfer=True, register=True)
-        dax.addJob(job10)
+            dax.depends(jobs9[-1], jobs_fs_custom[iatlas])
+            dax.depends(jobs9[-1], jobs_aparc_aseg_in_d[iatlas])
 
-        dax.depends(job10, job7)
-        dax.depends(job10, job9)
+            self.qc_snapshots.add_2vols_snapshot_step(dax, [jobs9[-1]], t1_in_d, file_vol_lbls[-1],
+                                                      "vol%s_lbl_in_t1_in_d" % atlas_suffix)
 
-        file_aparc_aseg_mean_tract_lengths5M_csv = File(TractsGenFiles.TRACT_LENGHTS.value % self.atlas_suffix)
-        job11 = Job(TractsGenJobNames.TCK2CONNECTOME.value, node_label="Generate tract lengths")
-        job11.addArguments(file_strmlns_sift, file_vol_lbl, "-assignment_radial_search", "2", "-scale_length",
-                           "-stat_edge", "mean", file_aparc_aseg_mean_tract_lengths5M_csv)
-        job11.uses(file_strmlns_sift, link=Link.INPUT)
-        job11.uses(file_vol_lbl, link=Link.INPUT)
-        job11.uses(file_aparc_aseg_mean_tract_lengths5M_csv, link=Link.OUTPUT, transfer=True, register=True)
-        dax.addJob(job11)
+            file_aparc_aseg_counts_csvs.append(File(TractsGenFiles.TRACT_COUNTS.value % atlas_suffix))
+            jobs10.append(Job(TractsGenJobNames.TCK2CONNECTOME.value, node_label="Generate weigths %s "% atlas_suffix))
+            jobs10[-1].addArguments(file_strmlns_sift, file_vol_lbls[-1], "-assignment_radial_search", "2",
+                               file_aparc_aseg_counts_csvs[-1])
+            jobs10[-1].uses(file_strmlns_sift, link=Link.INPUT)
+            jobs10[-1].uses(file_vol_lbls[-1], link=Link.INPUT)
+            jobs10[-1].uses(file_aparc_aseg_counts_csvs[-1], link=Link.OUTPUT, transfer=True, register=True)
+            dax.addJob(jobs10[-1])
 
-        dax.depends(job11, job7)
-        dax.depends(job11, job9)
+            dax.depends(jobs10[-1], job7)
+            dax.depends(jobs10[-1], jobs9[-1])
 
-        return job10, job11
+            file_aparc_aseg_mean_tract_lengths_csvs.append(File(TractsGenFiles.TRACT_LENGHTS.value % atlas_suffix))
+            jobs11.append(Job(TractsGenJobNames.TCK2CONNECTOME.value,
+                                  node_label="Generate tract lengths %s" % atlas_suffix))
+            jobs11[-1].addArguments(file_strmlns_sift, file_vol_lbls[-1],
+                                    "-assignment_radial_search", "2", "-scale_length",
+                                    "-stat_edge", "mean", file_aparc_aseg_mean_tract_lengths_csvs[-1])
+            jobs11[-1].uses(file_strmlns_sift, link=Link.INPUT)
+            jobs11[-1].uses(file_vol_lbls[-1], link=Link.INPUT)
+            jobs11[-1].uses(file_aparc_aseg_mean_tract_lengths_csvs[-1], link=Link.OUTPUT, transfer=True, register=True)
+            dax.addJob(jobs11[-1])
+
+            dax.depends(jobs11[-1], job7)
+            dax.depends(jobs11[-1], jobs9[-1])
+
+        return jobs10, jobs11

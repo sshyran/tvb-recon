@@ -1,16 +1,16 @@
 from Pegasus.DAX3 import Job, File, Link
-
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.dax.mappings import T1Files, ResamplingJobNames, SourceModelFiles, HeadModelJobNames, AsegFiles, \
     HeadModelFiles
 
 
 class SourceModel(object):
-    def __init__(self, subject, trg_subject, atlas_suffix):
+    def __init__(self, subject, trg_subject, atlas_suffixes=[AtlasSuffix.DEFAULT]):
         self.subject = subject
         self.trg_subject = trg_subject
-        self.atlas_suffix = atlas_suffix
+        self.atlas_suffixes = atlas_suffixes
 
-    def add_source_model_steps(self, dax, job_head_model, job_mapping_details):
+    def add_source_model_steps(self, dax, job_head_model, jobs_mapping_details):
         t1_mgz = File(T1Files.T1_MGZ.value)
         lh_white = File(T1Files.LH_WHITE.value)
         rh_white = File(T1Files.RH_WHITE.value)
@@ -36,62 +36,67 @@ class SourceModel(object):
         rh_white_ssm = File(SourceModelFiles.RH_WHITE_RESAMP_SSM.value % self.trg_subject)
         whites_resamp_ssm = [lh_white_ssm, rh_white_ssm]
 
-        lh_dipoles_file = File(AsegFiles.LH_DIPOLES_TXT.value % self.atlas_suffix)
-        rh_dipoles_file = File(AsegFiles.RH_DIPOLES_TXT.value % self.atlas_suffix)
+        lh_dipoles_file = []
+        rh_dipoles_file = []
+        lh_white_dsm = []
+        rh_white_dsm = []
+        for atlas_suffix in self.atlas_suffixes:
+            lh_dipoles_file.append(File(AsegFiles.LH_DIPOLES_TXT.value % atlas_suffix))
+            rh_dipoles_file.append(File(AsegFiles.RH_DIPOLES_TXT.value % atlas_suffix))
+            lh_white_dsm.append(File(SourceModelFiles.LH_WHITE_RESAMP_DSM.value % (self.trg_subject, atlas_suffix)))
+            rh_white_dsm.append(File(SourceModelFiles.RH_WHITE_RESAMP_DSM.value % (self.trg_subject, atlas_suffix)))
         dipoles_files = [lh_dipoles_file, rh_dipoles_file]
-
-        lh_white_dsm = File(SourceModelFiles.LH_WHITE_RESAMP_DSM.value % (self.trg_subject, self.atlas_suffix))
-        rh_white_dsm = File(SourceModelFiles.RH_WHITE_RESAMP_DSM.value % (self.trg_subject, self.atlas_suffix))
         whites_resamp_dsm = [lh_white_dsm, rh_white_dsm]
 
-        last_job = None
-
-        for idx, hemi in enumerate(["lh", "rh"]):
-            job1 = Job(ResamplingJobNames.MRI_SURF2SURF.value)
-            job1.addArguments("--srcsubject", self.subject, "--trgsubject", self.trg_subject, "--hemi", hemi,
+        jobs1 = []
+        jobs2 = []
+        jobs3 = []
+        jobs4 = [[], []]
+        for ih, hemi in enumerate(["lh", "rh"]):
+            jobs1.append(Job(ResamplingJobNames.MRI_SURF2SURF.value))
+            jobs1[-1].addArguments("--srcsubject", self.subject, "--trgsubject", self.trg_subject, "--hemi", hemi,
                               "--sval-xyz", "white", "--tval", "white-%s" % self.trg_subject, "--tval-xyz", t1_mgz)
-            job1.uses(t1_mgz, link=Link.INPUT)
-            job1.uses(whites[idx], link=Link.INPUT)
-            job1.uses(whites_resamp[idx], link=Link.OUTPUT, transfer=True, register=True)
-            dax.addJob(job1)
+            jobs1[-1].uses(t1_mgz, link=Link.INPUT)
+            jobs1[-1].uses(whites[ih], link=Link.INPUT)
+            jobs1[-1].uses(whites_resamp[ih], link=Link.OUTPUT, transfer=True, register=True)
+            dax.addJob(jobs1[-1])
 
-            dax.depends(job1, job_head_model)
+            dax.depends(jobs1[-1], job_head_model)
 
-            job2 = Job(HeadModelJobNames.CONVERT_TO_BRAIN_VISA.value)
-            job2.addArguments(whites_resamp[idx], whites_resamp_tri[idx], self.subject)
-            job2.uses(whites_resamp[idx], link=Link.INPUT)
-            job2.uses(whites_resamp_tri[idx], link=Link.OUTPUT, transfer=True, register=True)
-            dax.addJob(job2)
+            jobs2.append(Job(HeadModelJobNames.CONVERT_TO_BRAIN_VISA.value))
+            jobs2[-1].addArguments(whites_resamp[ih], whites_resamp_tri[ih], self.subject)
+            jobs2[-1].uses(whites_resamp[ih], link=Link.INPUT)
+            jobs2[-1].uses(whites_resamp_tri[ih], link=Link.OUTPUT, transfer=True, register=True)
+            dax.addJob(jobs2[-1])
 
-            dax.depends(job2, job1)
+            dax.depends(jobs2[-1], jobs1[-1])
 
-            job3 = Job(HeadModelJobNames.OM_ASSEMBLE.value)
-            job3.addArguments("-SurfSourceMat", head_model_geom, head_model_cond, whites_resamp_tri[idx],
-                              whites_resamp_ssm[idx])
+            jobs3.append(Job(HeadModelJobNames.OM_ASSEMBLE.value))
+            jobs3[-1].addArguments("-SurfSourceMat", head_model_geom, head_model_cond, whites_resamp_tri[ih],
+                              whites_resamp_ssm[ih])
             for surf in bem_tri_surfs:
-                job3.uses(surf, link=Link.INPUT)
-            job3.uses(head_model_geom, link=Link.INPUT)
-            job3.uses(head_model_cond, link=Link.INPUT)
-            job3.uses(whites_resamp_tri[idx], link=Link.INPUT)
-            job3.uses(whites_resamp_ssm[idx], link=Link.OUTPUT, transfer=True, register=True)
-            dax.addJob(job3)
+                jobs3[-1].uses(surf, link=Link.INPUT)
+            jobs3[-1].uses(head_model_geom, link=Link.INPUT)
+            jobs3[-1].uses(head_model_cond, link=Link.INPUT)
+            jobs3[-1].uses(whites_resamp_tri[ih], link=Link.INPUT)
+            jobs3[-1].uses(whites_resamp_ssm[ih], link=Link.OUTPUT, transfer=True, register=True)
+            dax.addJob(jobs3[-1])
 
-            dax.depends(job3, job2)
+            dax.depends(jobs3[-1], jobs2[-1])
 
-            job4 = Job(HeadModelJobNames.OM_ASSEMBLE.value)
-            job4.addArguments("-DipSourceMat", head_model_geom, head_model_cond, dipoles_files[idx],
-                              whites_resamp_dsm[idx])
-            for surf in bem_tri_surfs:
-                job4.uses(surf, link=Link.INPUT)
-            job4.uses(head_model_geom, link=Link.INPUT)
-            job4.uses(head_model_cond, link=Link.INPUT)
-            job4.uses(dipoles_files[idx], link=Link.INPUT)
-            job4.uses(whites_resamp_dsm[idx], link=Link.OUTPUT, transfer=True, register=True)
-            dax.addJob(job4)
+            for iatlas, atlas_suffix in enumerate(self.atlas_suffixes):
+                jobs4[ih].append(Job(HeadModelJobNames.OM_ASSEMBLE.value))
+                jobs4[ih][-1].addArguments("-DipSourceMat", head_model_geom, head_model_cond,
+                                           dipoles_files[ih][iatlas], whites_resamp_dsm[ih][iatlas])
+                for surf in bem_tri_surfs:
+                    jobs4[ih][-1].uses(surf, link=Link.INPUT)
+                jobs4[ih][-1].uses(head_model_geom, link=Link.INPUT)
+                jobs4[ih][-1].uses(head_model_cond, link=Link.INPUT)
+                jobs4[ih][-1].uses(dipoles_files[ih][iatlas], link=Link.INPUT)
+                jobs4[ih][-1].uses(whites_resamp_dsm[ih][iatlas], link=Link.OUTPUT, transfer=True, register=True)
+                dax.addJob(jobs4[ih][-1])
 
-            dax.depends(job4, job_mapping_details)
-            dax.depends(job4, job3)
+                dax.depends(jobs4[ih][-1], jobs_mapping_details[iatlas])
+                dax.depends(jobs4[ih][-1], jobs3[-1])
 
-            last_job = job4
-
-        return last_job
+        return jobs4

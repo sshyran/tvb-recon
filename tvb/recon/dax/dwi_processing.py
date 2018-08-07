@@ -151,6 +151,7 @@ class DWIProcessing(object):
 
         dax.depends(job_convert_mask, job3)
 
-        self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_mask, job4], file_mask_nii_gz, b0_output)
+        self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_mask, job4],
+                                                  file_mask_nii_gz, b0_output, "mask_in_b0")
 
         return job4, job3

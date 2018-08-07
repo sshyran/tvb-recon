@@ -1,14 +1,15 @@
 from Pegasus.DAX3 import Job, File, Link
+from tvb.recon.dax import AtlasSuffix
 from tvb.recon.dax.mappings import SEEGCompFiles, SensorModelFiles, HeadModelJobNames, HeadModelFiles, SourceModelFiles
 
 
 class SensorModel(object):
-    def __init__(self, subject, trg_subject, atlas_suffix):
+    def __init__(self, subject, trg_subject, atlas_suffixes=[AtlasSuffix.DEFAULT]):
         self.subject = subject
         self.trg_subject = trg_subject
-        self.atlas_suffix = atlas_suffix
+        self.atlas_suffixes = atlas_suffixes
 
-    def add_sensor_model_steps(self, dax, job_source_model):
+    def add_sensor_model_steps(self, dax, job_head_model, jobs_source_model):
         # TODO: seeg positions file should contain only positions, not labels in order to work with OpenMEEG
         seeg_xyz = File(SEEGCompFiles.SEEG_XYZ.value)
 
@@ -32,38 +33,48 @@ class SensorModel(object):
         job1.uses(head2ipm_file, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job1)
 
-        dax.depends(job1, job_source_model)
+        dax.depends(job1, job_head_model)
 
-        lh_white_dsm = File(SourceModelFiles.LH_WHITE_RESAMP_DSM.value % (self.trg_subject, self.atlas_suffix))
-        lh_ds2ipm_file = File(SensorModelFiles.LH_DS2IPM.value % (self.trg_subject, self.atlas_suffix))
+        lh_white_dsms = []
+        rh_white_dsms = []
+        lh_ds2ipm_files = []
+        rh_ds2ipm_files = []
+        jobs_lh = []
+        jobs_rh = []
+        for iatlas, atlas_suffix in self.atlas_suffixes:
+            lh_white_dsms.append(File(SourceModelFiles.LH_WHITE_RESAMP_DSM.value % (self.trg_subject, atlas_suffix)))
+            lh_ds2ipm_files.append(File(SensorModelFiles.LH_DS2IPM.value % (self.trg_subject, atlas_suffix)))
+    
+            jobs_lh.append(Job(HeadModelJobNames.OM_ASSEMBLE.value))
+            jobs_lh[-1].addArguments("-ds2ipm", head_model_geom, head_model_cond, 
+                                     lh_white_dsms[-1], seeg_xyz, lh_ds2ipm_files[-1])
+            for surf in bem_tri_surfs:
+                jobs_lh[-1].uses(surf, link=Link.INPUT)
+            jobs_lh[-1].uses(head_model_geom, link=Link.INPUT)
+            jobs_lh[-1].uses(head_model_cond, link=Link.INPUT)
+            jobs_lh[-1].uses(lh_white_dsms[-1], link=Link.INPUT)
+            jobs_lh[-1].uses(seeg_xyz, link=Link.INPUT)
+            jobs_lh[-1].uses(lh_ds2ipm_files[-1], link=Link.OUTPUT, transfer=True, register=True)
+            dax.addJob(jobs_lh[-1])
+    
+            dax.depends(jobs_lh[-1], job1)
+            dax.depends(jobs_lh[-1], jobs_source_model[0][iatlas])
+    
+            rh_white_dsms.append(File(SourceModelFiles.RH_WHITE_RESAMP_DSM.value % (self.trg_subject, atlas_suffix)))
+            rh_ds2ipm_files.append(File(SensorModelFiles.RH_DS2IPM.value % (self.trg_subject, atlas_suffix)))
+    
+            jobs_rh.append(Job(HeadModelJobNames.OM_ASSEMBLE.value))
+            jobs_rh[-1].addArguments("-ds2ipm", head_model_geom, head_model_cond, rh_white_dsms[-1], seeg_xyz, rh_ds2ipm_files[-1])
+            for surf in bem_tri_surfs:
+                jobs_rh[-1].uses(surf, link=Link.INPUT)
+            jobs_rh[-1].uses(head_model_geom, link=Link.INPUT)
+            jobs_rh[-1].uses(head_model_cond, link=Link.INPUT)
+            jobs_rh[-1].uses(rh_white_dsms[-1], link=Link.INPUT)
+            jobs_rh[-1].uses(seeg_xyz, link=Link.INPUT)
+            jobs_rh[-1].uses(rh_ds2ipm_files[-1], link=Link.OUTPUT, transfer=True, register=True)
+            dax.addJob(jobs_rh[-1])
+    
+            dax.depends(jobs_rh[-1], job1)
+            dax.depends(jobs_lh[-1], jobs_source_model[1][iatlas])
 
-        job2 = Job(HeadModelJobNames.OM_ASSEMBLE.value)
-        job2.addArguments("-ds2ipm", head_model_geom, head_model_cond, lh_white_dsm, seeg_xyz, lh_ds2ipm_file)
-        for surf in bem_tri_surfs:
-            job2.uses(surf, link=Link.INPUT)
-        job2.uses(head_model_geom, link=Link.INPUT)
-        job2.uses(head_model_cond, link=Link.INPUT)
-        job2.uses(lh_white_dsm, link=Link.INPUT)
-        job2.uses(seeg_xyz, link=Link.INPUT)
-        job2.uses(lh_ds2ipm_file, link=Link.OUTPUT, transfer=True, register=True)
-        dax.addJob(job2)
-
-        dax.depends(job2, job1)
-
-        rh_white_dsm = File(SourceModelFiles.RH_WHITE_RESAMP_DSM.value % (self.trg_subject, self.atlas_suffix))
-        rh_ds2ipm_file = File(SensorModelFiles.RH_DS2IPM.value % (self.trg_subject, self.atlas_suffix))
-
-        job3 = Job(HeadModelJobNames.OM_ASSEMBLE.value)
-        job3.addArguments("-ds2ipm", head_model_geom, head_model_cond, rh_white_dsm, seeg_xyz, rh_ds2ipm_file)
-        for surf in bem_tri_surfs:
-            job3.uses(surf, link=Link.INPUT)
-        job3.uses(head_model_geom, link=Link.INPUT)
-        job3.uses(head_model_cond, link=Link.INPUT)
-        job3.uses(rh_white_dsm, link=Link.INPUT)
-        job3.uses(seeg_xyz, link=Link.INPUT)
-        job3.uses(rh_ds2ipm_file, link=Link.OUTPUT, transfer=True, register=True)
-        dax.addJob(job3)
-
-        dax.depends(job3, job1)
-
-        return job2, job3
+        return jobs_lh, jobs_rh
