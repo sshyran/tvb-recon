@@ -1,13 +1,11 @@
 from Pegasus.DAX3 import File, Job, Link
-from tvb.recon.dax import AtlasSuffix
-from tvb.recon.dax.mappings import CoregFiles, TractsGenFiles, TractsGenJobNames, DWIJobNames, DWIFiles, AsegFiles, \
-    Inputs
+from tvb.recon.dax.mappings import CoregFiles, TractsGenFiles, TractsGenJobNames, DWIJobNames, DWIFiles
 from tvb.recon.dax.qc_snapshots import QCSnapshots
 
 
 class TractsGeneration(object):
     def __init__(self, dwi_multi_shell=False, mrtrix_threads="2", strmlns_no="25M", strmlns_sift_no="5M",
-                 strmlns_size="250", strmlns_step="0.5", atlas_suffixes=[AtlasSuffix.DEFAULT], os="LINUX"):
+                 strmlns_size="250", strmlns_step="0.5", os="LINUX"):
         self.dwi_multi_shell = dwi_multi_shell
         self.mrtrix_threads = mrtrix_threads
         self.strmlns_no = strmlns_no
@@ -15,11 +13,10 @@ class TractsGeneration(object):
         self.strmlns_size = strmlns_size
         self.strmlns_step = strmlns_step
         self.qc_snapshots = QCSnapshots.get_instance()
-        self.atlas_suffixes = atlas_suffixes
         self.os = os
 
     # job_t1_in_d = job12, job_mask = job5, job_aparc_aseg_in_d = job21
-    def add_tracts_generation_steps(self, dax, job_t1_in_d, job_mask, jobs_aparc_aseg_in_d, jobs_fs_custom):
+    def add_tracts_generation_steps(self, dax, job_t1_in_d, job_mask):
 
         #-------------------------------------------Tractography--------------------------------------------------------
 
@@ -107,7 +104,7 @@ class TractsGeneration(object):
 
         else:
             file_response = File(TractsGenFiles.RESPONSE_TXT.value)
-            job4 = Job(TractsGenJobNames.DWI2RESPONSE.value, node_label="Compute the DWI Response")
+            job4 = Job(TractsGenJobNames.DWI2RESPONSE.value, node_label="Compute DWI response")
             job4.addArguments(dwi_mif, file_response, mask_mif)
             job4.uses(dwi_mif, link=Link.INPUT)
             job4.uses(mask_mif, link=Link.INPUT)
@@ -117,7 +114,7 @@ class TractsGeneration(object):
             dax.depends(job4, job_mask)
 
             file_wm_fod = File(TractsGenFiles.WM_FOD_MIF.value)
-            job5 = Job(TractsGenJobNames.DWI2FOD.value, node_label="Obtain WM FOD")
+            job5 = Job(TractsGenJobNames.DWI2FOD.value, node_label="Compute WM FOD")
             job5.addArguments("csd", dwi_mif, file_response, file_wm_fod, "-mask", mask_mif,
                               "-nthreads",
                               self.mrtrix_threads)
@@ -152,17 +149,19 @@ class TractsGeneration(object):
         dax.depends(job6, job1)
 
         file_strmlns_sift = File(TractsGenFiles.FILE_SIFT_TCK.value % self.strmlns_sift_no)
-        job7 = Job(TractsGenJobNames.TCKSIFT.value, node_label="Tracts SIFT")
-        job7.addArguments(file_strmlns, file_wm_fod, file_strmlns_sift, "-term_number", self.strmlns_sift_no, "-act",
+        job_tcksift = Job(TractsGenJobNames.TCKSIFT.value, node_label="Tracts SIFT")
+        job_tcksift.addArguments(file_strmlns, file_wm_fod, file_strmlns_sift, "-term_number", self.strmlns_sift_no, "-act",
                           file_5tt, "-nthreads", self.mrtrix_threads)
-        job7.uses(file_strmlns, link=Link.INPUT)
-        job7.uses(file_wm_fod, link=Link.INPUT)
-        job7.uses(file_5tt, link=Link.INPUT)
-        job7.uses(file_strmlns_sift, link=Link.OUTPUT, transfer=True, register=True)
-        dax.addJob(job7)
+        job_tcksift.uses(file_strmlns, link=Link.INPUT)
+        job_tcksift.uses(file_wm_fod, link=Link.INPUT)
+        job_tcksift.uses(file_5tt, link=Link.INPUT)
+        job_tcksift.uses(file_strmlns_sift, link=Link.OUTPUT, transfer=True, register=True)
+        dax.addJob(job_tcksift)
 
-        dax.depends(job7, job6)
-        dax.depends(job7, job1)
+        dax.depends(job_tcksift, job6)
+        dax.depends(job_tcksift, job1)
+
+        # TODO: find out if job8 is necessary for parcellation-wise (i.e., non voxel-wise) connectomes
 
         b0_nii_gz = File(DWIFiles.B0_NII_GZ.value)
         file_tdi_ends = File(TractsGenFiles.TDI_ENDS_MIF.value)
@@ -173,7 +172,7 @@ class TractsGeneration(object):
         job8.uses(file_tdi_ends, link=Link.OUTPUT, transfer=True, register=True)
         dax.addJob(job8)
 
-        dax.depends(job8, job7)
+        dax.depends(job8, job_tcksift)
 
         file_tdi_ends_nii_gz = File(TractsGenFiles.TDI_ENDS_NII_GZ.value)
         job_convert_tdi_ends = Job(DWIJobNames.MRCONVERT.value)
@@ -187,62 +186,4 @@ class TractsGeneration(object):
         self.qc_snapshots.add_2vols_snapshot_step(dax, [job_convert_tdi_ends],
                                                   t1_in_d, file_tdi_ends_nii_gz, "tdi_ends_in_t1_in_d")
 
-        #---------------------------------Connectomes generation per atlas----------------------------------------------
-
-        fs_customs = []
-        aparc_aseg_in_ds = []
-        file_vol_lbls = []
-        fs_color_luts = []
-        file_aparc_aseg_counts_csvs = []
-        file_aparc_aseg_mean_tract_lengths_csvs = []
-        jobs9 = []
-        jobs10 = []
-        jobs11 = []
-        for iatlas, atlas_suffix in enumerate(self.atlas_suffixes):
-
-            fs_customs.append(File(AsegFiles.FS_CUSTOM_TXT.value % atlas_suffix))
-            aparc_aseg_in_ds.append(File(CoregFiles.APARC_ASEG_IN_D.value % atlas_suffix))
-            file_vol_lbls.append(File(TractsGenFiles.VOLUME_LBL_NII_GZ.value % atlas_suffix))
-            fs_color_luts.append(File(Inputs.FS_LUT.value))
-            jobs9.append(Job(TractsGenJobNames.LABEL_CONVERT.value,
-                             node_label="Compute APARC%s+ASEG labeled for tracts" % atlas_suffix))
-            jobs9[-1].addArguments(aparc_aseg_in_ds[-1], fs_color_luts[-1], fs_customs[-1], file_vol_lbls[-1])
-            jobs9[-1].uses(aparc_aseg_in_ds[-1], link=Link.INPUT)
-            jobs9[-1].uses(fs_color_luts[-1], link=Link.INPUT)
-            jobs9[-1].uses(fs_customs[-1], link=Link.INPUT)
-            jobs9[-1].uses(file_vol_lbls[-1], link=Link.OUTPUT, transfer=True, register=True)
-            dax.addJob(jobs9[-1])
-
-            dax.depends(jobs9[-1], jobs_fs_custom[iatlas])
-            dax.depends(jobs9[-1], jobs_aparc_aseg_in_d[iatlas])
-
-            self.qc_snapshots.add_2vols_snapshot_step(dax, [jobs9[-1]], t1_in_d, file_vol_lbls[-1],
-                                                      "vol%s_lbl_in_t1_in_d" % atlas_suffix)
-
-            file_aparc_aseg_counts_csvs.append(File(TractsGenFiles.TRACT_COUNTS.value % atlas_suffix))
-            jobs10.append(Job(TractsGenJobNames.TCK2CONNECTOME.value, node_label="Generate weigths %s "% atlas_suffix))
-            jobs10[-1].addArguments(file_strmlns_sift, file_vol_lbls[-1], "-assignment_radial_search", "2",
-                               file_aparc_aseg_counts_csvs[-1])
-            jobs10[-1].uses(file_strmlns_sift, link=Link.INPUT)
-            jobs10[-1].uses(file_vol_lbls[-1], link=Link.INPUT)
-            jobs10[-1].uses(file_aparc_aseg_counts_csvs[-1], link=Link.OUTPUT, transfer=True, register=True)
-            dax.addJob(jobs10[-1])
-
-            dax.depends(jobs10[-1], job7)
-            dax.depends(jobs10[-1], jobs9[-1])
-
-            file_aparc_aseg_mean_tract_lengths_csvs.append(File(TractsGenFiles.TRACT_LENGHTS.value % atlas_suffix))
-            jobs11.append(Job(TractsGenJobNames.TCK2CONNECTOME.value,
-                                  node_label="Generate tract lengths %s" % atlas_suffix))
-            jobs11[-1].addArguments(file_strmlns_sift, file_vol_lbls[-1],
-                                    "-assignment_radial_search", "2", "-scale_length",
-                                    "-stat_edge", "mean", file_aparc_aseg_mean_tract_lengths_csvs[-1])
-            jobs11[-1].uses(file_strmlns_sift, link=Link.INPUT)
-            jobs11[-1].uses(file_vol_lbls[-1], link=Link.INPUT)
-            jobs11[-1].uses(file_aparc_aseg_mean_tract_lengths_csvs[-1], link=Link.OUTPUT, transfer=True, register=True)
-            dax.addJob(jobs11[-1])
-
-            dax.depends(jobs11[-1], job7)
-            dax.depends(jobs11[-1], jobs9[-1])
-
-        return jobs10, jobs11
+        return job_tcksift
