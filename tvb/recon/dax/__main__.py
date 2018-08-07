@@ -11,6 +11,7 @@ from tvb.recon.dax.mapping_details import MappingDetails
 from tvb.recon.dax.coregistration import Coregistration
 from tvb.recon.dax.dwi_processing import DWIProcessing
 from tvb.recon.dax.tracts_generation import TractsGeneration
+from tvb.recon.dax.connectome_generation import ConnectomeGeneration
 from tvb.recon.dax.head_model import HeadModel
 from tvb.recon.dax.sensor_model import SensorModel
 from tvb.recon.dax.source_model import SourceModel
@@ -86,9 +87,25 @@ if __name__ == "__main__":
     coregistration = Coregistration(subject, config.props[ConfigKey.USE_FLIRT], atlas_suffixes)
     job_t1_in_d, jobs_aparc_aseg_in_d = coregistration.add_coregistration_steps(dax, job_b0, job_t1, jobs_aparc_aseg)
 
-    # Deal with mapping details' job by looping through atlases
-    jobs_mapping_details = []
+    # Tractography
+    tracts_generation = TractsGeneration(config.props[ConfigKey.DWI_MULTI_SHELL],
+                                         config.props[ConfigKey.MRTRIX_THRDS],
+                                         config.props[ConfigKey.STRMLNS_NO],
+                                         config.props[ConfigKey.STRMLNS_SIFT_NO],
+                                         config.props[ConfigKey.STRMLNS_LEN],
+                                         config.props[ConfigKey.STRMLNS_STEP],
+                                         config.props[ConfigKey.OS])
+
+    job_tcksift = tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask)
+
+    # Deal with mapping details, connectome generation and output_conersion jobs by looping across atlases
     mapping_details = []
+    jobs_mapping_details = []
+    connectome_generation = []
+    jobs_weights = []
+    jobs_lengths = []
+    output_conversion = []
+    jobs_conn = []
     for iatlas, atlas_suffix in enumerate(atlas_suffixes):
         mapping_details.append(MappingDetails(trg_subject, atlas_suffix))
         if jobs_resamp_cort is not None:
@@ -99,23 +116,19 @@ if __name__ == "__main__":
                                     add_mapping_details_step(dax, job_t1, job_aseg_lh, job_aseg_rh,
                                                              jobs_resamp_cort_per_atlas))
 
-    # Tractography and connectome generation
-    tracts_generation = TractsGeneration(config.props[ConfigKey.DWI_MULTI_SHELL],
-                                         config.props[ConfigKey.MRTRIX_THRDS],
-                                         config.props[ConfigKey.STRMLNS_NO],
-                                         config.props[ConfigKey.STRMLNS_SIFT_NO],
-                                         config.props[ConfigKey.STRMLNS_LEN],
-                                         config.props[ConfigKey.STRMLNS_STEP],
-                                         atlas_suffixes, config.props[ConfigKey.OS])
+        connectome_generation.append(ConnectomeGeneration(config.props[ConfigKey.STRMLNS_SIFT_NO], atlas_suffix))
+        temp_jobs_weights, temp_jobs_lengths = \
+            connectome_generation[-1].add_tracts_generation_steps(dax, job_tcksift,
+                                                                  jobs_aparc_aseg_in_d[iatlas],
+                                                                  jobs_mapping_details[-1])
+        jobs_weights.append(temp_jobs_weights)
+        jobs_lengths.append(temp_jobs_lengths)
 
-    jobs_weights, jobs_lengths = \
-            tracts_generation.add_tracts_generation_steps(dax, job_t1_in_d, job_mask,
-                                                          jobs_aparc_aseg_in_d, jobs_mapping_details)
-
-    # Ouput connectivity conversion
-    output_conversion = OutputConversion(atlas_suffixes)
-    jobs_conn = output_conversion.add_conversion_steps(dax, jobs_aparc_aseg, jobs_mapping_details,
-                                                       jobs_weights, jobs_lengths)
+        # Ouput connectivity conversion
+        output_conversion.append(OutputConversion(atlas_suffix))
+        jobs_conn.append(output_conversion[-1].add_conversion_steps(dax, jobs_aparc_aseg[iatlas],
+                                                                    jobs_mapping_details[-1],
+                                                                    jobs_weights[-1], jobs_lengths[-1]))
 
     # Forward modeling:
     if config.props[ConfigKey.BEM_SURFACES] == "True" or config.props[ConfigKey.USE_OPENMEEG] == "True":
