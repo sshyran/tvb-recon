@@ -8,4 +8,4 @@ source ${FREESURFER_HOME}/FreeSurferEnv.sh
 export FIGS=$PWD
 export SNAPSHOT_NUMBER=$1
 
-python -m tvb.recon.qc.snapshot ${@:2}
+python -m tvb.recon.qc.snapshot --snapshot_name $2 ${@:3}

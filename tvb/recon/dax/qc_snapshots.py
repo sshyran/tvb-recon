@@ -15,13 +15,20 @@ class QCSnapshots(object):
             cls.__instance = QCSnapshots()
         return cls.__instance
 
-    def add_2vols_snapshot_step(self, dax, jobs_before, vol1, vol2):
-        snapshot_file_1 = File("snapshot_sagittal_%d.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_2 = File("snapshot_coronal_%d.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_3 = File("snapshot_axial_%d.png" % self.SNAPSHOT_NUMBER)
+    def construct_basename(self, name=""):
+        basename = "snapshot"
+        if len(name) > 0:
+            basename = basename + "_" + name
+        return basename
 
-        job = Job("qc_snapshot")
-        job.addArguments(str(self.SNAPSHOT_NUMBER), "2vols", vol1, vol2)
+    def add_2vols_snapshot_step(self, dax, jobs_before, vol1, vol2, name=""):
+        basename = self.construct_basename(name)
+        snapshot_file_1 = File(basename + "_sagittal_%d.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_2 = File(basename + "_coronal_%d.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_3 = File(basename + "_axial_%d.png" % self.SNAPSHOT_NUMBER)
+
+        job = Job("qc_snapshot", node_label=basename)
+        job.addArguments(str(self.SNAPSHOT_NUMBER), basename, "2vols", vol1, vol2)
         job.uses(vol1, link=Link.INPUT)
         job.uses(vol2, link=Link.INPUT)
 
@@ -35,13 +42,14 @@ class QCSnapshots(object):
 
         self.SNAPSHOT_NUMBER += 1
 
-    def add_3vols_snapshot_step(self, dax, jobs_before, vol1, vol2, vol3):
-        snapshot_file_1 = File("snapshot_sagittal_%d.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_2 = File("snapshot_coronal_%d.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_3 = File("snapshot_axial_%d.png" % self.SNAPSHOT_NUMBER)
+    def add_3vols_snapshot_step(self, dax, jobs_before, vol1, vol2, vol3, name=""):
+        basename = self.construct_basename(name)
+        snapshot_file_1 = File(basename + "_sagittal_%d.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_2 = File(basename + "_coronal_%d.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_3 = File(basename + "_axial_%d.png" % self.SNAPSHOT_NUMBER)
 
-        job = Job("qc_snapshot")
-        job.addArguments(str(self.SNAPSHOT_NUMBER), "3vols", vol1, vol2, vol3)
+        job = Job("qc_snapshot", node_label=basename)
+        job.addArguments(str(self.SNAPSHOT_NUMBER), basename, "3vols", vol1, vol2, vol3)
         job.uses(vol1, link=Link.INPUT)
         job.uses(vol2, link=Link.INPUT)
         job.uses(vol3, link=Link.INPUT)
@@ -56,13 +64,14 @@ class QCSnapshots(object):
 
         self.SNAPSHOT_NUMBER += 1
 
-    def add_vol_surf_snapshot_step(self, dax, jobs_before, vol, surfs):
-        snapshot_file_1 = File("snapshot_sagittal_%d.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_2 = File("snapshot_coronal_%d.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_3 = File("snapshot_axial_%d.png" % self.SNAPSHOT_NUMBER)
+    def add_vol_surf_snapshot_step(self, dax, jobs_before, vol, surfs, name=""):
+        basename = self.construct_basename(name)
+        snapshot_file_1 = File(basename + "_sagittal_%d.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_2 = File(basename + "_coronal_%d.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_3 = File(basename + "_axial_%d.png" % self.SNAPSHOT_NUMBER)
 
-        job = Job("qc_snapshot")
-        job.addArguments(str(self.SNAPSHOT_NUMBER), "vol_surf", vol)
+        job = Job("qc_snapshot", node_label=basename)
+        job.addArguments(str(self.SNAPSHOT_NUMBER), basename, "vol_surf", vol)
         for surf in surfs:
             job.addArguments(surf)
         job.uses(vol, link=Link.INPUT)
@@ -78,16 +87,17 @@ class QCSnapshots(object):
 
         self.SNAPSHOT_NUMBER += 1
 
-    def add_surf_annot_snapshot_step(self, dax, jobs_before, surf, annot):
-        snapshot_file_1 = File("snapshot_surface_annotation_%d0.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_2 = File("snapshot_surface_annotation_%d1.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_3 = File("snapshot_surface_annotation_%d2.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_4 = File("snapshot_surface_annotation_%d3.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_5 = File("snapshot_surface_annotation_%d4.png" % self.SNAPSHOT_NUMBER)
-        snapshot_file_6 = File("snapshot_surface_annotation_%d5.png" % self.SNAPSHOT_NUMBER)
+    def add_surf_annot_snapshot_step(self, dax, jobs_before, surf, annot, name=""):
+        basename = self.construct_basename(name)
+        snapshot_file_1 = File(basename + "_surface_annotation_%d0.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_2 = File(basename + "_surface_annotation_%d1.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_3 = File(basename + "_surface_annotation_%d2.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_4 = File(basename + "_surface_annotation_%d3.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_5 = File(basename + "_surface_annotation_%d4.png" % self.SNAPSHOT_NUMBER)
+        snapshot_file_6 = File(basename + "_surface_annotation_%d5.png" % self.SNAPSHOT_NUMBER)
 
-        job = Job("qc_snapshot")
-        job.addArguments(str(self.SNAPSHOT_NUMBER), "surf_annot", surf, annot)
+        job = Job("qc_snapshot", node_label=basename)
+        job.addArguments(str(self.SNAPSHOT_NUMBER), basename, "surf_annot", surf, annot)
         job.uses(surf, link=Link.INPUT)
         job.uses(annot, link=Link.INPUT)
 
