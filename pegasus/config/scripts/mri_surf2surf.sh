@@ -21,10 +21,16 @@ then
     fi
 else
     cd ${SUBJECTS_DIR}/${TRGSUBJECT}/label
+    if [ $1 == "default" ]
+    then
+        atlas_suffix=""
+    else
+        atlas_suffix=$1
+    fi
     if [ $7 == "lh" ]
     then
-        cp lh.aparc-${TRGSUBJECT}$1.annot $f
+        cp lh.aparc-${TRGSUBJECT}${atlas_suffix}.annot $f
     else
-        cp rh.aparc-${TRGSUBJECT}$1.annot $f
+        cp rh.aparc-${TRGSUBJECT}${atlas_suffix}.annot $f
     fi
 fi

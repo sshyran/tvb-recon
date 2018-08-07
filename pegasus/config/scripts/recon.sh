@@ -39,14 +39,16 @@ else
     recon-all -all -parallel -openmp $3 -s $1 -i $2
 fi
 
+# Read atlases' suffixes separated by "_" into array atlas_suffixes:
+IFS='_' read -r -a atlas_suffixes <<< $4
+
 cd ${SUBJECTS_DIR}/$1/mri
-echo Copying T1.mgz, norm.mgz and brain.mgz
+echo Copying T1.mgz, norm.mgz, brain.mgz and aseg.mgz
 cp T1.mgz $f
 cp norm.mgz $f
 cp brain.mgz $f
-echo Copying aparc+aseg.mgz
-cp aparc+aseg.mgz $f
-for atlas_suffix in $4
+cp aseg.mgz $f
+for atlas_suffix in "${atlas_suffixes[@]}"
 do
     echo Copying aparc${atlas_suffix}+aseg.mgz
     cp aparc${atlas_suffix}+aseg.mgz $f
@@ -60,10 +62,7 @@ cp lh.white $f
 cp rh.white $f
 
 cd ../label
-echo Copying l/rh.aparc.annot
-cp lh.aparc.annot $f
-cp rh.aparc.annot $f
-for atlas_suffix in $4
+for atlas_suffix in "${atlas_suffixes[@]}"
 do
     echo Copying l/rh.aparc${atlas_suffix}.annot
     cp lh.aparc${atlas_suffix}.annot $f
