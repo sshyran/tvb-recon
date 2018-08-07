@@ -27,6 +27,7 @@ class T1Files(Enum):
     APARC_ASEG_NII_GZ = "aparc%s+aseg.nii.gz"
     NORM_MGZ = "norm.mgz"
     BRAIN_MGZ = "brain.mgz"
+    ASEG_MGZ = "aseg.mgz"
     LH_PIAL = "lh.pial"
     RH_PIAL = "rh.pial"
     LH_WHITE = "lh.white"
