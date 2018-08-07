@@ -125,7 +125,7 @@ class DWIProcessing(object):
             last_job = job2
 
         mask_output = File(DWIFiles.MASK_MIF.value)
-        job3 = Job(DWIJobNames.DWI2MASK.value, node_label="Create DWI mask")
+        job3 = Job(DWIJobNames.DWI2MASK.value, node_label="Compute DWI mask")
         job3.addArguments(dwi_pre_output, mask_output, "-nthreads", self.mrtrix_threads)
         job3.uses(dwi_pre_output, link=Link.INPUT)
         job3.uses(mask_output, link=Link.OUTPUT, transfer=True, register=True)

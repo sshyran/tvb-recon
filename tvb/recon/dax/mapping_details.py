@@ -45,8 +45,14 @@ class MappingDetails(object):
         lh_dipoles = File(AsegFiles.LH_DIPOLES_TXT.value % self.atlas_suffix)
         rh_dipoles = File(AsegFiles.RH_DIPOLES_TXT.value % self.atlas_suffix)
 
+        if len(self.atlas_suffix) == 0:
+            atlas_name = "default"
+        else:
+            atlas_name = self.atlas_suffix[1:]
+
         # Job config:
-        job9 = Job(AsegGenJobNames.GEN_MAPPING_DETAILS.value)
+        job9 = Job(AsegGenJobNames.GEN_MAPPING_DETAILS.value,
+                   node_label="generate mapping details for atlas %s" % atlas_name)
         job9.addArguments(self.atlas_suffix, fs_lut, t1_file, lh_cortical_file, rh_cortical_file,
                           lh_cortical_annot_file, rh_cortical_annot_file, lh_subcort, rh_subcort, lh_aseg_annot,
                           rh_aseg_annot)
