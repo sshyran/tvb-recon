@@ -7,6 +7,7 @@ import shutil
 import sys
 from enum import Enum
 from string import Template
+from tvb.recon.dax import Atlas, AtlasSuffix
 
 PATH_TO_INPUT_SUBJ_FOLDERS = "/home/submitter/data"
 PATH_TO_SUBJ_CONFIG_FOLDERS = "/home/submitter/data"
@@ -38,6 +39,10 @@ class configs(Enum):
 
 
 def create_config_files_for_subj(current_subject, current_atlas):
+
+    atlas_suffix = AtlasSuffix.DEFAULT
+    if current_atlas == Atlas.A2009S:
+        atlas_suffix = AtlasSuffix.A2009S
 
     default_pegasus_props_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.PEGASUS_PROPS.value)
     with open(default_pegasus_props_path) as default_pegasus_props_file:
@@ -82,7 +87,7 @@ def create_config_files_for_subj(current_subject, current_atlas):
     with open(default_rc_out_path) as default_rc_out_file:
         template = Template(default_rc_out_file.read())
         rc_out_config = template.substitute(path=os.path.join(PATH_TO_OUTPUT_SUBJ_FOLDER, current_subject, "output"),
-                                            atlas=current_atlas)
+                                            atlas=current_atlas, atlas_suffix=atlas_suffix)
         subj_rc_out_path = os.path.join(current_dir, configs.RC_OUT.value)
         with open(subj_rc_out_path, "w+") as subj_rc_out_file:
             subj_rc_out_file.write(rc_out_config)
@@ -115,6 +120,20 @@ def prepare_config_for_new_atlas(current_dir, current_atlas):
     os.remove(current_patient_props_path)
     with open(current_patient_props_path, "w") as new_patient_props_file:
         new_patient_props_file.writelines(text)
+
+    atlas_suffix = AtlasSuffix.DEFAULT
+    if current_atlas == Atlas.A2009S:
+        atlas_suffix = AtlasSuffix.A2009S
+
+    default_rc_out_path = os.path.join(PATH_TO_DEFAULT_PEGASUS_CONFIGURATION, configs.RC_OUT.value)
+    with open(default_rc_out_path) as default_rc_out_file:
+        template = Template(default_rc_out_file.read())
+        rc_out_config = template.substitute(path=os.path.join(PATH_TO_OUTPUT_SUBJ_FOLDER, current_subject, "output"),
+                                            atlas=current_atlas, atlas_suffix=atlas_suffix)
+        subj_rc_out_path = os.path.join(current_dir, configs.RC_OUT.value)
+        os.remove(subj_rc_out_path)
+        with open(subj_rc_out_path, "w+") as subj_rc_out_file:
+            subj_rc_out_file.write(rc_out_config)
 
 
 def get_currently_running_job_ids():
@@ -179,7 +198,7 @@ if __name__ == "__main__":
 
             existent_job_ids = get_currently_running_job_ids()
 
-            print("Starting pegasus run for subject: " + current_subject + "with atlas: " + atlas)
+            print("Starting pegasus run for subject: " + current_subject + " with atlas: " + atlas)
             current_dax_dir = os.path.join(current_dir, "dax")
             p = subprocess.call(["sh", "main_pegasus.sh", current_dir, current_dax_dir])
 
