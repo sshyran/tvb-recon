@@ -293,6 +293,6 @@ class MriElecSEEGCompFiles(Enum):
     COORDS_POM_XYZ_TXT = "coords_pom_xyz.txt"
     COORDS_XYZ_TXT = "coords_xyz.txt"
     SEEG_POM_XYZ_IN_MRIELEC_XYZ = "seeg_pom_xyz_in_mrielec.xyz"
-    POM_VOL_IN_MRIELEC_NII_GZ = "seeg_pom_in_mrielec_vol.nii.gz"
+    SEEG_POM_VOL_IN_MRIELEC_NII_GZ = "seeg_pom_in_mrielec_vol.nii.gz"
     COORDS_POM_XYZ_IN_MRIELEC_XYZ = "coords_pom_xyz_in_mrielec.xyz"
     COORDS_POM_VOL_IN_MRIELEC_NII_GZ = "coords_pom_in_mrielec_vol.nii.gz"
