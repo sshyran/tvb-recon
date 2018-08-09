@@ -39,7 +39,7 @@ class Coregistration(object):
         dax.depends(job2, job1)
 
         t1_in_d_nii_gz = File(CoregFiles.T1_IN_D.value)
-        job3 = Job(CoregJobNames.FLIRT_REVERSED.value, node_label="Register T1 to DWI")
+        job3 = Job(CoregJobNames.FLIRT_APPLYXFM.value, node_label="Register T1 to DWI")
         job3.addArguments(t1_nii_gz, b0_nii_gz, t1_in_d_nii_gz, t2d_mat)
         job3.uses(t1_nii_gz, link=Link.INPUT)
         job3.uses(b0_nii_gz, link=Link.INPUT)
@@ -57,7 +57,7 @@ class Coregistration(object):
         for atlas_suffix, job_aparc_aseg in zip(self.atlas_suffixes, jobs_aparc_aseg):
             aparc_aseg_nii_gz.append(File(T1Files.APARC_ASEG_NII_GZ.value % atlas_suffix))
             aparc_aseg_in_d_nii_gz.append(File(CoregFiles.APARC_ASEG_IN_D.value % atlas_suffix))
-            jobs4.append(Job(CoregJobNames.FLIRT_REVERSED.value,
+            jobs4.append(Job(CoregJobNames.FLIRT_APPLYXFM.value,
                             node_label="Register APARC%s+ASEG to DWI" % atlas_suffix))
             jobs4[-1].addArguments(aparc_aseg_nii_gz[-1], b0_nii_gz, aparc_aseg_in_d_nii_gz[-1], t2d_mat)
             jobs4[-1].uses(aparc_aseg_nii_gz[-1], link=Link.INPUT)
