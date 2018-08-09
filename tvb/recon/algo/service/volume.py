@@ -20,6 +20,10 @@ class VolumeService(object):
     def __init__(self):
         self.annotation_service = AnnotationService()
 
+    def compute_vxl_stats(self, input_volume_file: os.PathLike, stats="max") -> float:
+        vol_nii = nibabel.load(input_volume_file)
+        return getattr(numpy, stats)(vol_nii.get_data())
+
     def gen_label_volume_from_labels_inds(self, values: Union[numpy.ndarray, list],
                                           input_label_volume_file: os.PathLike, output_label_volume_file: os.PathLike) \
             -> nibabel.nifti1.Nifti1Image:
