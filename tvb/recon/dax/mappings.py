@@ -3,8 +3,8 @@ from enum import Enum
 
 class Inputs(Enum):
     T1_INPUT = "t1_input.nii.gz"
-    DWI_INPUT = "dwi_input.mif"
-    DWI_INPUT_NO_GRAD = "dwi_input_no_grad.nii"
+    DWI_INPUT = "dwi_input.nii.gz"
+    DWI_RE_INPUT = "dwi_re_input.nii.gz"
     DWI_BVEC = "dwi.bvec"
     DWI_BVAL = "dwi.bval"
     FS_LUT = "fs_color_lut.txt"
@@ -48,12 +48,11 @@ class T1JobNames(Enum):
 
 class DWIFiles(Enum):
     DWI_RAW_MIF = "dwi_raw.mif"
+    DWI_RE_RAW_MIF = "dwi_re_raw.mif"
     DWI_MIF = "dwi.mif"
     MASK_MIF = "mask.mif"
     B0_NII_GZ = "b0.nii.gz"
     MASK_NII_GZ = "mask.nii.gz"
-    DWI_RE_MIF = "dwi_re.mif"
-    DWI_RE_NII_GZ = "dwi_re.nii.gz"
 
 
 class DWIJobNames(Enum):

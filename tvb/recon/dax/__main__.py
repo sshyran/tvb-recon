@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     # DWI processing
     dwi_processing = DWIProcessing(config.props[ConfigKey.DWI_IS_REVERSED], config.props[ConfigKey.DWI_FRMT],
-                                   config.props[ConfigKey.DWI_USE_GRADIENT], config.props[ConfigKey.MRTRIX_THRDS],
+                                   config.props[ConfigKey.DWI_ADD_GRADIENT], config.props[ConfigKey.MRTRIX_THRDS],
                                    config.props[ConfigKey.DWI_SCAN_DIRECTION], config.props[ConfigKey.OS])
     job_b0, job_mask = dwi_processing.add_dwi_processing_steps(dax)
 

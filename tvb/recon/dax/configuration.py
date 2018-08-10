@@ -19,7 +19,7 @@ class ConfigKey(Enum):
     ATLAS = "parcelation.atlas"
     DWI_IS_REVERSED = "dwi.is.reversed"
     DWI_FRMT = "dwi.format"
-    DWI_USE_GRADIENT = "dwi.use.gradient"
+    DWI_ADD_GRADIENT = "dwi.add.gradient"
     DWI_MULTI_SHELL = "dwi.multi.shell"
     MRTRIX_THRDS = "mrtrix.threads"
     DWI_SCAN_DIRECTION = "dwi.scan.direction"
