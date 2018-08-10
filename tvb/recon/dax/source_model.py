@@ -53,7 +53,8 @@ class SourceModel(object):
         jobs3 = []
         jobs4 = [[], []]
         for ih, hemi in enumerate(["lh", "rh"]):
-            jobs1.append(Job(ResamplingJobNames.MRI_SURF2SURF.value))
+            jobs1.append(Job(ResamplingJobNames.MRI_SURF2SURF.value,
+                             node_label="mri_surf2surf resample %s.white" % hemi))
             jobs1[-1].addArguments("--srcsubject", self.subject, "--trgsubject", self.trg_subject, "--hemi", hemi,
                               "--sval-xyz", "white", "--tval", "white-%s" % self.trg_subject, "--tval-xyz", t1_mgz)
             jobs1[-1].uses(t1_mgz, link=Link.INPUT)
@@ -63,7 +64,8 @@ class SourceModel(object):
 
             dax.depends(jobs1[-1], job_head_model)
 
-            jobs2.append(Job(HeadModelJobNames.CONVERT_TO_BRAIN_VISA.value))
+            jobs2.append(Job(HeadModelJobNames.CONVERT_TO_BRAIN_VISA.value,
+                             node_label="%s resampled white surface conversion to brain visa" % hemi))
             jobs2[-1].addArguments(whites_resamp[ih], whites_resamp_tri[ih], self.subject)
             jobs2[-1].uses(whites_resamp[ih], link=Link.INPUT)
             jobs2[-1].uses(whites_resamp_tri[ih], link=Link.OUTPUT, transfer=True, register=True)
@@ -71,7 +73,8 @@ class SourceModel(object):
 
             dax.depends(jobs2[-1], jobs1[-1])
 
-            jobs3.append(Job(HeadModelJobNames.OM_ASSEMBLE.value))
+            jobs3.append(Job(HeadModelJobNames.OM_ASSEMBLE.value,
+                             node_label="om_assemble %s surface source model" % hemi))
             jobs3[-1].addArguments("-SurfSourceMat", head_model_geom, head_model_cond, whites_resamp_tri[ih],
                               whites_resamp_ssm[ih])
             for surf in bem_tri_surfs:
@@ -85,7 +88,14 @@ class SourceModel(object):
             dax.depends(jobs3[-1], jobs2[-1])
 
             for iatlas, atlas_suffix in enumerate(self.atlas_suffixes):
-                jobs4[ih].append(Job(HeadModelJobNames.OM_ASSEMBLE.value))
+
+                if len(atlas_suffix) == 0:
+                    atlas_name = "default"
+                else:
+                    atlas_name = atlas_suffix[1:]
+
+                jobs4[ih].append(Job(HeadModelJobNames.OM_ASSEMBLE.value,
+                                     node_label="om_assemble %s deep source model for atlas %s" % (hemi, atlas_name)))
                 jobs4[ih][-1].addArguments("-DipSourceMat", head_model_geom, head_model_cond,
                                            dipoles_files[ih][iatlas], whites_resamp_dsm[ih][iatlas])
                 for surf in bem_tri_surfs:

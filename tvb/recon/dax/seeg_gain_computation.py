@@ -6,6 +6,10 @@ class SeegGainComputation(object):
     def __init__(self, subject, atlas_suffix):
         self.subject = subject
         self.atlas_suffix = atlas_suffix
+        if len(self.atlas_suffix) == 0:
+            self.atlas_name = "default"
+        else:
+            self.atlas_name = self.atlas_suffix[1:]
 
     def add_seeg_gain_dp_computation_steps(self, dax, job_seeg_xyz, job_mapping_details):
         seeg_xyz = File(SEEGCompFiles.SEEG_XYZ.value)
@@ -13,7 +17,8 @@ class SeegGainComputation(object):
 
         gain_mat = File(SeegGainFiles.SEEG_GAIN_DP_MAT.value % self.atlas_suffix)
 
-        job = Job(ProjectionCompJobNames.COMPUTE_PROJ_MAT.value)
+        job = Job(ProjectionCompJobNames.COMPUTE_PROJ_MAT.value,
+                  node_label="Compute -euclidean distance- seeg gain matrix for atlas %s" % self.atlas_name)
         job.addArguments(seeg_xyz, centers_txt, gain_mat, self.subject)
         job.uses(seeg_xyz, link=Link.INPUT)
         job.uses(centers_txt, link=Link.INPUT)
@@ -32,7 +37,8 @@ class SeegGainComputation(object):
 
         gain_mat = File(SeegGainFiles.SEEG_GAIN_MRS_MAT.value % self.atlas_suffix)
 
-        job = Job(SeegGainJobNames.COMPUTE_SEEG_GAIN.value)
+        job = Job(SeegGainJobNames.COMPUTE_SEEG_GAIN.value,
+                  node_label="Compute seeg gain matrix for atlas %s" % self.atlas_name)
         job.addArguments(seeg_xyz, cort_surf, subcort_surf, cort_rm, subcort_rm, gain_mat, self.subject)
         job.uses(seeg_xyz, link=Link.INPUT)
         job.uses(cort_surf, link=Link.INPUT)

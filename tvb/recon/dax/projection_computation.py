@@ -9,10 +9,15 @@ class ProjectionComputation(object):
         self.atlas_suffix = atlas_suffix
 
     def add_projection_computation_steps(self, dax, job_mapping_details):
+        if len(self.atlas_suffix) == 0:
+            atlas_name = "default"
+        else:
+            atlas_name = self.atlas_suffix[1:]
         projection_mat = File(ProjectionCompFiles.PROJECTION_MAT.value % (self.sensors_type, self.atlas_suffix))
         sensor_positions = File(ProjectionCompFiles.SENS_POSITIONS.value % self.sensors_type)
         centers_txt = File(AsegFiles.CENTERS_TXT.value % self.atlas_suffix)
-        job = Job(ProjectionCompJobNames.COMPUTE_PROJ_MAT.value)
+        job = Job(ProjectionCompJobNames.COMPUTE_PROJ_MAT.value,
+                  node_label="%s projection for atlas %s" % (self.sensors_type, atlas_name))
         job.addArguments(sensor_positions, centers_txt, projection_mat, self.subject)
         job.uses(sensor_positions, link=Link.INPUT)
         job.uses(centers_txt, link=Link.INPUT)

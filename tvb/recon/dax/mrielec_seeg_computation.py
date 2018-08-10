@@ -31,7 +31,7 @@ class MriElecSEEGComputation(object):
         t1_nii_gz = File(T1Files.T1_NII_GZ.value)
         mrielec_to_t1_mat = File(MriElecSEEGCompFiles.MRIELEC_TO_T1_MAT.value)
         mrielec_in_t1_nii_gz = File(MriElecSEEGCompFiles.MRIELEC_IN_T1_VOL.value)
-        job1 = Job(CoregJobNames.FLIRT.value, node_label="Register MRIelectrode to T1")
+        job1 = Job(CoregJobNames.FLIRT.value, node_label="flirt register MRIelectrode to T1")
         job1.addArguments(mrielec_vol, t1_nii_gz, mrielec_to_t1_mat, mrielec_in_t1_nii_gz)
         job1.uses(mrielec_vol, Link.INPUT)
         job1.uses(t1_nii_gz, Link.INPUT)
@@ -94,7 +94,7 @@ class MriElecSEEGComputation(object):
 
             # Binarize the seeg pom volume (it originally has values increasing from 1 to the number of seeg contacts)
             seeg_pom_bin_vol = File(MriElecSEEGCompFiles.SEEG_POM_BIN_VOL.value)
-            job3 = Job(SEEGCompJobNames.MRI_BINARIZE.value, node_label="Binarize seeg pom volume")
+            job3 = Job(SEEGCompJobNames.MRI_BINARIZE.value, node_label="mri_binarize seeg pom volume")
 
             arguments_list = ["--i", seeg_pom_vol, "--o", seeg_pom_bin_vol, "--min", "1"] + arguments_dilate_erode
             job3.addArguments(*tuple(arguments_list))
@@ -108,7 +108,7 @@ class MriElecSEEGComputation(object):
 
             # For the threshold value to work, the MRIelectrode binarization has to happen on the original volume...
 
-            job4 = Job(SEEGCompJobNames.MRI_BINARIZE.value, node_label="Binarize MRIelectrode")
+            job4 = Job(SEEGCompJobNames.MRI_BINARIZE.value, node_label="mri_binarize MRIelectrode")
 
             arguments_list = ["--i", mrielec_vol, "--o", mrielec_bin_vol, "--min", "max"] + arguments_dilate_erode
             job4.addArguments(*tuple(arguments_list))
@@ -122,7 +122,7 @@ class MriElecSEEGComputation(object):
             # ...and only then register the binarized volume to t1 space
             mrielec_bin_in_t1_nii_gz = File(MriElecSEEGCompFiles.MRIELEC_BIN_IN_T1_VOL.value)
 
-            job5 = Job(CoregJobNames.FLIRT_APPLYXFM.value, node_label="Register binarized MRIelectrode to t1")
+            job5 = Job(CoregJobNames.FLIRT_APPLYXFM.value, node_label="flirt transform binarized MRIelectrode to t1")
             job5.addArguments(mrielec_bin_vol, t1_nii_gz, mrielec_bin_in_t1_nii_gz, mrielec_to_t1_mat)
             job5.uses(mrielec_bin_vol, link=Link.INPUT)
             job5.uses(t1_nii_gz, link=Link.INPUT)
@@ -140,7 +140,8 @@ class MriElecSEEGComputation(object):
             seeg_pom_to_t1 = File(MriElecSEEGCompFiles.SEEG_POM_TO_T1_MAT.value)
             seeg_pom_bin_in_t1_nii_gz = File(MriElecSEEGCompFiles.SEEG_POM_BIN_IN_T1_VOL.value)
 
-            job_coreg = Job(CoregJobNames.FLIRT.value, node_label="Register seeg pom to binarized MRIelectrode_in_t1")
+            job_coreg = Job(CoregJobNames.FLIRT.value,
+                            node_label="flirt register seeg pom to binarized MRIelectrode_in_t1")
             job_coreg.addArguments(seeg_pom_bin_vol, mrielec_bin_in_t1_nii_gz,
                                    seeg_pom_to_t1, seeg_pom_bin_in_t1_nii_gz, "corratio")
             job_coreg.uses(seeg_pom_bin_vol, Link.INPUT)

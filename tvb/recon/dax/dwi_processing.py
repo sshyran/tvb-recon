@@ -23,7 +23,7 @@ class DWIProcessing(object):
             bvec_input = File(Inputs.DWI_BVEC.value)
             bval_input = File(Inputs.DWI_BVAL.value)
 
-            job_gradient = Job(DWIJobNames.MRCONVERT.value)
+            job_gradient = Job(DWIJobNames.MRCONVERT.value, node_label="Extract DWI gradient bvec & bval")
             job_gradient.addArguments(dwi_input_no_gradient, "-fsl", bvec_input, bval_input, dwi_input)
             job_gradient.uses(dwi_input_no_gradient, link=Link.INPUT)
             job_gradient.uses(bvec_input, link=Link.INPUT)
@@ -48,7 +48,7 @@ class DWIProcessing(object):
                     "Not implemented!"
                 else:
                     dwi_conv_output = File(DWIFiles.DWI_RAW_MIF.value)
-                    job1 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI to MIF")
+                    job1 = Job(DWIJobNames.MRCONVERT.value, node_label="mrconvert DWI nii->mif")
                     job1.addArguments(dwi_input, dwi_conv_output)
                     job1.uses(dwi_input, link=Link.INPUT)
                     job1.uses(dwi_conv_output, link=Link.OUTPUT, transfer=False, register=False)
@@ -58,7 +58,7 @@ class DWIProcessing(object):
 
                     dwi_re_input = File(DWIFiles.DWI_RE_NII_GZ.value)
                     dwi_re = File(DWIFiles.DWI_RE_MIF.value)
-                    job2 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI_RE to MIF")
+                    job2 = Job(DWIJobNames.MRCONVERT.value, node_label="mrconvert DWI_RE nii->mif")
                     job2.addArguments(dwi_re_input, dwi_re)
                     job2.uses(dwi_re_input, link=Link.INPUT)
                     job2.uses(dwi_re, link=Link.OUTPUT, transfer=True, register=False)
@@ -92,7 +92,7 @@ class DWIProcessing(object):
 
             if self.dwi_format != "mif" and self.use_gradient != "True":
                 dwi_conv_output = File(DWIFiles.DWI_RAW_MIF.value)
-                job1 = Job(DWIJobNames.MRCONVERT.value, node_label="Convert DWI to MIF")
+                job1 = Job(DWIJobNames.MRCONVERT.value, node_label="mrconvert DWI nii->mif")
                 job1.addArguments(dwi_input, dwi_conv_output)
                 job1.uses(dwi_input, link=Link.INPUT)
                 job1.uses(dwi_conv_output, link=Link.OUTPUT, transfer=False, register=False)
@@ -143,7 +143,7 @@ class DWIProcessing(object):
         dax.depends(job4, last_job)
 
         file_mask_nii_gz = File(DWIFiles.MASK_NII_GZ.value)
-        job_convert_mask = Job(DWIJobNames.MRCONVERT.value)
+        job_convert_mask = Job(DWIJobNames.MRCONVERT.value, node_label="mrconvert mask mif->nii.gz")
         job_convert_mask.addArguments(mask_output, file_mask_nii_gz)
         job_convert_mask.uses(mask_output, link=Link.INPUT)
         job_convert_mask.uses(file_mask_nii_gz, link=Link.OUTPUT, transfer=True, register=True)

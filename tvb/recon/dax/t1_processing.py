@@ -26,7 +26,7 @@ class T1Processing(object):
 
         if file_format == "dicom":
             output_file = File(output_name)
-            job = Job(T1JobNames.MRI_CONVERT.value)
+            job = Job(T1JobNames.MRI_CONVERT.value, node_label="mri_convert t1 dicom->nii.gz")
             job.addArguments("-it", "dicom", input_file, output_file)
             job.uses(input_file, link=Link.INPUT)
             job.uses(output_file, link=Link.OUTPUT, transfer=False, register=False)
@@ -90,7 +90,7 @@ class T1Processing(object):
             t2_converted = T1Files.T2_CONVERTED.value
             t2_input, job_convert = self._ensure_input_format(self.t2_format, t2_in, t2_converted, dax)
 
-            job = Job(T1JobNames.AUTORECON3_T2.value)
+            job = Job(T1JobNames.AUTORECON3_T2.value, node_label="autorecon3 for T2")
             job.addArguments(self.subject, t2_input, self.openmp_threads)
             job.uses(t2_input, link=Link.INPUT)
 
@@ -109,7 +109,7 @@ class T1Processing(object):
             flair_converted = T1Files.FLAIR_CONVERTED.value
             flair_input, job_convert = self._ensure_input_format(self.flair_format, flair_in, flair_converted, dax)
 
-            job = Job(T1JobNames.AUTORECON3_FLAIR.value)
+            job = Job(T1JobNames.AUTORECON3_FLAIR.value, node_label="autorecon3 for flair")
             job.addArguments(self.subject, flair_input, self.openmp_threads)
             job.uses(flair_input, link=Link.INPUT)
 
@@ -124,7 +124,7 @@ class T1Processing(object):
             last_job = job
 
         t1_nii_gz_vol = File(T1Files.T1_NII_GZ.value)
-        job3 = Job(T1JobNames.MRI_CONVERT.value, node_label="Convert T1 to NIFTI with good orientation")
+        job3 = Job(T1JobNames.MRI_CONVERT.value, node_label="Convert T1 to NIFTI in RAS")
         job3.addArguments(t1_mgz_output, t1_nii_gz_vol, "--out_orientation", "RAS")
         job3.uses(t1_mgz_output, link=Link.INPUT)
         job3.uses(t1_nii_gz_vol, link=Link.OUTPUT, transfer=True, register=True)
@@ -141,7 +141,7 @@ class T1Processing(object):
             else:
                 atlas_name = atlas_suffix[1:]
             jobs4.append(Job(T1JobNames.MRI_CONVERT.value,
-                             node_label="Convert APARC+ASEG to NIFTI with good orientation for %s atlas " % atlas_name))
+                             node_label="Convert APARC+ASEG to NIFTI in RAS for %s atlas " % atlas_name))
             jobs4[-1].addArguments(aparc_aseg_mgz_vol, aparc_aseg_nii_gz_vol[-1],
                                   "--out_orientation", "RAS", "-rt", "nearest")
             jobs4[-1].uses(aparc_aseg_mgz_vol, link=Link.INPUT)
@@ -152,7 +152,7 @@ class T1Processing(object):
 
         if resamp_flag != "True":
             lh_centered_pial = File(T1Files.LH_CENTERED_PIAL.value)
-            job5 = Job(T1JobNames.MRIS_CONVERT.value)
+            job5 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert to center lh.pial")
             job5.addArguments("--to-scanner", lh_pial, lh_centered_pial)
             job5.uses(lh_pial, link=Link.INPUT)
             job5.uses(lh_centered_pial, link=Link.OUTPUT, transfer=False, register=False)
@@ -161,7 +161,7 @@ class T1Processing(object):
             dax.depends(job5, last_job)
 
             rh_centered_pial = File(T1Files.RH_CENTERED_PIAL.value)
-            job6 = Job(T1JobNames.MRIS_CONVERT.value)
+            job6 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert to center rh.pial")
             job6.addArguments("--to-scanner", rh_pial, rh_centered_pial)
             job6.uses(rh_pial, link=Link.INPUT)
             job6.uses(rh_centered_pial, link=Link.OUTPUT, transfer=False, register=False)

@@ -40,7 +40,7 @@ class TractsGeneration(object):
         dax.depends(job2, job1)
 
         file_gmwmi_nii_gz = File(TractsGenFiles.GMWMI_NII_GZ.value)
-        job_gmwmi_convert = Job(DWIJobNames.MRCONVERT.value)
+        job_gmwmi_convert = Job(DWIJobNames.MRCONVERT.value, node_label="mrconvert gmwmi mif->nii")
         job_gmwmi_convert.addArguments(file_gmwmi, file_gmwmi_nii_gz)
         job_gmwmi_convert.uses(file_gmwmi, link=Link.INPUT)
         job_gmwmi_convert.uses(file_gmwmi_nii_gz, link=Link.OUTPUT, transfer=False, register=False)
@@ -68,7 +68,7 @@ class TractsGeneration(object):
             file_RF_GM = File(TractsGenFiles.RF_GM.value)
             file_RF_CSF = File(TractsGenFiles.RF_CSF.value)
             file_RF_voxels = File(TractsGenFiles.RF_VOXELS.value)
-            job4 = Job(TractsGenJobNames.DWI2RESPONSE_MSMT.value)
+            job4 = Job(TractsGenJobNames.DWI2RESPONSE_MSMT.value, node_label="Compute MSMT DWI response")
             job4.addArguments(dwi_mif, file_5tt, file_RF_WM, file_RF_GM, file_RF_CSF,
                               file_RF_voxels, self.mrtrix_threads)
             job4.uses(dwi_mif, link=Link.INPUT)
@@ -85,7 +85,7 @@ class TractsGeneration(object):
             csf_mif = File(DWIFiles.CSF_MIF.value)
             file_wm_fod = File(TractsGenFiles.WM_FOD_MIF.value)
             # TODO: does msdwi2fod exist? should we use dwi2fod with the same args?
-            job5 = Job(TractsGenJobNames.MSDWI2FOD.value)
+            job5 = Job(TractsGenJobNames.MSDWI2FOD.value, node_label="Compute MSMT WM FOD")
             job5.addArguments("msmt_csd", dwi_mif, file_RF_WM, file_wm_fod, file_RF_GM, gm_mif, file_RF_CSF, csf_mif,
                               "-mask", mask_mif, "-nthreads", self.mrtrix_threads)
             job5.uses(dwi_mif, link=Link.INPUT)
@@ -165,7 +165,7 @@ class TractsGeneration(object):
 
         b0_nii_gz = File(DWIFiles.B0_NII_GZ.value)
         file_tdi_ends = File(TractsGenFiles.TDI_ENDS_MIF.value)
-        job8 = Job(TractsGenJobNames.TCKMAP.value, node_label="TCKMAP")
+        job8 = Job(TractsGenJobNames.TCKMAP.value, node_label="TCKMAP tracts")
         job8.addArguments(file_strmlns_sift, file_tdi_ends, "-vox", "1", "-template", b0_nii_gz)
         job8.uses(file_strmlns_sift, link=Link.INPUT)
         job8.uses(b0_nii_gz, link=Link.INPUT)
@@ -175,7 +175,7 @@ class TractsGeneration(object):
         dax.depends(job8, job_tcksift)
 
         file_tdi_ends_nii_gz = File(TractsGenFiles.TDI_ENDS_NII_GZ.value)
-        job_convert_tdi_ends = Job(DWIJobNames.MRCONVERT.value)
+        job_convert_tdi_ends = Job(DWIJobNames.MRCONVERT.value, node_label="mrconvert tdi_ends mif->nii")
         job_convert_tdi_ends.addArguments(file_tdi_ends, file_tdi_ends_nii_gz)
         job_convert_tdi_ends.uses(file_tdi_ends, link=Link.INPUT)
         job_convert_tdi_ends.uses(file_tdi_ends_nii_gz, link=Link.OUTPUT, transfer=True, register=True)

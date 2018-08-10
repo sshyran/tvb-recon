@@ -23,7 +23,7 @@ class SensorModel(object):
 
         head2ipm_file = File(SensorModelFiles.SEEG_H2IPM.value)
 
-        job1 = Job(HeadModelJobNames.OM_ASSEMBLE.value)
+        job1 = Job(HeadModelJobNames.OM_ASSEMBLE.value, node_label="om_assemble subcortical seeg sensor model")
         job1.addArguments("-h2ipm", head_model_geom, head_model_cond, seeg_xyz, head2ipm_file)
         for surf in bem_tri_surfs:
             job1.uses(surf, link=Link.INPUT)
@@ -42,10 +42,17 @@ class SensorModel(object):
         jobs_lh = []
         jobs_rh = []
         for iatlas, atlas_suffix in self.atlas_suffixes:
+
+            if len(atlas_suffix) == 0:
+                atlas_name = "default"
+            else:
+                atlas_name = atlas_suffix[1:]
+
             lh_white_dsms.append(File(SourceModelFiles.LH_WHITE_RESAMP_DSM.value % (self.trg_subject, atlas_suffix)))
             lh_ds2ipm_files.append(File(SensorModelFiles.LH_DS2IPM.value % (self.trg_subject, atlas_suffix)))
     
-            jobs_lh.append(Job(HeadModelJobNames.OM_ASSEMBLE.value))
+            jobs_lh.append(Job(HeadModelJobNames.OM_ASSEMBLE.value,
+                           node_label="om_assemble lh cortical seeg sensor model for atlas %s" % atlas_name))
             jobs_lh[-1].addArguments("-ds2ipm", head_model_geom, head_model_cond, 
                                      lh_white_dsms[-1], seeg_xyz, lh_ds2ipm_files[-1])
             for surf in bem_tri_surfs:
@@ -63,7 +70,8 @@ class SensorModel(object):
             rh_white_dsms.append(File(SourceModelFiles.RH_WHITE_RESAMP_DSM.value % (self.trg_subject, atlas_suffix)))
             rh_ds2ipm_files.append(File(SensorModelFiles.RH_DS2IPM.value % (self.trg_subject, atlas_suffix)))
     
-            jobs_rh.append(Job(HeadModelJobNames.OM_ASSEMBLE.value))
+            jobs_rh.append(Job(HeadModelJobNames.OM_ASSEMBLE.value,
+                           node_label="om_assemble rh cortical seeg sensor model for atlas %s" % atlas_name))
             jobs_rh[-1].addArguments("-ds2ipm", head_model_geom, head_model_cond, rh_white_dsms[-1], seeg_xyz, rh_ds2ipm_files[-1])
             for surf in bem_tri_surfs:
                 jobs_rh[-1].uses(surf, link=Link.INPUT)

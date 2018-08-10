@@ -14,7 +14,7 @@ class HeadModel(object):
 
         bem_surfs = [brain_surface, inner_skull_surface, outer_skin_surface, outer_skull_surface]
 
-        job1 = Job(HeadModelJobNames.MNE_WATERSHED_BEM.value)
+        job1 = Job(HeadModelJobNames.MNE_WATERSHED_BEM.value, node_label="mne_watershed_bem surfaces generation")
         job1.addArguments(self.subject)
         for surf in bem_surfs:
             job1.uses(surf, link=Link.OUTPUT, transfer=True, register=True)
@@ -32,8 +32,10 @@ class HeadModel(object):
 
         last_job = job1
 
-        for i, surf in enumerate(bem_surfs):
-            job2 = Job(T1JobNames.MRIS_CONVERT.value)
+        surface_names = ["brain", "inner skull", "outer skin", "outer skull"]
+
+        for i, (surf, surf_name) in enumerate(zip(bem_surfs, surface_names)):
+            job2 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert to center %s surface" % surf_name)
             job2.addArguments("--to-scanner", surf, centered_bem_surfs[i])
             job2.uses(surf, link=Link.INPUT)
             job2.uses(centered_bem_surfs[i], link=Link.OUTPUT, transfer=True, register=True)
@@ -50,8 +52,9 @@ class HeadModel(object):
         zip_bem_surfaces = [brain_surface_zip, inner_skull_surface_zip, outer_skin_surface_zip, outer_skull_surface_zip]
 
         # TODO: add vox2ras.txt inside zip
-        for i, centered_surf in enumerate(centered_bem_surfs):
-            job3 = Job(HeadModelJobNames.GEN_SURFACE_ZIP.value)
+        for i, (centered_surf, surf_name) in enumerate(zip(centered_bem_surfs, surface_names)):
+            job3 = Job(HeadModelJobNames.GEN_SURFACE_ZIP.value,
+                       node_label="zip %s centered surface" % surf_name)
             job3.addArguments(centered_surf, zip_bem_surfaces[i], self.subject)
             job3.uses(centered_surf, link=Link.INPUT)
             job3.uses(zip_bem_surfaces[i], link=Link.OUTPUT, transfer=True, register=True)
@@ -78,8 +81,10 @@ class HeadModel(object):
 
         last_job = job_bem_surfaces
 
-        for i, surf in enumerate(bem_surfs):
-            job_resamp = Job(ResamplingJobNames.MRIS_DECIMATE.value)
+        surface_names = ["brain", "inner skull", "outer skin", "outer skull"]
+
+        for i, (surf, surf_name) in enumerate(zip(bem_surfs, surface_names)):
+            job_resamp = Job(ResamplingJobNames.MRIS_DECIMATE.value, node_label="mris_decimate %s " % surf_name)
             job_resamp.addArguments("-d", "0.1", surf, bem_surfs_low[i])
             job_resamp.uses(surf, link=Link.INPUT)
             job_resamp.uses(bem_surfs_low[i], link=Link.OUTPUT, transfer=True, register=True)
@@ -95,9 +100,10 @@ class HeadModel(object):
 
         bem_tri_surfs = [brain_surface_tri, inner_skull_surface_tri, outer_skull_surface_tri, outer_skin_surface_tri]
 
-        for idx, surf in enumerate(bem_surfs_low):
+        for idx, (surf, surf_name) in enumerate(zip(bem_surfs_low, surface_names)):
             tri_file = bem_tri_surfs[idx]
-            job2 = Job(HeadModelJobNames.CONVERT_TO_BRAIN_VISA.value)
+            job2 = Job(HeadModelJobNames.CONVERT_TO_BRAIN_VISA.value,
+                       node_label="convert decimated %s to brain visa" % surf_name)
             job2.addArguments(surf, tri_file, self.subject)
             job2.uses(surf, link=Link.INPUT)
             job2.uses(tri_file, link=Link.OUTPUT, transfer=True, register=True)
@@ -108,7 +114,7 @@ class HeadModel(object):
 
         head_model_geom = File(HeadModelFiles.HEAD_MODEL_GEOM.value)
         head_model_cond = File(HeadModelFiles.HEAD_MODEL_COND.value)
-        job4 = Job(HeadModelJobNames.GEN_HEAD_MODEL.value)
+        job4 = Job(HeadModelJobNames.GEN_HEAD_MODEL.value, node_label="Generate head model")
         job4.addArguments(self.subject, True)
         for surf in bem_tri_surfs:
             job4.uses(surf, link=Link.INPUT)
@@ -119,7 +125,7 @@ class HeadModel(object):
         dax.depends(job4, last_job)
 
         head_matrix = File(HeadModelFiles.HEAD_MAT.value)
-        job5 = Job(HeadModelJobNames.OM_ASSEMBLE.value)
+        job5 = Job(HeadModelJobNames.OM_ASSEMBLE.value, node_label="om_assemble head matrix")
         job5.addArguments("-HM", head_model_geom, head_model_cond, head_matrix)
         for surf in bem_tri_surfs:
             job5.uses(surf, link=Link.INPUT)
@@ -130,7 +136,7 @@ class HeadModel(object):
 
         dax.depends(job5, job4)
 
-        head_inv_matrix = File(HeadModelFiles.HEAD_INV_MAT.value)
+        head_inv_matrix = File(HeadModelFiles.HEAD_INV_MAT.value, node_label="Compute inverse head matrix")
         job6 = Job(HeadModelJobNames.OM_MINVERSER.value)
         job6.addArguments(head_matrix, head_inv_matrix)
         job6.uses(head_matrix, link=Link.INPUT)

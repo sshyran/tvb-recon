@@ -41,7 +41,8 @@ class Resampling(object):
         jobs2 = [[], []]
         for ih, (hemi, h_pial, h_pial_resamp, h_aparc, h_aparc_resamp) in \
             enumerate(zip(["lh", "rh"], pials, pials_resamp,aparcs, aparcs_resamp)):
-            jobs1.append(Job(ResamplingJobNames.MRI_SURF2SURF.value, node_label="Resample %s pial " % hemi))
+            jobs1.append(Job(ResamplingJobNames.MRI_SURF2SURF.value,
+                             node_label="mri_surf2surf resampling of %s pial " % hemi))
             jobs1[-1].addArguments("pial", "--srcsubject", self.subject, "--trgsubject", self.trg_subject,
                                    "--hemi", hemi, "--sval-xyz", "pial", "--tval", "pial-%s" % self.trg_subject,
                                    "--tval-xyz", t1_mgz)
@@ -54,7 +55,7 @@ class Resampling(object):
             for iatlas, (atlas_suffix, aparc, aparc_resamp) in \
                     enumerate(zip(self.atlas_suffixes, h_aparc, h_aparc_resamp)):
                 jobs2[ih].append(Job(ResamplingJobNames.MRI_SURF2SURF.value,
-                                     node_label="Resample %s_aparc%s" % (hemi, atlas_suffix)))
+                                     node_label="mri_surf2surf resampling of %s_aparc%s" % (hemi, atlas_suffix)))
                 # Correct for empty suffix for default atlas or argument $1 will be missing
                 if len(atlas_suffix) == 0:
                     atlas_suffix_ = "default"
@@ -69,7 +70,7 @@ class Resampling(object):
                 dax.depends(jobs2[ih][-1], job_recon)
 
         lh_centered_pial = File(ResamplingFiles.LH_CENTERED_PIAL_RESAMP.value % self.trg_subject)
-        job5 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert_lh")
+        job5 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert to center lh.pial")
         job5.addArguments("--to-scanner", lh_pial_resamp, lh_centered_pial)
         job5.uses(lh_pial_resamp, link=Link.INPUT)
         job5.uses(lh_centered_pial, link=Link.OUTPUT, transfer=True, register=True)
@@ -77,7 +78,7 @@ class Resampling(object):
         dax.depends(job5, jobs1[0])
 
         rh_centered_pial = File(ResamplingFiles.RH_CENTERED_PIAL_RESAMP.value % self.trg_subject)
-        job6 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert_rh")
+        job6 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert to center rh.pial")
         job6.addArguments("--to-scanner", rh_pial_resamp, rh_centered_pial)
         job6.uses(rh_pial_resamp, link=Link.INPUT)
         job6.uses(rh_centered_pial, link=Link.OUTPUT, transfer=True, register=True)

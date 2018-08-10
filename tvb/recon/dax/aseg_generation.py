@@ -71,7 +71,7 @@ class AsegGeneration(object):
             dax.depends(job4, job3)
 
             aseg_lbl = File(AsegFiles.ASEG_LBL.value % aseg_label)
-            job_rename = Job("mv", node_label="mv__%s" % aseg_label)
+            job_rename = Job("mv", node_label="rename %s" % aseg_label)
             job_rename.addArguments(lh_aseg_lbl, aseg_lbl)
             job_rename.uses(lh_aseg_lbl, link=Link.INPUT)
             job_rename.uses(aseg_lbl, link=Link.OUTPUT, transfer=True, register=True)
@@ -88,7 +88,7 @@ class AsegGeneration(object):
                 dax.depends(job6, job_rename)
 
         lh_centered_aseg = File(AsegFiles.LH_CENTERED_ASEG.value)
-        job7 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert_lh")
+        job7 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert to center lh aseg surf")
         job7.addArguments("--to-scanner", lh_aseg, lh_centered_aseg)
         job7.uses(lh_aseg, link=Link.INPUT)
         job7.uses(lh_centered_aseg, link=Link.OUTPUT, transfer=True, register=True)
@@ -97,7 +97,7 @@ class AsegGeneration(object):
         dax.depends(job7, job5)
 
         rh_centered_aseg = File(AsegFiles.RH_CENTERED_ASEG.value)
-        job8 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert_rh")
+        job8 = Job(T1JobNames.MRIS_CONVERT.value, node_label="mris_convert to center rh aseg surf")
         job8.addArguments("--to-scanner", rh_aseg, rh_centered_aseg)
         job8.uses(rh_aseg, link=Link.INPUT)
         job8.uses(rh_centered_aseg, link=Link.OUTPUT, transfer=True, register=True)
