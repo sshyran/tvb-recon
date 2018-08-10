@@ -30,7 +30,7 @@ tr mrconvert {
     profile env "HOME" "${HOME}"
 
     site condorpool {
-         pfn "${MRTRIX_BIN}/mrconvert"
+        pfn "${MRTRIX_BIN}/mrconvert"
         arch "x86_64"
         os "${OS}"
         type "INSTALLED"
@@ -97,11 +97,11 @@ tr convert-xfm {
     }
 }
 
-tr flirt-reversed {
+tr flirt-applyxfm {
     profile env "FSL_DIR" "${FSL_DIR}"
 
     site condorpool {
-        pfn "${SH_CUSTOM_FILES}/flirt-reversed.sh"
+        pfn "${SH_CUSTOM_FILES}/flirt-applyxfm.sh"
         arch "x86_64"
         os "${OS}"
         type "STAGEABLE"
@@ -393,12 +393,16 @@ tr autorecon3-flair {
 
 tr mri_binarize {
     profile env "FREESURFER_HOME" "${FREESURFER_HOME}"
+    profile env "SUBJECTS_DIR" "${SUBJECTS_DIR}"
+    profile env "HOME" "${HOME}"
+    profile env "ANACONDA_ACTIVATE" "${ANACONDA_ACTIVATE}"
+    profile env "PYTHON3_ENVIRONMENT" "${PYTHON3_ENVIRONMENT}"
 
     site condorpool {
-        pfn "${FREESURFER_HOME}/bin/mri_binarize"
+        pfn "${SH_CUSTOM_FILES}/mri_binarize.sh"
         arch "x86_64"
         os "${OS}"
-        type "INSTALLED"
+        type "STAGEABLE"
     }
 }
 
