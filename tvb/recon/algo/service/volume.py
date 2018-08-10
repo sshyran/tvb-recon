@@ -119,10 +119,15 @@ class VolumeService(object):
 
         kx, ky, kz = numpy.mgrid[-dist:dist + 1, -dist:dist + 1, -dist:dist + 1]
 
+        def constraint_index(dim, ind):
+            return numpy.minimum(numpy.maximum(0, numpy.array(ind)), numpy.array(dim)-1)
+
         for val, pos in zip(values, positions):
             ix, iy, iz = numpy.linalg.solve(ref_volume.affine, numpy.append(pos, 1.0))[0:3].astype(int)
             # new_volume[inds[0], inds[1], inds[2]] = val
-            new_volume[ix + kx, iy + ky, iz + kz] = val
+            new_volume[constraint_index(ref_volume.shape[0], ix + kx),
+                       constraint_index(ref_volume.shape[1], iy + ky),
+                       constraint_index(ref_volume.shape[2], iz + kz)] = val
 
         # add_min_max(new_volume)
 
