@@ -13,7 +13,7 @@ class Inputs(Enum):
     FLAIR_INPUT = "flair_input.nii.gz"
     CT_INPUT = "ct_input.nii.gz"
     SCHEMA_TXT = "schema.txt"
-    MRI_ELEC_INPUT = "mri_elec_input.nii.gz"
+    MRIELEC_INPUT = "mrielec_input.nii.gz"
     ELECS_POM = "elecs.pom"
 
 
@@ -75,7 +75,7 @@ class CoregFiles(Enum):
 class CoregJobNames(Enum):
     FLIRT = "flirt"
     CONVERT_XFM = "convert-xfm"
-    FLIRT_REVERSED = "flirt-reversed"
+    FLIRT_APPLYXFM = "flirt-applyxfm"
     BBREGISTER = "bbregister"
     MRI_VOL2VOL = "mri_vol2vol"
 
@@ -87,7 +87,7 @@ class TractsGenFiles(Enum):
     RESPONSE_TXT = "response.txt"
     WM_FOD_MIF = "wm_fod.mif"
     FILE_TCK = "%s.tck"
-    FILE_SIFT_TCK = "sift%s.tck"
+    FILE_SIFT_TCK = "%s_sift.tck"
     TDI_ENDS_MIF = "tdi_ends.mif"
     GM_MIF = "gm.mif"
     CSF_MIF = "csf.mif"
@@ -286,14 +286,13 @@ class MriElecSEEGCompJobNames(Enum):
 
 class MriElecSEEGCompFiles(Enum):
     SEEG_POM_XYZ_TXT = "seeg_pom_xyz.txt"
-    SEEG_POM_VOL_NII_GZ = "seeg_pom_vol.nii.gz"
-    MRI_ELEC_TO_T1_MAT = "mrielec_to_t1.mat"
-    MRI_ELEC_IN_T1_NII_GZ = "mrielec_in_t1.nii.gz"
+    SEEG_POM_VOL = "seeg_pom.nii.gz"
+    SEEG_POM_BIN_VOL = "seeg_pom_bin.nii.gz"
+    MRIELEC_TO_T1_MAT = "mrielec_to_t1.mat"
+    MRIELEC_IN_T1_VOL = "mrielec_in_t1.nii.gz"
+    MRIELEC_BIN_VOL = "mrielec_bin.nii.gz"
+    MRIELEC_BIN_IN_T1_VOL = "mrielec_bin_in_t1.nii.gz"
+    SEEG_POM_TO_T1_MAT = "seeg_pom_to_t1.mat"
+    SEEG_POM_IN_T1_VOL = "seeg_pom_in_t1.nii.gz"
     SEEG_XYZ_TXT = "seeg_xyz.txt"
-    SEEG_IN_T1_NII_GZ = "seeg_in_t1.nii.gz"
-    COORDS_POM_XYZ_TXT = "coords_pom_xyz.txt"
-    COORDS_XYZ_TXT = "coords_xyz.txt"
-    SEEG_POM_XYZ_IN_MRIELEC_XYZ = "seeg_pom_xyz_in_mrielec.xyz"
-    POM_VOL_IN_MRIELEC_NII_GZ = "seeg_pom_in_mrielec_vol.nii.gz"
-    COORDS_POM_XYZ_IN_MRIELEC_XYZ = "coords_pom_xyz_in_mrielec.xyz"
-    COORDS_POM_VOL_IN_MRIELEC_NII_GZ = "coords_pom_in_mrielec_vol.nii.gz"
+    SEEG_IN_T1_VOL = "seeg_in_t1.nii.gz"
