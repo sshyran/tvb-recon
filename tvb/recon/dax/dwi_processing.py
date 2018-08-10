@@ -31,15 +31,15 @@ class DWIProcessing(object):
                 else:
                     # TODO: to handle a possible case where gradient information is missing!
                     # Probably gradient (i.e., bvec, bval) is different for each direction...
-                    dwi_input = File(DWIFiles.DWI_INPUT.value)
+                    dwi_input = File(Inputs.DWI_INPUT.value)
                     dwi_raw_mif = File(DWIFiles.DWI_RAW_MIF.value)
                     job1 = Job(DWIJobNames.MRCONVERT.value, node_label="mrconvert dwi input to dwi_raw.mif")
-                    job1.addArguments(dwi_input)
+                    job1.addArguments(dwi_input, dwi_raw_mif)
                     job1.uses(dwi_input, link=Link.INPUT)
                     job1.uses(dwi_raw_mif, link=Link.OUTPUT, transfer=False, register=False)
                     dax.addJob(job1)
 
-                    dwi_re_input = File(DWIFiles.DWI_RE_INPUT.value)
+                    dwi_re_input = File(Inputs.DWI_RE_INPUT.value)
                     dwi_re_raw_mif = File(DWIFiles.DWI_RE_RAW_MIF.value)
                     job1re = Job(DWIJobNames.MRCONVERT.value,
                                   node_label="mrconvert dwi reversed input to dwi_re_raw.mif")
@@ -77,7 +77,7 @@ class DWIProcessing(object):
 
                 job1 = Job(DWIJobNames.MRCONVERT.value,
                            node_label="mrconvert dwi input to dwi_raw.mif adding gradient bval & bvec")
-                job1.addArguments(dwi_input, "-fsl", bvec_input, bval_input, dwi_input)
+                job1.addArguments(dwi_input, "-fsl", bvec_input, bval_input, dwi_raw_mif)
                 job1.uses(dwi_input, link=Link.INPUT)
                 job1.uses(bvec_input, link=Link.INPUT)
                 job1.uses(bval_input, link=Link.INPUT)
@@ -85,7 +85,7 @@ class DWIProcessing(object):
 
             else:
                 job1 = Job(DWIJobNames.MRCONVERT.value, node_label="mrconvert dwi input to dwi_raw.mif")
-                job1.addArguments(dwi_input)
+                job1.addArguments(dwi_input, dwi_raw_mif)
                 job1.uses(dwi_input, link=Link.INPUT)
                 job1.uses(dwi_raw_mif, link=Link.OUTPUT, transfer=True, register=True)
 
