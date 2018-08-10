@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from Pegasus.DAX3 import File, Job, Link
+
 from tvb.recon.dax.mappings import Inputs, MriElecSEEGCompFiles, MriElecSEEGCompJobNames, T1Files, CoregJobNames, \
     SEEGCompJobNames
 from tvb.recon.dax.qc_snapshots import QCSnapshots
@@ -45,6 +46,14 @@ class MriElecSEEGComputation(object):
         seeg_pom_xyz_txt = File(MriElecSEEGCompFiles.SEEG_POM_XYZ_TXT.value)
         seeg_pom_vol = File(MriElecSEEGCompFiles.SEEG_POM_VOL.value)
 
+        arguments_dilate_erode = []
+        if self.dilate > 0:
+            arguments_dilate_erode.append("--dilate")
+            arguments_dilate_erode.append(str(self.dilate))
+        if self.erode > 0:
+            arguments_dilate_erode.append("--erode")
+            arguments_dilate_erode.append(str(self.erode))
+
         if self.same_space_vol_pom == "True":
 
             # In this case pom space is the same as mrielec space,
@@ -71,6 +80,7 @@ class MriElecSEEGComputation(object):
             # Therefore, we can assign seeg pom coordinates already to a dummy volume in the MRIelectrode_in_t1 space.
             # Then all we need is to register this dummy volume to MRIelectrode_in_t1
             # and thus, transform the seeg pom coordinates to T1 space
+
             job2 = Job(MriElecSEEGCompJobNames.EXTRACT_POSITIONS_FROM_POM.value,
                        node_label="Extract SEEG coordinates from pom file to a MRIelectrode_in_t1-like volume")
             job2.addArguments(elecs_pom, seeg_pom_xyz_txt, mrielec_in_t1_nii_gz, seeg_pom_vol)
@@ -82,75 +92,53 @@ class MriElecSEEGComputation(object):
             dax.addJob(job2)
             dax.depends(job2, job1)
 
-            last_job = job2
+            # Binarize the seeg pom volume
+            seeg_pom_bin_vol = File(MriElecSEEGCompFiles.SEEG_POM_BIN_VOL.value)
+            job3 = Job(SEEGCompJobNames.MRI_BINARIZE.value, node_label="Binarize seeg pom volume")
+
+            arguments_list = ["--i", seeg_pom_vol, "--o", seeg_pom_bin_vol, "--min", "max"] + arguments_dilate_erode
+            job3.addArguments(*tuple(arguments_list))
+            job3.uses(seeg_pom_vol, Link.INPUT)
+            job3.uses(seeg_pom_bin_vol, Link.OUTPUT, transfer=True, register=True)
+
+            dax.addJob(job3)
+            dax.depends(job3, job2)
 
             mrielec_bin_vol = File(MriElecSEEGCompFiles.MRIELEC_BIN_VOL.value)
 
             # For the threshold value to work, the MRIelectrode binarization has to happen on the original volume...
 
-            job3 = Job(SEEGCompJobNames.MRI_BINARIZE.value, node_label="Binarize MRIelectrode")
+            job4 = Job(SEEGCompJobNames.MRI_BINARIZE.value, node_label="Binarize MRIelectrode")
 
-            arguments_list = ["--i", mrielec_vol, "--o", mrielec_bin_vol, "--min", "max"]
-            if self.dilate > 0:
-                arguments_list.append("--dilate")
-                arguments_list.append(str(self.dilate))
-            if self.erode > 0:
-                arguments_list.append("--erode")
-                arguments_list.append(str(self.erode))
+            arguments_list = ["--i", mrielec_vol, "--o", mrielec_bin_vol, "--min", "max"] + arguments_dilate_erode
+            job4.addArguments(*tuple(arguments_list))
+            job4.uses(mrielec_vol, Link.INPUT)
+            job4.uses(mrielec_bin_vol, Link.OUTPUT, transfer=True, register=True)
 
-            job3.addArguments(*tuple(arguments_list))
-            job3.uses(mrielec_vol, Link.INPUT)
-            job3.uses(mrielec_bin_vol, Link.OUTPUT, transfer=True, register=True)
+            dax.addJob(job4)
 
-            dax.addJob(job3)
-
-            dax.depends(job3, job1)
+            dax.depends(job4, job1)
 
             # ...and only then register the binarized volume to t1 space
             mrielec_bin_in_t1_nii_gz = File(MriElecSEEGCompFiles.MRIELEC_BIN_IN_T1_VOL.value)
 
-            job4 = Job(CoregJobNames.FLIRT_APPLYXFM.value, node_label="Register binarized MRIelectrode to t1")
-            job4.addArguments(mrielec_bin_vol, t1_nii_gz, mrielec_bin_in_t1_nii_gz, mrielec_to_t1_mat)
-            job4.uses(mrielec_bin_vol, link=Link.INPUT)
-            job4.uses(t1_nii_gz, link=Link.INPUT)
-            job4.uses(mrielec_to_t1_mat, link=Link.INPUT)
-            job4.uses(mrielec_bin_in_t1_nii_gz, link=Link.OUTPUT, transfer=True, register=True)
-            dax.addJob(job4)
+            job5 = Job(CoregJobNames.FLIRT_APPLYXFM.value, node_label="Register binarized MRIelectrode to t1")
+            job5.addArguments(mrielec_bin_vol, t1_nii_gz, mrielec_bin_in_t1_nii_gz, mrielec_to_t1_mat)
+            job5.uses(mrielec_bin_vol, link=Link.INPUT)
+            job5.uses(t1_nii_gz, link=Link.INPUT)
+            job5.uses(mrielec_to_t1_mat, link=Link.INPUT)
+            job5.uses(mrielec_bin_in_t1_nii_gz, link=Link.OUTPUT, transfer=True, register=True)
+            dax.addJob(job5)
 
-            dax.depends(job4, job3)
+            dax.depends(job5, job4)
 
-            self.qc_snapshots.add_2vols_snapshot_step(dax, [job4],
+            self.qc_snapshots.add_2vols_snapshot_step(dax, [job5],
                                                       mrielec_bin_in_t1_nii_gz, t1_nii_gz, "mrielec_bin_in_t1")
 
-            if self.dilate > 0:
-
-                # seeg_pom_vol is already binarized. Optionally we apply some dilation and erotion
-
-                seeg_pom_bin_vol = File(MriElecSEEGCompFiles.SEEG_POM_BIN_VOL.value)
-                job5 = Job(SEEGCompJobNames.MRI_BINARIZE.value, node_label="Dilate/erode seeg pom volume")
-    
-                arguments_list = ["--i", seeg_pom_vol, "--o", seeg_pom_bin_vol, "--min", "max"]
-                if self.dilate > 0:
-                    arguments_list.append("--dilate")
-                    arguments_list.append(str(self.dilate))
-                if self.erode > 0:
-                    arguments_list.append("--erode")
-                    arguments_list.append(str(self.erode))
-
-                job5.addArguments(*tuple(arguments_list))
-                job5.uses(seeg_pom_vol, Link.INPUT)
-                job5.uses(seeg_pom_bin_vol, Link.OUTPUT, transfer=True, register=True)
-    
-                dax.addJob(job5)
-                dax.depends(job5, job2)
-
-                last_job = job5
-
-            else:
-                seeg_pom_bin_vol = seeg_pom_vol
-
+            # This is the most tricky part: register the two binary volumes together,
+            #  the seeg pom one to the MRIelectrode_in_t1
             seeg_pom_to_t1 = File(MriElecSEEGCompFiles.SEEG_POM_TO_T1_MAT.value)
-            seeg_pom_bin_in_t1_nii_gz = File(MriElecSEEGCompFiles.SEEG_POM_IN_T1_VOL.value)
+            seeg_pom_bin_in_t1_nii_gz = File(MriElecSEEGCompFiles.SEEG_POM_BIN_IN_T1_VOL.value)
 
             job_coreg = Job(CoregJobNames.FLIRT.value, node_label="Register seeg pom to binarized MRIelectrode_in_t1")
             job_coreg.addArguments(seeg_pom_bin_vol, mrielec_bin_in_t1_nii_gz,
@@ -161,12 +149,12 @@ class MriElecSEEGComputation(object):
             job_coreg.uses(seeg_pom_bin_in_t1_nii_gz, Link.OUTPUT, transfer=True, register=True)
 
             dax.addJob(job_coreg)
-            dax.depends(job_coreg, last_job)
-            dax.depends(job_coreg, job4)
+            dax.depends(job_coreg, job3)
+            dax.depends(job_coreg, job5)
 
             self.qc_snapshots.add_2vols_snapshot_step(dax, [job_coreg],
-                                                      seeg_pom_bin_in_t1_nii_gz, mrielec_bin_in_t1_nii_gz,
-                                                      "seeg_pom_bin_in_mrielec_in_t1_bin")
+                                                      seeg_pom_bin_in_t1_nii_gz, mrielec_in_t1_nii_gz,
+                                                      "seeg_pom_bin_in_mrielec_in_t1")
 
             last_job = job_coreg
 

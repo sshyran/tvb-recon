@@ -293,6 +293,6 @@ class MriElecSEEGCompFiles(Enum):
     MRIELEC_BIN_VOL = "mrielec_bin.nii.gz"
     MRIELEC_BIN_IN_T1_VOL = "mrielec_bin_in_t1.nii.gz"
     SEEG_POM_TO_T1_MAT = "seeg_pom_to_t1.mat"
-    SEEG_POM_IN_T1_VOL = "seeg_pom_in_t1.nii.gz"
+    SEEG_POM_BIN_IN_T1_VOL = "seeg_pom_bin_in_t1.nii.gz"
     SEEG_XYZ_TXT = "seeg_xyz.txt"
     SEEG_IN_T1_VOL = "seeg_in_t1.nii.gz"
