@@ -169,8 +169,9 @@ if __name__ == "__main__":
                     # MRIELEC: SEEG sensors depicted on T1
                     mrielec_seeg_computation = MriElecSEEGComputation(subject, config.props[ConfigKey.MRIELEC_FRMT],
                                                                       config.props[ConfigKey.SAME_SPACE_VOL_POM],
-                                                                      config.props[ConfigKey.CT_ELEC_INTENSITY_TH])
-                    job_seeg_xyz = mrielec_seeg_computation.add_computation_steps(dax)
+                                                                      config.props[ConfigKey.MRIELEC_BIN_DILATE],
+                                                                      config.props[ConfigKey.MRIELEC_BIN_ERODE])
+                    job_seeg_xyz = mrielec_seeg_computation.add_computation_steps(dax, job_t1)
 
                 else:
                     if config.props[ConfigKey.CT_FLAG] == "True":
@@ -178,7 +179,7 @@ if __name__ == "__main__":
                         seeg_computation = SEEGComputation(subject, config.props[ConfigKey.CT_FRMT],
                                                            config.props[ConfigKey.CT_ELEC_INTENSITY_TH])
 
-                        job_seeg_xyz = seeg_computation.add_seeg_positions_computation_steps(dax)
+                        job_seeg_xyz = seeg_computation.add_seeg_positions_computation_steps(dax, job_t1, job_recon)
                 for atlas_suffix, job_mapping_details in zip(atlas_suffixes, jobs_mapping_details):
                     if job_seeg_xyz is not None:
                         seeg_gain_computation.append(SeegGainComputation(config.props[ConfigKey.SUBJECT], atlas_suffix))
