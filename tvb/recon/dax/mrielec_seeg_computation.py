@@ -92,11 +92,11 @@ class MriElecSEEGComputation(object):
             dax.addJob(job2)
             dax.depends(job2, job1)
 
-            # Binarize the seeg pom volume
+            # Binarize the seeg pom volume (it originally has values increasing from 1 to the number of seeg contacts)
             seeg_pom_bin_vol = File(MriElecSEEGCompFiles.SEEG_POM_BIN_VOL.value)
             job3 = Job(SEEGCompJobNames.MRI_BINARIZE.value, node_label="Binarize seeg pom volume")
 
-            arguments_list = ["--i", seeg_pom_vol, "--o", seeg_pom_bin_vol, "--min", "max"] + arguments_dilate_erode
+            arguments_list = ["--i", seeg_pom_vol, "--o", seeg_pom_bin_vol, "--min", "1"] + arguments_dilate_erode
             job3.addArguments(*tuple(arguments_list))
             job3.uses(seeg_pom_vol, Link.INPUT)
             job3.uses(seeg_pom_bin_vol, Link.OUTPUT, transfer=True, register=True)
