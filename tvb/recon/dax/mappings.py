@@ -9,7 +9,7 @@ class Inputs(Enum):
     DWI_BVAL = "dwi.bval"
     FS_LUT = "fs_color_lut.txt"
     FS_DEFAULT = "fs_default.txt"
-    T2_INPUT = "t2_input.nii"
+    T2_INPUT = "t2_input.nii.gz"
     FLAIR_INPUT = "flair_input.nii.gz"
     CT_INPUT = "ct_input.nii.gz"
     SCHEMA_TXT = "schema.txt"
