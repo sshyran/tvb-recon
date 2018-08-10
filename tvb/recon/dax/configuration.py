@@ -33,6 +33,8 @@ class ConfigKey(Enum):
     PROCESS_SENSORS = "process.sensors"
     MRIELEC_FLAG = "mrielec.flag"
     MRIELEC_FRMT = "mrielec.format"
+    MRIELEC_BIN_DILATE = "mrielec.bin_dilate"
+    MRIELEC_BIN_ERODE = "mrielec.bin_erode"
     SAME_SPACE_VOL_POM = "same.space.vol.pom"
     CT_FLAG = "ct.flag"
     CT_FRMT = "ct.format"
